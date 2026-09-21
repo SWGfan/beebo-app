@@ -6,6 +6,7 @@ const crypto = require('node:crypto')
 const { ENGLISH_VOICES } = require('../electron/storybookRuntime')
 const vs = require('../electron/voiceSamples')
 const pkg = require('../package.json')
+const { testPort } = require('./helpers/testPort')
 
 const APP = path.join(__dirname, '..')
 const DIR = path.join(APP, 'resources', 'voice-samples')
@@ -79,7 +80,7 @@ test('GET /api/storybook-voice-sample/<id> over a real server: auth, allowlist, 
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
     const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
     const token = server.makeApiToken(store, user.id)
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => root, getTvShowsDir: () => null,
       getAllMoviesDirs: () => [root], getAllTvShowsDirs: () => [], getTmdbCacheDir: () => root, log: () => {},

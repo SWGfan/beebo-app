@@ -8,6 +8,7 @@ const os = require('node:os')
 const path = require('node:path')
 const { spawnSync, spawn } = require('node:child_process')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 
@@ -28,7 +29,7 @@ async function startServer({ moviesDir, tmpRoot, extra = {} }) {
   const data = {}
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
-  const port = 47600 + Math.floor(Math.random() * 90) + 5
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => null,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [], log: process.env.TP_DEBUG ? console.log : () => {},

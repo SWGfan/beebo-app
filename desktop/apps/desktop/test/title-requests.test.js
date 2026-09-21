@@ -9,6 +9,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const tr = localRequire('./electron/titleRequests')
@@ -183,7 +184,7 @@ test('request a title, end to end', async () => {
     const spammer = auth.createUser(store, 'Sam', 'sam@example.com').user
     const tok = { owner: server.makeApiToken(store, owner.id), member: server.makeApiToken(store, member.id), spammer: server.makeApiToken(store, spammer.id) }
 
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
       getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir],

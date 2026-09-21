@@ -10,6 +10,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const parental = localRequire('./electron/parentalControls')
@@ -166,7 +167,6 @@ test('contentGate: filterItems, scrubJson, and outside a request nothing is filt
 // ---------------------------------------------------------------------------------------------
 
 const SECRET = 'agent-secret-for-tests-0123456789'
-let portSeq = 0
 
 async function fixture() {
   const server = localRequire('./electron/streamServer')
@@ -215,7 +215,7 @@ async function fixture() {
   parental.setPolicy(store, 'u-kid', parental.presetPolicy('kids'))
   let shareSyncs = 0
   // A fresh port per server: a pooled keep-alive connection must never reach an earlier one.
-  const port = 47100 + (process.pid % 400) + 13 * (++portSeq)
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir],

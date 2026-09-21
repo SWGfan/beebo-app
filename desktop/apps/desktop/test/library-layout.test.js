@@ -9,6 +9,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 
@@ -54,7 +55,7 @@ test('Movies and TV Shows pages render the same toolbar, sections and cards', as
     const data = {}
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
     const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => movies, getTvShowsDir: () => tv,
       getAllMoviesDirs: () => [movies], getAllTvShowsDirs: () => [tv],

@@ -5,6 +5,7 @@
 import { TIZEN_KEY_NAMES } from '../nav/keys.js'
 import { createXbox, isXboxHost } from './xbox.js'
 import { isMovieNightUrl } from '../util/movienight.js'
+import { probeEnv } from './capabilities.js'
 
 export function detect() {
   try {
@@ -68,6 +69,8 @@ export function createPlatform() {
     openMovieNight: openMovieNight,
     deviceName: xbox ? xbox.deviceName : 'Beebo TV app',
     deviceModel: deviceModel,
+    // What this TV can play and show, for the device profile sent to POST /api/playback/negotiate (util/deviceProfile.js).
+    probeEnv: function () { return probeEnv(window, kind, { engine: xbox ? xbox.engine : null, name: xbox ? xbox.deviceName : 'Beebo TV app' }) },
     backDebounceMs: 0 // >0 only where one Back press can arrive twice (Xbox)
   }
   if (xbox) {

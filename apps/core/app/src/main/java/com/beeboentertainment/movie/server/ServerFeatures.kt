@@ -26,6 +26,9 @@ enum class ServerFeature(val probeMethod: String, val probePath: String) {
 
     /** Only a server with Watch together answers a clock ping (it is also the first sync sample). */
     WATCH_TOGETHER("POST", "/api/watch-together/ping"),
+
+    /** Party games on the shared screen, played from phones (docs/MOVIE-NIGHT.md). */
+    MOVIE_NIGHT("GET", "/api/movie-night/status"),
 }
 
 /** Why a feature is on or off, for the tests and for the one line of help a screen may show. */
@@ -70,6 +73,8 @@ object FeatureProbe {
                 if (configured) Availability.AVAILABLE else Availability.NOT_SET_UP
             }
             ServerFeature.WATCH_TOGETHER -> if (json.containsKey("t1") && json.containsKey("t2")) Availability.AVAILABLE else Availability.OLDER_SERVER
+            // Switched off on the computer (or not on the home network): hidden, like an unset-up tuner.
+            ServerFeature.MOVIE_NIGHT -> if (json["available"]?.jsonPrimitive?.booleanOrNull == true) Availability.AVAILABLE else Availability.NOT_SET_UP
             else -> Availability.AVAILABLE
         }
     }

@@ -14,9 +14,9 @@ const crypto = require('node:crypto')
 const auth = require('../electron/auth')
 const server = require('../electron/streamServer')
 const M = require('../electron/markerModel')
+const { testPort } = require('./helpers/testPort')
 
 const SECRET = crypto.randomBytes(32).toString('hex')
-let portSequence = 0
 const DURATION = 1500
 
 async function fixture(t) {
@@ -41,7 +41,7 @@ async function fixture(t) {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 45000 + (process.pid % 1400) + ++portSequence,
+    port: testPort(),
     store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir],
     agentSecret: SECRET, log: () => {},

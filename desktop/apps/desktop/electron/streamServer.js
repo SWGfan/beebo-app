@@ -17,6 +17,7 @@ const fileServe = require('./fileServe')
 const titleMatch = require('./titleMatch')
 const castCredits = require('./castCredits')
 const browserChrome = require('./browserChrome')
+const { privacyNoticeHtml } = require('./privacyNotice')
 const theme = require('./theme') // per-user theme (data-theme + custom overrides), applied while pages render
 const pwa = require('./pwa') // installable web app: manifest, service worker, icons, install helper (public files)
 const themeWeb = require('./themeWeb') // /appearance page and /api/theme
@@ -97,6 +98,9 @@ const movieNightRooms = require('./movieNight') // Movie Night: the TV hub, gues
 const movieNightHttp = require('./movieNightHttp')
 const movieNightWeb = require('./movieNightWeb')
 const movieNightLibrary = require('./movieNightLibrary')
+const phoneSpeakersServer = require('./phoneSpeakersServer') // Phone speakers: guests' phones play the film's surround channels (phoneSpeakers*.js)
+const phoneSpeakersWeb = require('./phoneSpeakersWeb')
+const { qrSvg: phoneSpeakersQrSvg } = require('./qrSvg')
 const playabilityScan = require('./playabilityScan')
 const backup = require('./backup') // admin Backup tab: download / restore
 const schoolReport = require('./schoolReport') // BeeboSchool printable report page renderer
@@ -1638,6 +1642,7 @@ ${seekToJs}${resumeJs}${transportJs}${markersJs}${upNextJs}</script>
 ${!surf && mediaId ? playbackWebUi.playbackPanelHtml({ kind, mediaId }) : ''}
 ${!surf && mediaId ? watchTogetherWeb.watchTogetherHtml({ kind, mediaId, title, nextHref }) : ''}
 ${!surf && mediaId ? movieNightWeb.reactionOverlayHtml() : ''}
+${!surf && mediaId ? phoneSpeakersWeb.phoneSpeakersHtml({ kind, mediaId, title }) : ''}
 ${surf ? '' : playlistWeb.PLAYER_QUEUE_SCRIPT}
 ${pwa.playerScript()}
 </body></html>`
@@ -5627,6 +5632,42 @@ function startStreamServer({
     log: (m) => { if (typeof log === 'function') log(m) }
   })
   movieNightRooms.setActive(movieNight)
+  // --- Phone speakers (phoneSpeakers*.js): guests' phones (no account) play the film's channels while the screen shows it ---
+  const phoneSpeakers = phoneSpeakersServer.createPhoneSpeakersService({
+    store,
+    log: (m) => { if (typeof log === 'function') log(m) },
+    ffmpegPath: convert.ffmpegPath,
+    ffprobePath: convert.ffprobePath,
+    profile: () => { try { return playback.encoderService.profile() } catch { return null } },
+    resolveFile: async (kind, id) => {
+      let rel
+      try { rel = decodeId(id) } catch { return null }
+      if (!rel) return null
+      if (kind === 'tv') { const m = await library.findTvFile(allTvShowsDirs(), rel); return m ? path.join(m.dir, m.relPath) : null }
+      const m = await library.findMovie(allMoviesDirs(), rel)
+      return m ? path.join(m.dir, m.fileName) : null
+    },
+    // Same rules as watching it: the film must exist and parental controls / bedtime must allow it for this person.
+    canView: async (userId, kind, id) => {
+      let rel
+      try { rel = decodeId(id) } catch { return { ok: false } }
+      if (!rel) return { ok: false }
+      const user = auth.getUsers(store).find((u) => u && u.id === userId && u.status === 'approved')
+      if (!user) return { ok: false }
+      const viewer = viewerForUser(user)
+      if (!contentGateInstance.allowId(viewer, kind === 'tv' ? 'tv' : 'movie', id)) return { ok: false }
+      if (contentGateInstance.isLimited(viewer) && !contentGateInstance.timeGate(viewer).ok) return { ok: false }
+      const found = kind === 'tv' ? await library.findTvFile(allTvShowsDirs(), rel) : await library.findMovie(allMoviesDirs(), rel)
+      return found ? { ok: true, title: cleanTitle(path.basename(rel)) } : { ok: false }
+    },
+    getUser: (userId) => auth.getUsers(store).find((u) => u && u.id === userId && u.status === 'approved') || null,
+    // real Wi-Fi / Ethernet addresses first, virtual adapters last (phoneSpeakersServer.lanOrigins)
+    getJoinOrigins: () => phoneSpeakersServer.lanOrigins(ACTIVE_PORT),
+    isHomeRequest: (req) => localAccess.isHomeRequest(req),
+    getClientIp: (req) => getClientIp(req),
+    qrSvg: (text, o) => phoneSpeakersQrSvg(text, o)
+  })
+  phoneSpeakersServer.setActive(phoneSpeakers)
   // Ask the host (main.js) to push the share list to beebo.tv, if it gave us a way to.
   const requestShareSync = () => {
     try { if (typeof onSharesChanged === 'function') onSharesChanged() } catch {}
@@ -15551,6 +15592,12 @@ function startStreamServer({
     // it answers only on the home network unless the owner says otherwise, and every action needs a room ticket.
     if (movieNight.claimsPublic(url.pathname) && await movieNight.handlePublic(req, res, url)) return
 
+    // Phone speakers: guests' phones join with a QR code and no account (the room code is the key); see phoneSpeakersHttp.js.
+    if (phoneSpeakers.claims(url.pathname)) {
+      await phoneSpeakers.handle(req, res, url)
+      return
+    }
+
     // --- native phone app JSON API ---
     // Branches off FIRST, before the cookie session gate below, so an /api/*
     // request is always answered with JSON — never an HTML page and never a
@@ -15796,12 +15843,9 @@ function startStreamServer({
           return false
         }
       })
-      if (!f) {
-        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })
-        res.end('Privacy policy not found.')
-        return
-      }
-      const html = fs.readFileSync(f)
+      // No policy file in this copy of the app (it is not in the public source): serve the built-in
+      // generic notice, which points at the website's full policy, rather than a dead end.
+      const html = f ? fs.readFileSync(f) : Buffer.from(privacyNoticeHtml(), 'utf8')
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
         'Content-Length': html.length,
@@ -16338,6 +16382,13 @@ function startStreamServer({
     }
     if (userId && url.pathname === '/watch-together/join' && req.method === 'GET') {
       await watchTogether.landing(req, res, url, { userId })
+      return
+    }
+    // Phone speakers: the signed-in person starts a room for a film (phoneSpeakersHttp.handleOwner).
+    if (userId && url.pathname.startsWith('/phone-speakers-api/')) {
+      const sendJson = (status, obj) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)) }
+      if (await phoneSpeakers.handleOwner(req, res, url, url.pathname.slice('/phone-speakers-api'.length), { userId, send: sendJson })) return
+      sendJson(404, { ok: false, error: 'not_found' })
       return
     }
 
@@ -18366,6 +18417,8 @@ document.getElementById('go').addEventListener('click',function(){
     jellyfin: jellyfinCompat.admin,
     // Movie Night rooms: the desktop app's "Start Movie Night" button starts one over IPC (movieNightIpc.js).
     movieNight,
+    // Phone speakers: the details page's button starts a room over IPC (phoneSpeakersIpc.js).
+    phoneSpeakers,
     // Used by the tests; the app itself just exits.
     close: (cb) => {
       try { jellyfinCompat.close() } catch {}
@@ -18394,6 +18447,7 @@ document.getElementById('go').addEventListener('click',function(){
       try { playback.close() } catch {}
       try { watchTogether.close(); if (watchTogetherRooms.getActive() === watchTogether) watchTogetherRooms.setActive(null) } catch {}
       try { movieNight.close(); if (movieNightRooms.getActive() === movieNight) movieNightRooms.setActive(null) } catch {}
+      try { phoneSpeakers.close(); if (phoneSpeakersServer.getActive() === phoneSpeakers) phoneSpeakersServer.setActive(null) } catch {}
       try { podcastsSvc.stop() } catch {}
       try { radioSvc.close() } catch {}
       movieVersions.setSiblingResolver(null)

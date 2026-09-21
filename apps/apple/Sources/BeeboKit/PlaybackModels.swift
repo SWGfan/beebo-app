@@ -150,9 +150,11 @@ public struct PlaybackInfo: Decodable, Sendable {
     public let audio: [PlaybackAudioTrack]
     public let subtitles: [PlaybackSubtitleTrack]
     public let prefs: PlaybackPrefs?
+    /// Present on a server that has `POST /api/playback/negotiate` (docs/HOME-THEATER.md); nil on an older one.
+    public let homeTheater: HomeTheaterInfo?
 
     private enum CodingKeys: String, CodingKey {
-        case ok, durationSec, video, qualities, transcode, audio, subtitles, prefs
+        case ok, durationSec, video, qualities, transcode, audio, subtitles, prefs, homeTheater
     }
 
     public init(from decoder: Decoder) throws {
@@ -165,6 +167,7 @@ public struct PlaybackInfo: Decodable, Sendable {
         audio = c.lossyList(.audio)
         subtitles = c.lossyList(.subtitles)
         prefs = c.lenientOptional(.prefs)
+        homeTheater = c.lenientOptional(.homeTheater)
     }
 
     init(
@@ -175,7 +178,8 @@ public struct PlaybackInfo: Decodable, Sendable {
         transcode: PlaybackTranscode = .unknown,
         audio: [PlaybackAudioTrack] = [],
         subtitles: [PlaybackSubtitleTrack] = [],
-        prefs: PlaybackPrefs? = nil
+        prefs: PlaybackPrefs? = nil,
+        homeTheater: HomeTheaterInfo? = nil
     ) {
         self.ok = ok
         self.durationSec = durationSec
@@ -185,6 +189,7 @@ public struct PlaybackInfo: Decodable, Sendable {
         self.audio = audio
         self.subtitles = subtitles
         self.prefs = prefs
+        self.homeTheater = homeTheater
     }
 }
 

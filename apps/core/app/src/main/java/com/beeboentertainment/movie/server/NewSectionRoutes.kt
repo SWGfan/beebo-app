@@ -10,6 +10,7 @@ import com.beeboentertainment.movie.audiobooks.AudiobookSeriesScreen
 import com.beeboentertainment.movie.audiobooks.AudiobooksScreen
 import com.beeboentertainment.movie.livetv.LiveTvScreen
 import com.beeboentertainment.movie.livetv.LiveTvWatchScreen
+import com.beeboentertainment.movie.movienight.MovieNightScreen
 import com.beeboentertainment.movie.podcasts.PodcastListenScreen
 import com.beeboentertainment.movie.podcasts.PodcastShowScreen
 import com.beeboentertainment.movie.podcasts.PodcastsScreen
@@ -94,4 +95,5 @@ fun NavGraphBuilder.newSectionRoutes(navController: NavController, onUnauthorize
     }
     composable(AudioRoutes.ACCOUNT_SECURITY) { AccountSecurityScreen(onUnauthorized) }
     composable(AudioRoutes.JOIN_WATCH_TOGETHER) { JoinWatchTogetherScreen(onUnauthorized) }
+    composable(AudioRoutes.MOVIE_NIGHT) { MovieNightScreen(onUnauthorized) }
 }

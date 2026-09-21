@@ -73,6 +73,8 @@ apps/smarttv/
 1080p / 720p / 480p), `POST /api/playback/stop`, `POST /api/watch-session`, `POST /api/progress`, `GET /api/upnext`,
 `GET /subtitles/file` (WebVTT), `GET /media/poster/*` (public artwork), `GET /health`.
 Movie Night adds `GET /api/movie-night/status` and `POST /api/movie-night/tv/create` (below).
+The home-theatre work adds `POST /api/playback/negotiate` (device profile, below), `GET /api/playback/preroll` and `POST /api/playback/preroll/seen`
+(Cinema Mode pre-show), and the Live TV / Audiobooks / Podcasts / Radio bearer routes (below). Every one of those is feature-detected.
 Auth is `Authorization: Bearer <token>` only. The token is never put in a URL and never logged
 (`test/dom-safety.test.mjs` scans for `console.*` and `?token=`). Playback URLs carry their own signed ticket
 (`/hls/<ticket>/index.m3u8`) and media token (`&mt=`), so `<video>` needs no headers. The raw MKV / direct file
@@ -90,7 +92,7 @@ home server's plain HTTP API directly, so the app does two things (all in `js/pa
 
 1. Builds the address `https://<name>.home.beebo.tv:47811` (see `docs/HOME-ADDRESS.md`), so nothing is typed.
 2. Calls **`POST <server>/api/viewer-session`** with `Authorization: Bearer <viewer token>` and expects
-   `200 { token, user, expiresAt, server }`. This route is being added to the desktop server (target contract, not
+   `200 { token, user, expiresAt, server }`. This route now exists on the desktop server (docs `desktop/apps/desktop/docs/VIEWER-EXCHANGE.md`; the token it returns lives 30 days, not 365; it was a target contract, not
    yet merged when this app was written). The token is only ever sent over https, or over plain http to a private
    LAN address (enforced in `isSafeExchangeOrigin`); it is discarded right after the exchange and never stored.
    On 404 / 401 / 403 / 429 the app falls back to typed **username + password** (`POST /api/login`).
@@ -188,6 +190,61 @@ Needs *Settings > Allow TV apps (Samsung/LG) to connect* on (the two Movie Night
 code; whether the Xbox shell lets the page navigate to the LAN address is unverified. Android TV, Roku and Apple TV wiring is a follow-up
 (see `docs/MOVIE-NIGHT.md`).
 
+## Home theatre: what this TV tells the server, and how it follows the answer
+
+Since the home-theatre work (`docs/HOME-THEATER.md`) the app no longer asks only for a converted H.264 stream. When the server has
+`POST /api/playback/negotiate` (its `GET /api/playback/info` answer carries a `homeTheater` block: that presence is the feature test) the player
+sends this TV's **device profile** in the JSON body and plays whatever the server picks:
+
+| Server plan | What the TV does |
+|---|---|
+| **DirectPlay** | `<video src="/file?id=...&mt=...">`: the original file over HTTP range requests, nothing converted |
+| **DirectStream** | the picture (HDR included) copied into fragmented-MP4 HLS, `/hls/<ticket>/master.m3u8` (hls.js on Xbox; native HLS on Tizen / webOS, see below) |
+| **Transcode** | the same H.264 / AAC HLS as before |
+
+An older server (no `homeTheater` block) is played exactly as before with `/api/playback/start`. A "preparing" answer (a big film is read once) is asked again up to
+8 times. If the TV refuses a direct play or direct stream (the `<video>` error event), the player goes back **once** to the plain conversion from the same position
+and stays there for that title. A chosen audio track always uses the conversion (a direct play cannot switch tracks on every web engine). The OSD line says
+"Direct play", "Direct stream" or "Converted", plus the file's own badges ("4K", "Dolby Vision", "Atmos"). Settings has **Play original** (on by default; off = always converted) and a
+"This TV plays" line that shows exactly what was declared. The quality picker gains **Original**.
+
+The declaration is built by `app/js/util/deviceProfile.js` from `app/js/platform/capabilities.js`. It is honest by construction (tests pin every rule):
+
+* a codec, container or audio format is listed only when `video.canPlayType` (or `MediaSource.isTypeSupported` on Xbox) says the engine plays it;
+* HDR only from a display API: Samsung `webapis.avinfo.isHdrTvSupport()`, LG `webOS.deviceInfo` (`hdr10`, `dolbyVision`, `dolbyAtmos`, `uhd`),
+  Xbox / Chromium `matchMedia('(dynamic-range: high)')`. **No answer means `hdr: []` (SDR only): the server tone-maps.** HDR10+ is never claimed
+  (no web API reports it); Dolby Vision (profiles 5 and 8) only where webOS reports it; Atmos only where webOS reports it;
+* `maxHeight` is 2160 only when the panel is reported as UHD, otherwise 1080;
+* **TrueHD, DTS, DTS-HD and DTS:X are never listed** (a web view cannot pass them to a receiver);
+* `streaming` is `hls-ts` on the native engines and adds `hls-fmp4` only where hls.js (MSE) plays the stream (Xbox). A native player cannot be asked whether it plays
+  fragmented-MP4 HLS, so Samsung / LG TVs get a conversion instead of a repackaged stream until a real TV proves fMP4 HLS works.
+
+The profile travels in the **body** because `X-Beebo-Device-Profile` is not in the CORS allowed-headers list (`docs/TV-APP-CORS.md`).
+
+## Live TV, Audiobooks, Podcasts and Radio (Home rows)
+
+Four extra Home rows that appear **only when the server has the feature and something to show** (a 404, 403, "off" or an empty answer leaves the row hidden; a 401 signs the TV out
+as usual). They use the bearer JSON routes documented in `docs/LIVE-TV.md`, `AUDIOBOOKS.md` and `docs/PODCASTS-AND-RADIO.md` (nothing is drawn by the server here):
+
+| Row | Routes | What OK does |
+|---|---|---|
+| **Live TV** | `GET /api/livetv/status` (enabled and a channel), `GET /api/livetv/channels`, `POST /api/livetv/watch {channel}`, `POST /api/livetv/stop {ticket}` | plays the live HLS playlist; Up / Down change channel (with a short delay so flicking does not tune every one), Left / Right go 30 s back / forward inside the rewind buffer; a busy tuner is said in words. A "See all" tile opens a channel list with now / next |
+| **Audiobooks** | `GET /api/audiobooks/continue`, `/books`, `/book/<id>?tokens=1`; `POST /api/audiobooks/book/<id>/progress` | an audio screen: resumes at the saved place (whole-book seconds; multi-file books play part by part), progress every 15 s, Left / Right skip 15 / 30 s, Next / Prev = chapter |
+| **Podcasts** | `GET /api/podcasts/continue?tokens=1`, `/latest?tokens=1`; `POST /api/podcasts/episode/<key>/progress` | the same audio screen; started episodes first, then the newest unplayed |
+| **Radio** | `GET /api/radio/favorites`, `/recent` (else `/browse` popular: the server makes that call), `POST /api/radio/play?tokens=1`, `GET /api/radio/session/<id>` | a live stream through the server's relay; "now playing" from the station's own metadata every 20 s |
+
+Audio is played by an `<audio>` element from the signed `?mt=` address in the answer (no header needed); the app never follows an address that is not exactly the shape the server makes
+(`util/extras.js`, tested). Progress uses **POST** (the server accepts POST as well as PUT) because the TV-app CORS list allows only GET / POST; radio sessions have no DELETE for the same reason
+and end when the stream closes. **These four families needed a server change** in `corsPolicy.js` (the exact calls above were added to the allow-list; admin, DVR, rescan and settings routes stay closed): a Samsung / LG / Xbox app
+against a server without that change simply shows no extra rows.
+
+## Cinema Mode pre-show
+
+Before a **film** that is not being resumed, the player asks `GET /api/playback/preroll?kind=movie&id=...` (server has it, and the person turned Cinema Mode on for themselves: it is off by default). The owner's own
+**local** intro and trailer files play first in the same `<video>` (`/cinema/media/<id>?mt=...`, a plain progressive video); OK skips one, Back skips all, anything that fails is skipped, and each item that really starts is reported
+with `POST /api/playback/preroll/seen`. **YouTube items are left out**: their terms allow playing them only in YouTube's own embedded player, which this player is not. The TMDB attribution line
+the server sends is not shown on the TV yet.
+
 ## Remote keys
 
 Arrows move focus geometrically, OK/Enter selects. Back (Tizen 10009, webOS 461, Backspace / Esc on a desktop):
@@ -210,6 +267,11 @@ grid columns, the focus ring and animation timing are all custom properties on `
 1920x1080 canvas (the app scales the whole canvas to the screen). Keep the old-engine rules in `app.css`.
 
 ## Not verified
+
+* **Everything in the three sections above** (device profile, negotiate playback, the four Home rows, the pre-show): exercised only by unit tests with fake TVs, fake XHR and, for the profile format, the real
+  `deviceProfile.js` parser from the desktop tree. No real TV, no real server with HDHomeRun / audiobooks / podcasts, no real Cinema Mode. In particular: what `canPlayType` says on each Tizen / webOS generation,
+  the names of the Samsung and LG display APIs (written from the vendor documentation), whether a direct play of an MKV or a repackaged fMP4 HLS stream really plays, seeking inside a direct play,
+  hls.js with fMP4 on Xbox, live-TV channel flicking on a slow TV, and `<audio>` playback of the relayed radio and of multi-part books.
 
 * **No real TV was used.** Everything was exercised in desktop Chrome (1920x1080 and 1280x720) against the mock.
 * Tizen `registerKey`, the exit calls, Back-key behaviour and both manifests are written from the vendor

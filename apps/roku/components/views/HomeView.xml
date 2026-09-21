@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
   HomeView - top tab bar + content: Home (Continue Watching, Recently Added), Movies and
-  TV Shows (lazy paged grids). Playlists, Search and Settings open as their own screens.
+  TV Shows (lazy paged grids). Playlists, Movie Night, Search and Settings open as their own screens.
   Focus: tab bar <-> content with Up/Down; Back from content returns to the tab bar; Back
   on the tab bar exits the channel (handled by the OS).
 -->

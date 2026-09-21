@@ -8,6 +8,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const collections = localRequire('./electron/collections')
@@ -80,7 +81,7 @@ test('the collections endpoints over a fixture library', async () => {
     const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
     const token = server.makeApiToken(store, user.id)
 
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => null,
       getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [],

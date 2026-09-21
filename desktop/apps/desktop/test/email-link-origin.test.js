@@ -9,6 +9,7 @@ const http = require('node:http')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
@@ -51,7 +52,7 @@ async function withServer(options, fn) {
   let info
   try {
     auth.createUser(store, 'Victim', 'victim@example.com')
-    const port = 46000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

@@ -8,6 +8,7 @@ const path = require('node:path')
 const https = require('node:https')
 const { execFileSync } = require('node:child_process')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 
@@ -318,7 +319,7 @@ test('website Backup tab: admin + CSRF gates, download, preview, apply with a sa
   try {
     const store = populatedStore(dir)
     auth.forgetSecrets(); server.forgetSecrets()
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({ port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir, getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], getTmdbCacheDir: () => path.join(dir, 'cache'), log: () => {} })
     assert.equal(info.applyCertificate(cert).ok, true)
     for (let i = 0; i < 50; i++) {

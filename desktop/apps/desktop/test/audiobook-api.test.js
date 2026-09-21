@@ -12,6 +12,7 @@ const path = require('node:path')
 const vm = require('node:vm')
 const { spawnSync } = require('node:child_process')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const server = localRequire('./electron/streamServer')
@@ -80,7 +81,7 @@ async function boot(t) {
     if (String(url).includes('search.json')) return new Response(JSON.stringify({ docs: [{ key: '/works/OL1W', title: 'Standalone', author_name: ['Bob Writer'], first_publish_year: 1999, subject: ['Fiction', 'Sea stories'], cover_i: 42 }] }), { status: 200 })
     return new Response(JPG, { status: 200, headers: { 'content-type': 'image/jpeg' } })
   }
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => path.join(root, 'Movies'), getTvShowsDir: () => null,
     getAllMoviesDirs: () => [path.join(root, 'Movies')], getAllTvShowsDirs: () => [],
@@ -556,7 +557,7 @@ test('a player without FLAC gets AAC for a flac audiobook', { skip: !FFMPEG && '
   const ffprobe = findFf('ffprobe')
   const library = lib.createAudiobookLibrary({ getDirs: () => [path.join(root, 'Audiobooks')], getCacheDir: () => path.join(root, 'cache'), ffprobePath: ffprobe, ffmpegPath: FFMPEG })
   await library.scan()
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   info = server.startStreamServer({ port, store, getMoviesDir: () => null, getTvShowsDir: () => null, getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], getTmdbCacheDir: () => path.join(root, 'cache'), log: () => {}, audiobooks: library })
   const base = 'http://127.0.0.1:' + info.port
   for (let i = 0; i < 50; i++) { try { await (await fetch(base + '/api/ping')).arrayBuffer(); break } catch { await new Promise((r) => setTimeout(r, 100)) } }

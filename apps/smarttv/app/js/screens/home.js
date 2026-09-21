@@ -113,6 +113,58 @@ export function home(ctx) {
     }, function (e) { if (e && e.kind !== 'unauthorized') railError(id, function () { pager.reset(); loadLibrary(kind, id) }, e) })
   }
 
+  // ---- Live TV, Audiobooks, Podcasts, Radio: each row appears only when the server has the feature and has something to show
+  // (util/extras.js). A server that lacks it answers 404 / 403 / empty and the row simply stays hidden.
+  function extraRail(id, title) { makeRail(id, title).block.style.display = 'none' }
+
+  function loadLive() {
+    ctx.api.liveRow().then(function (channels) {
+      if (dead) return
+      fillRail('live', channels, function (c, i) {
+        return posterTile({ title: c.name, poster: null }, {
+          origin: ctx.origin(), badge: c.number, sub: c.now ? c.now.title : (c.hd ? 'HD' : ''),
+          onSelect: function () { ctx.router.push('liveplayer', { channels: channels, index: i }) }
+        })
+      }, { hideWhenEmpty: true, seeAll: function () { ctx.router.push('livetv') } })
+    }, function () { /* row stays hidden */ })
+  }
+
+  function loadBooks() {
+    ctx.api.bookShelf().then(function (books) {
+      if (dead) return
+      fillRail('books', books, function (b) {
+        return posterTile({ title: b.title, poster: b.cover }, {
+          origin: ctx.origin(), sub: b.author, badge: '', progress: b.duration > 0 ? (b.position / b.duration) * 100 : 0,
+          onSelect: function () { ctx.router.push('audioplayer', { item: b }) }
+        })
+      }, { hideWhenEmpty: true })
+    }, function () { /* row stays hidden */ })
+  }
+
+  function loadPodcasts() {
+    ctx.api.podcastShelf().then(function (eps) {
+      if (dead) return
+      fillRail('podcasts', eps, function (e) {
+        return posterTile({ title: e.title, poster: null }, {
+          origin: ctx.origin(), sub: e.show, badge: '', progress: e.durationSec > 0 ? (e.position / e.durationSec) * 100 : 0,
+          onSelect: function () { ctx.router.push('audioplayer', { item: e }) }
+        })
+      }, { hideWhenEmpty: true })
+    }, function () { /* row stays hidden */ })
+  }
+
+  function loadRadio() {
+    ctx.api.radioShelf().then(function (stations) {
+      if (dead) return
+      fillRail('radio', stations, function (s) {
+        return posterTile({ title: s.title, poster: null }, {
+          origin: ctx.origin(), sub: s.sub, badge: 'LIVE',
+          onSelect: function () { ctx.router.push('audioplayer', { item: s }) }
+        })
+      }, { hideWhenEmpty: true })
+    }, function () { /* row stays hidden */ })
+  }
+
   function loading(id) {
     var r = rails[id]
     if (r) { clear(r.inner); r.inner.appendChild(railState('Loading…')) }
@@ -124,6 +176,10 @@ export function home(ctx) {
     makeRail('party', 'Movie Night')
     makeRail('movies', 'Movies')
     makeRail('tv', 'TV Shows')
+    extraRail('live', 'Live TV')
+    extraRail('books', 'Audiobooks')
+    extraRail('podcasts', 'Podcasts')
+    extraRail('radio', 'Radio')
     ;['continue', 'recent', 'movies', 'tv'].forEach(loading)
     // Party games for the living room: a single tile that opens the Movie Night screen (screens/movienight.js).
     fillRail('party', [1], function () { return movieNightTile(function () { ctx.router.push('movienight') }) })
@@ -132,6 +188,8 @@ export function home(ctx) {
     loadLibrary('movie', 'movies')
     // The TV list can be slow on a big library; start it after the first rows are on their way.
     setTimeout(function () { if (!dead) loadLibrary('tv', 'tv') }, 250)
+    // The extra rows come last so they never delay the library.
+    setTimeout(function () { if (!dead) { loadLive(); loadBooks(); loadPodcasts(); loadRadio() } }, 900)
   }
 
   var built = false
@@ -142,6 +200,8 @@ export function home(ctx) {
       if (!built) { built = true; build() } else {
         // Coming back from a detail/player: refresh Continue Watching (progress changed) and reload images.
         loadContinue()
+        loadBooks()
+        loadPodcasts()
         near()
       }
       loadNear(scroller)

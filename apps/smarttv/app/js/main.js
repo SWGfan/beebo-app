@@ -7,6 +7,7 @@ import { createRouter } from './router.js'
 import { keyToAction, directionOf } from './nav/keys.js'
 import { shouldDropBack } from './nav/gamepad.js'
 import { createPlatform } from './platform/platform.js'
+import { buildDeviceProfile, clientNameFor } from './util/deviceProfile.js'
 import { createSession } from './session.js'
 import { resumePosition } from './util/seek.js'
 import { welcome, address, pair, signin } from './screens/setup.js'
@@ -17,6 +18,9 @@ import { detail } from './screens/detail.js'
 import { player } from './screens/player.js'
 import { settings } from './screens/settings.js'
 import { movienight } from './screens/movienight.js'
+import { livetv } from './screens/livetv.js'
+import { liveplayer } from './screens/liveplayer.js'
+import { audioplayer } from './screens/audioplayer.js'
 
 var CANVAS_W = 1920
 var CANVAS_H = 1080
@@ -69,10 +73,19 @@ function boot() {
     toast: toast,
     origin: function () { return store.getServer() }
   }
+  // The device profile (what this TV can play) is read once, then sent with every /api/playback/negotiate call. Until
+  // the probe has answered, a bare { client } is sent and the server uses its own default for the platform.
+  var deviceProfile = buildDeviceProfile({ platform: platform.kind, name: platform.deviceName })
+  try {
+    platform.probeEnv().then(function (env) { deviceProfile = buildDeviceProfile(env) }, function () { /* keep the bare profile */ })
+  } catch (e) { /* keep the bare profile */ }
+  ctx.deviceProfile = function () { return deviceProfile }
   ctx.api = createClient({
     XHR: ctx.XHR,
     getOrigin: ctx.origin,
     getToken: function () { return store.getToken() },
+    getProfile: function () { return deviceProfile },
+    clientName: clientNameFor(platform.kind),
     onUnauthorized: function () {
       // The token was revoked/expired: forget it and ask again (once, however many requests fail together).
       if (signingOut) return
@@ -115,7 +128,8 @@ function boot() {
 
   router = createRouter(document.getElementById('screens'), focus, {
     welcome: welcome, address: address, pair: pair, signin: signin,
-    home: home, library: library, search: search, detail: detail, player: player, settings: settings, movienight: movienight
+    home: home, library: library, search: search, detail: detail, player: player, settings: settings, movienight: movienight,
+    livetv: livetv, liveplayer: liveplayer, audioplayer: audioplayer
   }, ctx)
   ctx.router = router
   // Xbox only: keep the shell's idea of "can the page use Back" current across every route change.

@@ -14,6 +14,10 @@ sub main()
   testLog()
   testPairingContract()
   testPairingMachine()
+  testPairingExchange()
+  testDeviceProfile()
+  testNegotiate()
+  testMovieNight()
   testPlayback()
   testModels()
   testDiscovery()
@@ -208,7 +212,8 @@ sub testPairingContract()
   check("poll expired", pairParsePoll({ status: "expired", error: "expired_token" }, 200).status, "expired")
   check("poll garbage", pairParsePoll("nope", 200).status, "error")
   check("poll null", pairParsePoll(invalid, 500).status, "error")
-  check("no token exchange yet", pairContract().tokenExchange, false)
+  check("exchange is on", pairContract().tokenExchange, true)
+  check("exchange route", pairContract().exchangePath, "/api/viewer-session")
 end sub
 
 function startedMachine(now as integer) as object
@@ -255,6 +260,7 @@ sub testPairingMachine()
   a = pairHandle(st, { type: "poll_result", parsed: pairParsePoll({ status: "approved", token: "TT", name: "nick" }, 200), now: 1040 })
   check("approved action", a.type, "approved")
   check("approved token", a.token, "TT")
+  check("state never keeps the viewer token", st.token, "")
   check("approved name", a.name, "nick")
   check("approved phase", st.phase, "approved")
   a = pairHandle(st, { type: "poll_result", parsed: pairParsePoll({ status: "pending" }, 200), now: 1050 })
@@ -435,4 +441,219 @@ sub testDiscovery()
   check("own ip prefers LAN over vpn", discoveryPickOwnIp({ a: "100.64.1.2", b: "192.168.1.9" }), "192.168.1.9")
   check("own ip vpn only", discoveryPickOwnIp({ a: "100.64.1.2" }), "100.64.1.2")
   check("own ip link-local only", discoveryPickOwnIp({ a: "169.254.1.1" }), "")
+end sub
+
+' ---- POST /api/viewer-session (same exchange as apps/smarttv and apps/apple) ------------------
+
+sub testPairingExchange()
+  q = Chr(34)
+  check("house name simple", pairIsHouseName("nickhouse"), true)
+  check("house name hyphen", pairIsHouseName("nick-house-2"), true)
+  check("house name upper refused", pairIsHouseName("Nick"), false)
+  check("house name dot refused", pairIsHouseName("a.b"), false)
+  check("house name edge hyphen refused", pairIsHouseName("-nick"), false)
+  check("house name empty refused", pairIsHouseName(""), false)
+  check("house name not a string", pairIsHouseName(5), false)
+  check("house name too long", pairIsHouseName(String(64, "a")), false)
+
+  check("exchange over https", pairSafeExchangeUrl("https://nick.home.beebo.tv:47811"), true)
+  check("exchange over LAN http", pairSafeExchangeUrl("http://192.168.1.20:47811"), true)
+  check("exchange over public http refused", pairSafeExchangeUrl("http://nick.example.com:47811"), false)
+  check("exchange over public ip http refused", pairSafeExchangeUrl("http://8.8.8.8:47811"), false)
+  check("exchange empty url refused", pairSafeExchangeUrl(""), false)
+  check("exchange junk url refused", pairSafeExchangeUrl("ftp://192.168.1.20"), false)
+  check("exchange invalid url refused", pairSafeExchangeUrl(invalid), false)
+
+  check("viewer token ok", pairIsViewerToken("eyJ0eXAi.eyJuYW1l.c2ln"), true)
+  check("viewer token empty", pairIsViewerToken(""), false)
+  check("viewer token space", pairIsViewerToken("a b"), false)
+  check("viewer token newline", pairIsViewerToken("a" + Chr(10) + "b"), false)
+  check("viewer token too long", pairIsViewerToken(String(4097, "a")), false)
+  check("viewer token invalid", pairIsViewerToken(invalid), false)
+
+  body = FormatJson(pairExchangeBody("Den Roku"))
+  check("exchange body deviceName", Instr(1, body, q + "deviceName" + q + ":" + q + "Den Roku" + q) > 0, true)
+  check("exchange body has no token", Instr(1, LCase(body), "token") = 0, true)
+  check("exchange body empty", FormatJson(pairExchangeBody("")), "{}")
+  check("exchange body cut to 40", Len(pairExchangeBody(String(80, "x")).deviceName), 40)
+
+  good = { ok: true, token: "u1.1790000000000.sig", user: { id: "u1", name: "Robin", isAdmin: false }, expiresAt: 1790000000, server: { name: "nickhouse" } }
+  r = pairClassifyExchange(200, good)
+  check("exchange ok", r.status, "signed_in")
+  check("exchange ok token", r.token, "u1.1790000000000.sig")
+  check("exchange ok user", r.userName, "Robin")
+  check("exchange ok server", r.serverName, "nickhouse")
+  check("exchange 200 without token", pairClassifyExchange(200, { ok: true }).status, "bad_response")
+  check("exchange 200 token with space", pairClassifyExchange(200, { ok: true, token: "a b" }).status, "bad_response")
+  check("exchange 200 not json", pairClassifyExchange(200, invalid).status, "bad_response")
+  check("exchange 404", pairClassifyExchange(404, { error: "not_found" }).status, "unsupported")
+  check("exchange 401", pairClassifyExchange(401, { ok: false, error: "unauthorized" }).status, "rejected")
+  r = pairClassifyExchange(403, { ok: false, error: "two_factor_sign_in" })
+  check("exchange 403", r.status, "not_allowed")
+  check("exchange 403 code", r.code, "two_factor_sign_in")
+  check("exchange 402", pairClassifyExchange(402, { error: "remote_requires_plan" }).status, "plan_required")
+  check("exchange 429", pairClassifyExchange(429, { error: "locked" }).status, "rate_limited")
+  check("exchange no answer", pairClassifyExchange(0, invalid).status, "unreachable")
+  check("exchange 500", pairClassifyExchange(500, invalid).status, "unreachable")
+  check("exchange failure keeps no token", pairClassifyExchange(401, { token: "LEAK" }).token, "")
+
+  ' every failure text points at the typed sign-in, and the specific ones say why
+  check("text 404", Instr(1, pairExchangeText(pairClassifyExchange(404, invalid)), "older version") > 0, true)
+  check("text 401", Instr(1, pairExchangeText(pairClassifyExchange(401, invalid)), "wouldn't accept") > 0, true)
+  check("text 2fa", Instr(1, pairExchangeText(pairClassifyExchange(403, { error: "two_factor_sign_in" })), "two-factor") > 0, true)
+  check("text private", Instr(1, pairExchangeText(pairClassifyExchange(403, { error: "private_profile_sign_in" })), "private profile") > 0, true)
+  check("text admin", Instr(1, pairExchangeText(pairClassifyExchange(403, { error: "admin_requires_password" })), "administrator") > 0, true)
+  check("text no remote", Instr(1, pairExchangeText(pairClassifyExchange(403, { error: "no_remote_access" })), "away-from-home") > 0, true)
+  check("text disabled", Instr(1, pairExchangeText(pairClassifyExchange(403, { error: "viewer_exchange_disabled" })), "switched off") > 0, true)
+  check("text unknown 403", Instr(1, pairExchangeText(pairClassifyExchange(403, { error: "zzz" })), "didn't allow") > 0, true)
+  check("text plan", Instr(1, pairExchangeText(pairClassifyExchange(402, { error: "remote_requires_plan" })), "plan") > 0, true)
+  check("text rate", Instr(1, pairExchangeText(pairClassifyExchange(429, invalid)), "Too many") > 0, true)
+  check("text unreachable", Instr(1, pairExchangeText(pairClassifyExchange(0, invalid)), "Couldn't reach") > 0, true)
+  check("text always offers typed sign-in", Instr(1, pairExchangeText(pairClassifyExchange(401, invalid)), "username and password") > 0, true)
+end sub
+
+' ---- device profile (docs/HOME-THEATER.md) --------------------------------------------------------
+
+function fullCan() as object
+  return { h264_40: true, h264_51: true, hevc_main: true, hevc_main10: true, vp9_p0: true, vp9_p2: true, av1_main: true, aac: true, ac3: true, eac3: true, flac: true, opus: true, mp3: true, dts_pass: false }
+end function
+
+sub testDeviceProfile()
+  q = Chr(34)
+  p = dpBuild({ model: "Roku Ultra", uhd: true, hdr10: true, can: fullCan() })
+  j = dpToJson(p)
+  check("profile client", p.client, "roku")
+  check("profile version", p.v, 1)
+  check("profile name", p.name, "Roku Ultra")
+  check("profile json keys keep case", Instr(1, j, q + "maxLevel" + q) > 0 and Instr(1, j, q + "bitDepths" + q) > 0 and Instr(1, j, q + "maxChannels" + q) > 0, true)
+  check("profile json round trip", ParseJson(j).client, "roku")
+  check("profile h264", p.video.h264.maxLevel, 51)
+  check("profile hevc main10", p.video.hevc.bitDepths.count(), 2)
+  check("profile vp9 p2", p.video.vp9.profiles.count(), 2)
+  check("profile av1", p.video.av1.profiles[0], "main")
+  check("profile hdr10 only", p.hdr.count(), 1)
+  check("profile hdr10", p.hdr[0], "hdr10")
+  check("profile 4k", p.maxHeight, 2160)
+  check("profile 4k width", p.maxWidth, 3840)
+  check("profile aac 6ch", p.audio.aac.maxChannels, 6)
+  check("profile ac3", p.audio.ac3.maxChannels, 6)
+  check("profile eac3 no atmos", p.audio.eac3.DoesExist("atmos"), false)
+  check("profile max channels", p.maxAudioChannels, 6)
+  check("profile containers", p.containers.count(), 4)
+  check("profile streaming", p.streaming.count(), 2)
+  check("profile subtitles", p.subtitles[0], "vtt")
+  check("profile no dolby vision", Instr(1, j, "dv:") = 0, true)
+  check("profile no hdr10plus", Instr(1, j, "hdr10plus") = 0, true)
+  for each k in ["truehd", "dtshd", "dtsx", "dts"]
+    check("profile never lists " + k, p.audio.DoesExist(k), false)
+  end for
+
+  ' DTS core passthrough only when the Roku reported it
+  c = fullCan()
+  c.dts_pass = true
+  p2 = dpBuild({ model: "Roku", uhd: false, hdr10: false, can: c })
+  check("dts core only when detected", p2.audio.dts.passthrough, true)
+  check("dts core is not decoded", p2.audio.dts.decode, false)
+  check("dtshd still never", p2.audio.DoesExist("dtshd"), false)
+
+  ' a plain HD Roku: no HEVC, no HDR, 1080p, stereo
+  hd = dpBuild({ model: "Roku Express", uhd: false, hdr10: false, can: { h264_40: true, h264_51: false, aac: true } })
+  check("hd no hevc", hd.video.DoesExist("hevc"), false)
+  check("hd h264 level 40", hd.video.h264.maxLevel, 40)
+  check("hd hdr empty", hd.hdr.count(), 0)
+  check("hd 1080", hd.maxHeight, 1080)
+  check("hd no width", hd.DoesExist("maxWidth"), false)
+  check("hd stereo", hd.maxAudioChannels, 2)
+  check("hd aac only", hd.audio.aac.maxChannels, 2)
+  check("hd no ac3", hd.audio.DoesExist("ac3"), false)
+
+  ' nothing probed -> the server keeps its own default
+  bare = dpBuild(invalid)
+  check("bare client", bare.client, "roku")
+  check("bare has no video", bare.DoesExist("video"), false)
+  check("bare json", FormatJson(bare), "{" + q + "client" + q + ":" + q + "roku" + q + "," + q + "v" + q + ":1}")
+  check("no can -> bare", dpBuild({ model: "x" }).DoesExist("hdr"), false)
+  check("flags read safely", dpFlag(invalid, "x"), false)
+  check("flags missing", dpFlag({ a: true }, "b"), false)
+  check("flags non boolean", dpFlag({ a: "yes" }, "a"), false)
+end sub
+
+sub testNegotiate()
+  q = Chr(34)
+  pj = dpToJson(dpBuild({ model: "R", uhd: false, hdr10: false, can: { h264_40: true, aac: true } }))
+  body = playNegotiateBody("movie", "abc", "auto", invalid, pj)
+  parsed = ParseJson(body)
+  check("negotiate body parses", parsed <> invalid, true)
+  check("negotiate kind", parsed.kind, "movie")
+  check("negotiate id", parsed.id, "abc")
+  check("negotiate client", parsed.client, "roku")
+  check("negotiate auto = original", parsed.quality, "original")
+  check("negotiate has profile", parsed.deviceProfile.client, "roku")
+  check("negotiate profile keeps case", Instr(1, body, q + "maxLevel" + q) > 0, true)
+  check("negotiate no audio by default", parsed.DoesExist("audio"), false)
+  body = playNegotiateBody("tv", "ep1", "720p", 3, pj)
+  parsed = ParseJson(body)
+  check("negotiate tv kind", parsed.kind, "tv")
+  check("negotiate quality kept", parsed.quality, "720p")
+  check("negotiate audio", parsed.audio, 3)
+  check("negotiate weird kind is movie", ParseJson(playNegotiateBody("x", "a", "auto", invalid, pj)).kind, "movie")
+  check("negotiate without profile", ParseJson(playNegotiateBody("movie", "a", "auto", invalid, "")).DoesExist("deviceProfile"), false)
+  check("negotiate rejects a profile that is not an object", ParseJson(playNegotiateBody("movie", "a", "auto", invalid, "[1]")).DoesExist("deviceProfile"), false)
+
+  dp = playParseNegotiate({ ok: true, method: "DirectPlay", url: "/file?id=a&mt=T", container: "mkv", durationSec: 6300 })
+  check("plan directplay ok", dp.ok, true)
+  check("plan directplay mkv format", dp.format, "mkv")
+  check("plan duration", dp.duration, 6300)
+  check("plan mp4 format", playParseNegotiate({ ok: true, method: "DirectPlay", url: "/tvfile?id=a&mt=T", container: "mp4" }).format, "mp4")
+  check("plan mov is mp4", playParseNegotiate({ ok: true, method: "DirectPlay", url: "/file?id=a", container: "mov" }).format, "mp4")
+  check("plan ts format", playParseNegotiate({ ok: true, method: "DirectPlay", url: "/file?id=a", container: "ts" }).format, "ts")
+  check("plan avi is not playable", playParseNegotiate({ ok: true, method: "DirectPlay", url: "/file?id=a", container: "avi" }).ok, false)
+  ds = playParseNegotiate({ ok: true, method: "DirectStream", url: "/hls/T1/master.m3u8", ticket: "T1", container: "hls-fmp4" })
+  check("plan directstream", ds.ok, true)
+  check("plan directstream format", ds.format, "hls")
+  check("plan directstream ticket", ds.ticket, "T1")
+  tc = playParseNegotiate({ ok: true, method: "Transcode", url: "/hls/T2/index.m3u8", ticket: "T2" })
+  check("plan transcode", tc.method, "Transcode")
+  check("plan transcode format", tc.format, "hls")
+  bad = [
+    invalid, "x", { ok: false, method: "DirectPlay", url: "/file?id=a", container: "mp4" }
+    { ok: true, method: "Teleport", url: "/file?id=a" }
+    { ok: true, method: "DirectPlay", url: "http://evil.example/file?id=a", container: "mp4" }
+    { ok: true, method: "DirectPlay", url: "//evil.example/file?id=a", container: "mp4" }
+    { ok: true, method: "DirectPlay", url: "/api/admin/x", container: "mp4" }
+    { ok: true, method: "DirectPlay", url: "/hls/T/index.m3u8", container: "mp4" }
+    { ok: true, method: "DirectStream", url: "/file?id=a" }
+    { ok: true, method: "DirectStream", url: "/hls/../x.m3u8" }
+    { ok: true, method: "Transcode", url: "/x/index.m3u8" }
+    { ok: true, method: "Transcode" }
+  ]
+  for i = 0 to bad.count() - 1
+    check("plan refused #" + Str(i).trim(), playParseNegotiate(bad[i]).ok, false)
+  end for
+
+  check("prepare wait", playPrepareWaitSec(503, { error: "preparing", retryAfterSec: 3 }), 3)
+  check("prepare wait capped", playPrepareWaitSec(503, { error: "preparing", retryAfterSec: 99 }), 10)
+  check("prepare wait default", playPrepareWaitSec(503, { error: "preparing" }), 3)
+  check("prepare other 503", playPrepareWaitSec(503, { error: "busy" }), 0)
+  check("prepare not 503", playPrepareWaitSec(404, { error: "preparing" }), 0)
+  check("prepare no body", playPrepareWaitSec(503, invalid), 0)
+end sub
+
+sub testMovieNight()
+  check("tv address", mnTvAddress("http://192.168.1.20:47811"), "http://192.168.1.20:47811/tv")
+  check("tv address trailing slash", mnTvAddress("https://nick.home.beebo.tv:47811/"), "https://nick.home.beebo.tv:47811/tv")
+  check("tv address empty", mnTvAddress(""), "")
+  check("tv address invalid", mnTvAddress(invalid), "")
+  check("status available", mnParseStatus(200, { ok: true, available: true }).state, "available")
+  off = mnParseStatus(200, { ok: true, available: false, message: "Turned off in Settings." })
+  check("status off", off.state, "off")
+  check("status off message", off.message, "Turned off in Settings.")
+  check("status off default message", Instr(1, mnParseStatus(200, { available: false }).message, "switched off") > 0, true)
+  check("status control chars cleaned", mnParseStatus(200, { available: false, message: "a" + Chr(10) + "b" }).message, "a b")
+  check("status 404", mnParseStatus(404, invalid).state, "unsupported")
+  check("status 401", mnParseStatus(401, invalid).state, "signed_out")
+  check("status 403", mnParseStatus(403, invalid).state, "off")
+  check("status 500", mnParseStatus(500, invalid).state, "error")
+  check("status garbage", mnParseStatus(200, "nope").state, "error")
+  check("instructions name the browser", Instr(1, mnInstructions(), "web browser") > 0, true)
 end sub

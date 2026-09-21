@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  MovieNightView - Movie Night (docs/MOVIE-NIGHT.md) on a Roku. The server draws Movie Night as a web page and a Roku has no
+  web view, so this screen checks GET /api/movie-night/status and shows the address (server + /tv) to open on a device that has
+  a browser, on the same home network. See lib/MovieNight.brs.
+-->
+<component name="MovieNightView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/MovieNightView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/MovieNight.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="title" />
+    <Label id="state" wrap="true" />
+    <Label id="body" wrap="true" />
+    <Label id="address" />
+    <Label id="footnote" wrap="true" />
+    <BusySpinner id="spinner" visible="false" />
+    <ButtonRow id="buttons" />
+  </children>
+</component>

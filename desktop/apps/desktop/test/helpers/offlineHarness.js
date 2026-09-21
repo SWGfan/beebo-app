@@ -192,6 +192,7 @@ async function startOfflineHarness(t, { mode = 'unreachable', upnp = true, fixtu
     BEEBO_SECRET_KEY: SECRET_KEY,
     BEEBO_SELF_SIGNED_TLS: '1', // the admin screens need https; the library routes are also reachable over plain http, as on a home LAN
     BEEBO_SEED_SAMPLE: '0',
+    BEEBO_NO_CERT_CHECK: '1', // never renew a real certificate (this PC may hold the owner's real DuckDNS token file)
     BEEBO_OFFLINE: '1',
     BEEBO_OFFLINE_MODE: mode,
     BEEBO_OFFLINE_LOG: logFile,

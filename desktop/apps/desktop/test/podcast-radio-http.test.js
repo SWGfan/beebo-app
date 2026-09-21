@@ -10,6 +10,7 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 
@@ -79,7 +80,7 @@ test('podcasts and radio over HTTP: sign-in, admin settings, LAN guard, per-pers
     async byUuid() { return null },
     async click() {}
   }
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = serverMod.startStreamServer({
     port, store, getMoviesDir: () => null, getTvShowsDir: () => null, getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], getTmdbCacheDir: () => null, log: () => {},
     podcasts: { dir: path.join(dir, 'podcasts'), autoStart: false },

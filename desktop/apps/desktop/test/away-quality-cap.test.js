@@ -18,6 +18,7 @@ const { spawnSync } = require('node:child_process')
 const server = require('../electron/streamServer')
 const auth = require('../electron/auth')
 const videoQuality = require('../electron/videoQuality')
+const { testPort } = require('./helpers/testPort')
 
 // Shared secret for the "really came through the trusted remote-host agent" checks
 // below (see localAccessPolicy.js's fromHostAgent / viewerIdentity.js). Requests in
@@ -50,7 +51,7 @@ const licenseDisabled = { evaluate: () => ({ enforced: false, serve: true }) }
 async function startServer({ dir, cacheDir, license, extra = {}, agentSecret } = {}) {
   const store = makeStore()
   const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
-  const port = 47600 + Math.floor(Math.random() * 400)
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => dir, getTvShowsDir: () => null,
     getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

@@ -4,6 +4,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const server = localRequire('./electron/streamServer')
@@ -28,7 +29,7 @@ test('media token works in the URL or the X-Beebo-Media-Token header', async () 
     await fs.writeFile(path.join(dir, 'Clip (2020).mp4'), '0123456789')
     const data = {}
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] } }
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

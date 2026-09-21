@@ -26,7 +26,7 @@ test('Workers must be real external files, Python arguments remain separate, and
  assert.equal(runtime.workerPath('say.py',res,electron),path.join(res,'beebobook','say.py'));
  fs.writeFileSync(path.join(base,'python-cmd.json'),JSON.stringify({cmd:'C:/A Folder/python.exe',args:['-u']}));
  assert.deepEqual(runtime.pythonCommand(base),{cmd:'C:/A Folder/python.exe',args:['-u']});
- fs.mkdirSync(path.join(res,'ffmpeg'));fs.writeFileSync(path.join(res,'ffmpeg','ffmpeg.exe'),'exe');
+ fs.mkdirSync(path.join(res,'ffmpeg'));fs.writeFileSync(path.join(res,'ffmpeg',process.platform==='win32'?'ffmpeg.exe':'ffmpeg'),'exe');
  const env=runtime.workerEnvironment(res,base),key=Object.keys(env).find(k=>k.toLowerCase()==='path');
  assert(env[key].startsWith(path.join(res,'ffmpeg')));assert.equal(env.PYTHONUTF8,'1');
 });

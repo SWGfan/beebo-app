@@ -11,6 +11,7 @@ const { createRequire } = require('node:module')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const { FILMS } = require('./movie-night-fixture')
+const { testPort } = require('./helpers/testPort')
 
 async function start(settings) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'beebo-mn-'))
@@ -36,7 +37,7 @@ async function start(settings) {
   const data = { movieNight: { ratingCap: 'none', ...(settings || {}) } }
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   const { user: alice } = auth.createUser(store, 'Alice', 'alice@example.com')
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => null, getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [],
     getTmdbCacheDir: () => cacheDir, log: () => {}

@@ -2,9 +2,12 @@
 // scrubbing, subtitle / audio / quality panel, progress reporting and resume, up-next.
 //
 // Flow (same calls the Android app makes - see streamServer.js / playbackApi.js):
-//   GET  /api/playback/info?kind&id          tracks, duration, qualities
+//   GET  /api/playback/info?kind&id          tracks, duration, qualities (+ a `homeTheater` block on a newer server)
 //   POST /api/watch-session {kind,id}        -> sessionId (so history/continue-watching work)
+//   POST /api/playback/negotiate {kind,id,client,deviceProfile,quality,audio?}   newer server (docs/HOME-THEATER.md):
+//        -> { method: DirectPlay | DirectStream | Transcode, url }  the server picks from this TV's declared profile
 //   POST /api/playback/start {kind,id,quality,audio?} -> { url:"/hls/<ticket>/index.m3u8", ticket }
+//        older server, and the fallback whenever a direct play / direct stream cannot be played by this TV
 //   <video src = origin + url>               (tickets are in the path: no headers needed)
 //   POST /api/progress {sessionId,currentTime,duration}   every 15 s + on pause/exit
 //   POST /api/playback/stop {ticket}         when leaving / switching audio or quality
@@ -16,11 +19,13 @@ import { formatClock } from '../util/escape.js'
 import { fraction, createSeeker } from '../util/seek.js'
 import { parseVtt, cueAt } from '../util/vtt.js'
 import { assetUrl } from '../util/urls.js'
+import { prepareWaitSec, describePlan, MAX_PREPARE_TRIES } from '../util/playback.js'
 
 var OSD_HIDE_MS = 5000
 var PROGRESS_MS = 15000
 var START_TIMEOUT_MS = 45000
 var NEXT_COUNTDOWN_S = 8
+var PREROLL_START_MS = 15000 // a pre-show item that has not started by then is skipped
 
 export function player(ctx, params) {
   var kind = params.kind === 'tv' ? 'tv' : 'movie'
@@ -48,9 +53,11 @@ export function player(ctx, params) {
   var tEnd = h('span', { cls: 'r', text: '' })
   var times = h('div', { cls: 'times' }, [tCur, tEnd])
   ;[osdTitle, osdSub, hint, bar, times].forEach(function (n) { osd.appendChild(n) })
+  var preBar = h('div', { cls: 'hintline', css: { display: 'none', bottom: '60px' } })
   el.appendChild(subsEl)
   el.appendChild(osd)
   el.appendChild(center)
+  el.appendChild(preBar)
 
   // --- state ---------------------------------------------------------------------------------
   var dead = false
@@ -59,6 +66,12 @@ export function player(ctx, params) {
   var sessionId = ''
   var audioIdx = null
   var quality = ctx.store.getQuality()
+  var original = ctx.store.getPlayOriginal() // ask the server to play the file as it is when this TV can (newer servers)
+  var useNegotiate = false // set from info.homeTheater: the server has POST /api/playback/negotiate
+  var forceLegacy = false // a direct play / direct stream failed on this TV: use the plain conversion from now on
+  var streamPlan = null // the negotiated plan of the stream now playing (null: /playback/start)
+  var prepareTimer = null
+  var pre = null // the Cinema Mode pre-show in progress: { items, i, done, timer, reported }
   var cues = []
   var cueHint = 0
   var subKey = null
@@ -105,7 +118,9 @@ export function player(ctx, params) {
     setText(tCur, formatClock(t))
     setText(tEnd, d > 0 ? formatClock(d) : '')
     var parts = []
-    if (quality) parts.push(quality)
+    if (streamPlan) parts.push(describePlan(streamPlan))
+    else if (quality) parts.push(quality)
+    if (info && info.badges && info.badges.length) parts.push(info.badges.join(' '))
     if (subKey && info) { for (var i = 0; i < info.subtitles.length; i++) if (info.subtitles[i].key === subKey) parts.push('Subtitles: ' + info.subtitles[i].label) }
     if (video.paused && !seeker.pending() && !ended) parts.push('Paused')
     setText(osdSub, parts.join('  ·  '))
@@ -169,30 +184,84 @@ export function player(ctx, params) {
         ])
       }
     }, START_TIMEOUT_MS)
-    ctx.api.playbackStart(kind, id, quality, audioIdx).then(function (s) {
-      if (dead) { ctx.api.playbackStop(s.ticket); return }
-      stopTicket()
-      ticket = s.ticket
-      var streamUrl = assetUrl(origin, s.url)
-      // Xbox only: when its web view cannot play HLS itself, hls.js takes the stream (attachSource returns true).
-      if (!(ctx.platform.attachSource && ctx.platform.attachSource(video, streamUrl))) video.src = streamUrl
-      var p = video.play()
-      if (p && typeof p.then === 'function') {
-        p.then(null, function (err) {
-          // Autoplay refused: show the paused OSD. Any real failure is reported by the video's error event.
-          if (dead || errorOpen) return
-          if (err && err.name === 'NotAllowedError') { hideCenter(); showOsd(true) }
-        })
-      }
+    clearTimeout(prepareTimer)
+    if (useNegotiate && !forceLegacy) startNegotiated(atSec, 0)
+    else startLegacy(atSec)
+  }
+
+  // Puts a stream (from /playback/start or /playback/negotiate) on the <video>.
+  function applyStream(s, plan) {
+    if (dead) { if (s.ticket) ctx.api.playbackStop(s.ticket); return }
+    stopTicket()
+    ticket = s.ticket || ''
+    streamPlan = plan || null
+    var streamUrl = assetUrl(origin, s.url)
+    // Xbox only: when its web view cannot play HLS itself, hls.js takes the stream (attachSource returns true).
+    // A direct-play file (/file?...) is never handed to hls.js: attachSource only takes .m3u8 addresses.
+    var isHls = /\.m3u8(\?|$)/.test(s.url)
+    if (!(isHls && ctx.platform.attachSource && ctx.platform.attachSource(video, streamUrl))) {
+      if (!isHls && ctx.platform.detachSource) ctx.platform.detachSource(video)
+      video.src = streamUrl
+    }
+    var p = video.play()
+    if (p && typeof p.then === 'function') {
+      p.then(null, function (err) {
+        // Autoplay refused: show the paused OSD. Any real failure is reported by the video's error event.
+        if (dead || errorOpen) return
+        if (err && err.name === 'NotAllowedError') { hideCenter(); showOsd(true) }
+      })
+    }
+  }
+
+  function startError(e, atSec) {
+    if (dead) return
+    clearTimeout(startTimer)
+    showError(friendlyStartError(e), [
+      { label: 'Try again', onSelect: function () { startStream(atSec) } },
+      quality !== '480p' ? { label: 'Try lower quality', onSelect: function () { lowerQuality(); startStream(atSec) } } : null,
+      { label: 'Back', onSelect: exit }
+    ].filter(Boolean))
+  }
+
+  function lowerQuality() {
+    quality = quality === '1080p' ? '720p' : '480p'
+    original = false
+    ctx.store.setQuality(quality)
+    ctx.store.setPlayOriginal(false)
+  }
+
+  // The plain conversion (older servers, and the fallback): H.264 / AAC HLS at the chosen quality.
+  function startLegacy(atSec) {
+    ctx.api.playbackStart(kind, id, quality, audioIdx).then(function (s) { applyStream(s, null) }, function (e) { startError(e, atSec) })
+  }
+
+  // Newer servers: this TV's declared profile goes with the request and the server answers with the way to play the file
+  // (as it is, repackaged, or converted). "preparing" (a big film is being read once) is asked again a few times.
+  function startNegotiated(atSec, tries) {
+    ctx.api.playbackNegotiate(kind, id, { quality: original ? 'original' : quality, audio: audioIdx }).then(function (p) {
+      if (dead) { if (p.ticket) ctx.api.playbackStop(p.ticket); return }
+      // A direct play cannot choose an audio track on every TV engine: when the person picked a track that is not the
+      // file's default one, let the server convert it with that track instead.
+      if (p.method === 'DirectPlay' && audioIdx !== null && !isDefaultAudio(audioIdx)) { startLegacy(atSec); return }
+      applyStream(p, p)
     }, function (e) {
       if (dead) return
-      clearTimeout(startTimer)
-      showError(friendlyStartError(e), [
-        { label: 'Try again', onSelect: function () { startStream(atSec) } },
-        quality !== '480p' ? { label: 'Try lower quality', onSelect: function () { quality = quality === '1080p' ? '720p' : '480p'; ctx.store.setQuality(quality); startStream(atSec) } } : null,
-        { label: 'Back', onSelect: exit }
-      ].filter(Boolean))
+      var wait = prepareWaitSec(e)
+      if (wait && tries < MAX_PREPARE_TRIES) {
+        showSpinner('Getting this ready…')
+        prepareTimer = setTimeout(function () { if (!dead) startNegotiated(atSec, tries + 1) }, wait * 1000)
+        return
+      }
+      // An answer this app cannot follow: the proven conversion still works.
+      if (e && e.kind === 'bad_response') { startLegacy(atSec); return }
+      startError(e, atSec)
     })
+  }
+
+  function isDefaultAudio(streamIndex) {
+    if (!info || !info.audio) return true
+    for (var i = 0; i < info.audio.length; i++) if (info.audio[i].streamIndex === streamIndex) return info.audio[i].isDefault === true
+    return true
   }
 
   // --- subtitles -------------------------------------------------------------------------------------------
@@ -226,7 +295,7 @@ export function player(ctx, params) {
   }
 
   function updateSubs() {
-    if (!cues.length) return
+    if (pre || !cues.length) return
     var r = cueAt(cues, video.currentTime || 0, cueHint)
     cueHint = r.index
     if (subsEl.textContent !== r.text) setText(subsEl, r.text)
@@ -235,7 +304,7 @@ export function player(ctx, params) {
   // --- progress ------------------------------------------------------------------------------------------
   function report() {
     var t = video.currentTime || 0
-    if (!sessionId || t < 1) return
+    if (pre || !sessionId || t < 1) return // never report a trailer's time as the film's
     ctx.api.progress(sessionId, Math.floor(t), Math.floor(duration()))
     lastProgressAt = Date.now()
   }
@@ -276,7 +345,9 @@ export function player(ctx, params) {
       })
     }
     group('Quality')
-    ;['1080p', '720p', '480p'].forEach(function (q) { opt(q, quality === q, function () { switchQuality(q) }) })
+    // "Original" (newer servers): the file is played as it is, or repackaged, when this TV can; otherwise converted.
+    if (useNegotiate && !forceLegacy) opt('Original', original, function () { switchQuality('original') })
+    ;['1080p', '720p', '480p'].forEach(function (q) { opt(q, (!original || !useNegotiate || forceLegacy) && quality === q, function () { switchQuality(q) }) })
     el.appendChild(panel)
     ctx.focus.pushScope(panel, firstOpt)
   }
@@ -288,9 +359,17 @@ export function player(ctx, params) {
     startStream(video.currentTime || 0)
   }
   function switchQuality(q) {
-    if (quality === q) return
-    quality = q
-    ctx.store.setQuality(q)
+    if (q === 'original') {
+      if (original) return
+      original = true
+      ctx.store.setPlayOriginal(true)
+    } else {
+      if (quality === q && !original) return
+      quality = q
+      original = false
+      ctx.store.setQuality(q)
+      ctx.store.setPlayOriginal(false)
+    }
     report()
     startStream(video.currentTime || 0)
   }
@@ -336,6 +415,8 @@ export function player(ctx, params) {
     nextItem = null
     sessionId = ''
     audioIdx = null
+    streamPlan = null
+    forceLegacy = false // a new file gets its own chance to be played as it is
     cues = []
     subKey = null
     setText(subsEl, '')
@@ -359,12 +440,50 @@ export function player(ctx, params) {
     ]).then(function (r) {
       if (dead || myId !== id) return
       info = r[0] || { durationSec: 0, audio: [], subtitles: [], qualities: [], height: 0 }
+      // Feature test: only a newer server has the `homeTheater` block (and POST /api/playback/negotiate).
+      useNegotiate = info.homeTheater === true
       sessionId = r[1]
       var def = pickDefaultSubtitle()
       if (def) setSubtitle(def)
       loadNext()
-      startStream(atSec)
+      // Cinema Mode: films only, and not when resuming part-way. The server decides (the person turns it on for themselves).
+      if (kind === 'movie' && useNegotiate && !(atSec > 0)) runPreroll(function () { startStream(atSec) })
+      else startStream(atSec)
     })
+  }
+
+  // --- pre-show (Cinema Mode, docs CINEMA-MODE.md) -----------------------------------------------------------------------------
+  // The owner's own intro / trailer files play first, in the same <video>. YouTube trailers are left out (only YouTube's own
+  // embedded player may play those). OK skips one, Back skips all; anything that fails is skipped and the film starts.
+  function runPreroll(done) {
+    ctx.api.preroll(id).then(function (items) {
+      if (dead) return
+      if (!items.length) { done(); return }
+      pre = { items: items, i: -1, done: done, timer: null, reported: false }
+      nextPreroll()
+    })
+  }
+  function endPreroll() {
+    if (!pre) return
+    var done = pre.done
+    clearTimeout(pre.timer)
+    pre = null
+    preBar.style.display = 'none'
+    done()
+  }
+  function nextPreroll() {
+    if (dead || !pre) return
+    clearTimeout(pre.timer)
+    pre.i++
+    pre.reported = false
+    if (pre.i >= pre.items.length) { endPreroll(); return }
+    var it = pre.items[pre.i]
+    showSpinner('')
+    setText(preBar, it.title + '   (' + (pre.i + 1) + ' of ' + pre.items.length + ')   OK: skip   Back: skip all')
+    video.src = assetUrl(origin, it.url)
+    pre.timer = setTimeout(nextPreroll, PREROLL_START_MS)
+    var p = video.play()
+    if (p && typeof p.then === 'function') p.then(null, function () { /* a real failure arrives as the error event */ })
   }
 
   // --- video events -------------------------------------------------------------------------------------------------
@@ -373,6 +492,13 @@ export function player(ctx, params) {
     if (pendingSeek > 0) { try { video.currentTime = pendingSeek } catch (e) { /* ignore */ } pendingSeek = 0 }
   }
   function onPlaying() {
+    if (pre) {
+      clearTimeout(pre.timer)
+      hideCenter()
+      preBar.style.display = ''
+      if (!pre.reported) { pre.reported = true; ctx.api.prerollSeen(pre.items[pre.i]) }
+      return
+    }
     clearTimeout(waitTimer)
     clearTimeout(startTimer)
     hideCenter()
@@ -382,8 +508,9 @@ export function player(ctx, params) {
     clearTimeout(waitTimer)
     waitTimer = setTimeout(function () { if (!dead && !video.paused && !errorOpen) showSpinner('') }, 600)
   }
-  function onPause() { if (!ended) { report(); showOsd(true) } }
+  function onPause() { if (!ended && !pre) { report(); showOsd(true) } }
   function onEnded() {
+    if (pre) { nextPreroll(); return }
     ended = true
     report()
     hideOsd()
@@ -392,11 +519,20 @@ export function player(ctx, params) {
   }
   function onError() {
     if (dead || errorOpen) return
+    if (pre) { nextPreroll(); return }
+    // The TV refused a file or a repackaged stream that the server thought it could play (a declared codec, container or
+    // HDR mode that the panel does not really handle): once, go back to the proven conversion and carry on from here.
+    if (streamPlan && streamPlan.method !== 'Transcode' && !forceLegacy) {
+      forceLegacy = true
+      ctx.toast('This TV could not play the original, so it is being converted.')
+      startStream(video.currentTime || pendingSeek || 0)
+      return
+    }
     var code = video.error ? video.error.code : 0
     var msg = code === 4 ? 'This TV could not play the stream. Trying a lower quality sometimes helps.' : 'The video stopped because of a playback error.'
     showError(msg, [
       { label: 'Try again', onSelect: function () { startStream(video.currentTime || pendingSeek || 0) } },
-      quality !== '480p' ? { label: 'Try lower quality', onSelect: function () { quality = quality === '1080p' ? '720p' : '480p'; ctx.store.setQuality(quality); startStream(video.currentTime || pendingSeek || 0) } } : null,
+      quality !== '480p' ? { label: 'Try lower quality', onSelect: function () { lowerQuality(); startStream(video.currentTime || pendingSeek || 0) } } : null,
       { label: 'Back', onSelect: exit }
     ].filter(Boolean))
   }
@@ -446,6 +582,11 @@ export function player(ctx, params) {
       begin(pendingSeek)
     },
     onKey: function (action) {
+      if (pre) {
+        if (action === 'enter' || action === 'right' || action === 'ff' || action === 'next') nextPreroll()
+        else if (action === 'back' || action === 'stop') endPreroll()
+        return true
+      }
       if (nextCard) {
         if (action === 'back') { exit(); return true }
         return false // Play now / Close buttons via the focus manager
@@ -473,6 +614,8 @@ export function player(ctx, params) {
       clearInterval(tickTimer)
       clearTimeout(startTimer)
       clearTimeout(waitTimer)
+      clearTimeout(prepareTimer)
+      if (pre) { clearTimeout(pre.timer); pre = null }
       closeNextCard()
       document.removeEventListener('visibilitychange', onVisibility)
       report()

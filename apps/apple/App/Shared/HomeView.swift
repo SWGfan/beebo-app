@@ -3,6 +3,8 @@ import BeeboKit
 
 struct HomeView: View {
     @EnvironmentObject private var model: AppModel
+    /// The server has Movie Night (GET /api/movie-night/status answered). Hidden on an older server.
+    @State private var movieNightShown = false
 
     var body: some View {
         ScrollView {
@@ -32,6 +34,17 @@ struct HomeView: View {
                         }
                     }
                 }
+                if movieNightShown {
+                    ShelfRow(title: "Movie Night") {
+                        NavigationLink {
+                            MovieNightView()
+                        } label: {
+                            PosterCard(title: "Movie Night", subtitle: "Games with phones", posterURL: nil)
+                        }
+                        .posterButtonStyle()
+                        .accessibilityLabel("Movie Night, party games with phones")
+                    }
+                }
                 if model.homeLoaded && model.homeError == nil && model.continueItems.isEmpty && model.recentItems.isEmpty {
                     MessageView(
                         systemImage: "film.stack",
@@ -51,6 +64,10 @@ struct HomeView: View {
         }
         .screenTitle("Beebo")
         .task { await model.refreshHome() }
+        .task {
+            let status = try? await model.api?.movieNightStatus()
+            movieNightShown = status != nil
+        }
         .refreshableIfAvailable { await model.refreshHome() }
     }
 

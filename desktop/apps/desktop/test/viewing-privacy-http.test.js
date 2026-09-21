@@ -9,10 +9,10 @@ const auth = require('../electron/auth')
 const parental = require('../electron/parentalControls')
 const history = require('../electron/history')
 const server = require('../electron/streamServer')
+const { testPort } = require('./helpers/testPort')
 
 const PASSWORD = 'Private-user-test-password-43'
 const SECRET = crypto.randomBytes(32).toString('hex')
-let portSequence = 0
 async function fixture(t, options = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'beebo-viewing-privacy-'))
   const moviesDir = path.join(root, 'movies')
@@ -32,7 +32,7 @@ async function fixture(t, options = {}) {
   parental.setPolicy(store, 'child', parental.presetPolicy('kids'))
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 44000 + (process.pid % 1500) + ++portSequence,
+    port: testPort(),
     store, getMoviesDir: () => moviesDir, getTvShowsDir: () => root,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [],
     agentSecret: SECRET, log: () => {}, ...(options.license ? { license: options.license } : {})

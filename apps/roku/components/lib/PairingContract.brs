@@ -19,17 +19,27 @@
 '        200 { status: "denied"|"expired", error }
 '        429 { status: "slow_down", interval } + Retry-After
 '
-' IMPORTANT (see README "Top risks"): `token` is the 12-hour Beebo *viewer*
-' token for the house `name` -- the credential the phone app uses to open a
-' WebRTC tunnel to the house. It is NOT accepted by the home server's HTTP API
-' (/api/* wants the token /api/login or /api/remote-session returns, and
-' /api/remote-session only trusts a request that arrived through the host
-' agent's tunnel). A Roku has no WebRTC, so today it can use pairing to LEARN
-' THE HOUSE NAME (=> the direct address <name>.home.beebo.tv:47811) but it
-' cannot turn the viewer token into a home-server session by itself.
-' `tokenExchange` below records that (nothing reads it yet). Once the desktop server grows
-' a route that accepts a Worker viewer token over plain HTTPS, PairView.finishApproved is
-' the place to call it and store the resulting home-server token.
+' WHAT "APPROVED" GIVES A TV, AND HOW THE ROKU FINISHES SIGNING IN:
+'   `token` is the 12-hour Beebo *viewer* token for the house `name` (the credential the
+'   phone app uses to open a WebRTC tunnel). The home server's plain /api/* does not accept it
+'   directly, so the Roku trades it ONCE for a normal API session, exactly as apps/smarttv and
+'   apps/apple do (docs: desktop/apps/desktop/docs/VIEWER-EXCHANGE.md):
+'
+'   POST {server}/api/viewer-session   Authorization: Bearer <viewer token>   { "deviceName": "Den Roku" }
+'     -> 200 { ok, token (30-day API token), user {id,name,isAdmin,...}, expiresAt, server {name} }
+'        401 { error: "unauthorized" }  every reason a token is refused looks the same
+'        403 { error }  https_required | viewer_exchange_disabled | no_remote_access | household_pass |
+'                       guest_not_supported | admin_requires_password | private_profile_sign_in |
+'                       two_factor_sign_in | two_factor_setup_required
+'        402 { error: "remote_requires_plan" }   429 { error: "locked" } + Retry-After   404 older server
+'
+'   Rules this file (and PairView) keep:
+'     * the viewer token goes ONLY in the Authorization header, never in a body, URL or log;
+'     * it is sent only over https, or over plain http to a private LAN address (pairSafeExchangeUrl);
+'     * it is used once, then discarded (never stored in the registry, never kept in the state machine);
+'     * a 401 means "pair again", not "retry" (ten wrong tokens in 15 minutes lock the address out);
+'     * anything but 200 falls back to typing a username and password (POST /api/login);
+'     * the returned API token is kept exactly like an /api/login token (registry, never logged).
 ' ============================================================================
 
 function pairContract() as object
@@ -37,8 +47,10 @@ function pairContract() as object
     baseUrl: "https://beebo.tv"
     startPath: "/tvpair/start"
     pollPath: "/tvpair/poll"
-    exchangePath: "/api/remote-session"
-    tokenExchange: false
+    exchangePath: "/api/viewer-session"
+    tokenExchange: true
+    tokenMaxLen: 4096
+    deviceNameMax: 40
     defaultIntervalSec: 5
     minIntervalSec: 2
     maxIntervalSec: 30
@@ -150,4 +162,108 @@ function pairDeniedText(reason as string) as string
   if reason = "no_home" then return "That Beebo account has no Beebo home set up on a computer yet."
   if reason = "password_reset_required" then return "Reset your Beebo password on the website first, then try again."
   return "The sign-in was declined on your phone."
+end function
+
+' ---- viewer-token -> API-session exchange (POST /api/viewer-session) ---------------------
+
+' A house name is one DNS label (worker/ddns.js name rules): a-z 0-9 and inner hyphens, 1..63.
+function pairIsHouseName(name as dynamic) as boolean
+  if not fmtIsString(name) then return false
+  n = Len(name)
+  if n < 1 or n > 63 then return false
+  for i = 1 to n
+    c = Asc(Mid(name, i, 1))
+    isAlnum = (c >= 48 and c <= 57) or (c >= 97 and c <= 122)
+    if not isAlnum then
+      if not (c = 45 and i > 1 and i < n) then return false
+    end if
+  end for
+  return true
+end function
+
+' The viewer token may only travel over https, or plain http to a private LAN address (the
+' desktop server accepts the exchange over plain http from the home network only).
+function pairSafeExchangeUrl(serverUrl as dynamic) as boolean
+  if not fmtIsString(serverUrl) then return false
+  if serverUrl = "" then return false
+  return urlIsAllowed(serverUrl)
+end function
+
+' A viewer token is a compact "header.payload.signature" string: no spaces, sane length.
+function pairIsViewerToken(token as dynamic) as boolean
+  if not fmtIsString(token) then return false
+  if token = "" or Len(token) > pairContract().tokenMaxLen then return false
+  for i = 1 to Len(token)
+    if Asc(Mid(token, i, 1)) < 33 then return false
+  end for
+  return true
+end function
+
+' Body of POST /api/viewer-session: only the device name (40 chars shown to the owner), never the token.
+function pairExchangeBody(deviceName as dynamic) as object
+  body = CreateObject("roAssociativeArray")
+  body.SetModeCaseSensitive()
+  n = fmtStr(deviceName, "").trim()
+  if n <> "" then body["deviceName"] = Left(n, pairContract().deviceNameMax)
+  return body
+end function
+
+' Classify the answer of POST /api/viewer-session. httpStatus 0 = no answer at all.
+' Returns { status, token, userName, serverName, code }
+'   status: "signed_in" | "unsupported" (404) | "rejected" (401) | "not_allowed" (403) |
+'           "plan_required" (402) | "rate_limited" (429) | "bad_response" | "unreachable"
+'   code:   the server's error string for 402 / 403 (see pairExchangeText)
+' A result NEVER contains the viewer token; on "signed_in" `token` is the new API token.
+function pairClassifyExchange(httpStatus as integer, json as dynamic) as object
+  out = { status: "unreachable", token: "", userName: "", serverName: "", code: "" }
+  isObj = json <> invalid and type(json) = "roAssociativeArray"
+  if isObj then out.code = fmtStr(json.error, "")
+  if httpStatus = 200 then
+    out.status = "bad_response"
+    if not isObj then return out
+    tk = fmtStr(json.token, "")
+    if not pairIsViewerToken(tk) then return out
+    out.status = "signed_in"
+    out.token = tk
+    out.code = ""
+    if json.user <> invalid and type(json.user) = "roAssociativeArray" then out.userName = Left(fmtStr(json.user.name, "").trim(), 60)
+    if json.server <> invalid and type(json.server) = "roAssociativeArray" then out.serverName = Left(fmtStr(json.server.name, "").trim(), 60)
+    return out
+  end if
+  if httpStatus = 404 then
+    out.status = "unsupported"
+  else if httpStatus = 401 then
+    out.status = "rejected"
+  else if httpStatus = 403 then
+    out.status = "not_allowed"
+  else if httpStatus = 402 then
+    out.status = "plan_required"
+  else if httpStatus = 429 then
+    out.status = "rate_limited"
+  end if
+  return out
+end function
+
+' Plain words for the sign-in screen when the exchange did not give a session. Every text
+' ends by pointing at the username + password sign-in, which always works.
+function pairExchangeText(r as object) as string
+  tail = " Sign in with your username and password instead."
+  st = r.status
+  code = r.code
+  if st = "unsupported" then return "Your Beebo computer is running an older version that can't sign in a TV with a phone code." + tail
+  if st = "rejected" then return "Your phone approved this Roku, but your Beebo computer wouldn't accept it (the code may have expired, or it belongs to a different Beebo home)." + tail
+  if st = "plan_required" then return "Watching away from home through Beebo's relay needs an active plan on this account. At home, use your home network address." + tail
+  if st = "rate_limited" then return "Too many attempts from this network. Wait a few minutes." + tail
+  if st = "not_allowed" then
+    if code = "two_factor_sign_in" or code = "two_factor_setup_required" then return "This account uses two-factor sign-in, which a Roku can't type." + tail
+    if code = "private_profile_sign_in" then return "This is a private profile, so it has to be opened with its own username and password." + tail
+    if code = "admin_requires_password" then return "This person is an administrator. Administrators sign in with their password." + tail
+    if code = "no_remote_access" then return "This person doesn't have away-from-home access on this Beebo computer." + tail
+    if code = "household_pass" or code = "guest_not_supported" then return "That approval was for the shared household or a guest, not a person's own account." + tail
+    if code = "viewer_exchange_disabled" then return "The owner has switched off phone-code sign-in for TVs in Beebo's settings." + tail
+    if code = "https_required" then return "Away from home a TV needs the secure (https) address." + tail
+    return "Your Beebo computer didn't allow a phone-code sign-in for this Roku." + tail
+  end if
+  if st = "bad_response" then return "Your Beebo computer sent something this Roku didn't understand." + tail
+  return "Couldn't reach your Beebo computer to finish signing in." + tail
 end function

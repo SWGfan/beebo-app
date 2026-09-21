@@ -9,7 +9,7 @@
 // username/password sign-in and dropped).
 
 var PREFIX = 'beebo.tv.'
-var KEYS = { server: 'server', token: 'token', userName: 'userName', quality: 'quality', pairBase: 'pairBase', subtitles: 'subtitles' }
+var KEYS = { server: 'server', token: 'token', userName: 'userName', quality: 'quality', pairBase: 'pairBase', subtitles: 'subtitles', original: 'playOriginal' }
 
 export function createStore(storage) {
   function get(key) {
@@ -32,6 +32,9 @@ export function createStore(storage) {
     setUserName: function (n) { return set(KEYS.userName, n) },
     getQuality: function () { var q = get(KEYS.quality); return q === '720p' || q === '480p' || q === '1080p' ? q : '1080p' },
     setQuality: function (q) { return set(KEYS.quality, q) },
+    /** Play the file as it is when this TV can (default on). Off = always the converted 1080p / 720p / 480p stream. */
+    getPlayOriginal: function () { return get(KEYS.original) !== '0' },
+    setPlayOriginal: function (on) { return set(KEYS.original, on ? '1' : '0') },
     getPairBase: function () { return get(KEYS.pairBase) || '' },
     setPairBase: function (b) { return set(KEYS.pairBase, b) },
     getSubtitlesOn: function () { return get(KEYS.subtitles) === '1' },

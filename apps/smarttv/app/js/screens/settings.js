@@ -3,6 +3,7 @@
 import { h, focusable, clear, setText } from '../dom.js'
 import { topbar } from '../ui.js'
 import { BUILD } from '../buildinfo.js'
+import { describeProfile } from '../util/deviceProfile.js'
 
 export function settings(ctx) {
   var el = h('div', { cls: 'screen' })
@@ -34,6 +35,13 @@ export function settings(ctx) {
       setText(r.valueEl, next + '   (OK to change)')
     })
     rows.appendChild(q)
+    // Newer servers only: play the file as it is (or repackaged) when this TV can. Older servers always convert.
+    var po = row('Play original', ctx.store.getPlayOriginal() ? 'On: as it is when this TV can' : 'Off: always converted', function (r) {
+      var on = !ctx.store.getPlayOriginal()
+      ctx.store.setPlayOriginal(on)
+      setText(r.valueEl, on ? 'On: as it is when this TV can' : 'Off: always converted')
+    })
+    rows.appendChild(po)
     var s = row('Subtitles', ctx.store.getSubtitlesOn() ? 'On by default' : 'Off by default', function (r) {
       var on = !ctx.store.getSubtitlesOn()
       ctx.store.setSubtitlesOn(on)
@@ -42,6 +50,9 @@ export function settings(ctx) {
     rows.appendChild(s)
     rows.appendChild(row('Sign out', 'Forget this person on this TV', function () { ctx.signOut() }))
     rows.appendChild(row('Change server', 'Connect to a different computer', function () { ctx.changeServer() }))
+    // What this TV told the server it can play (util/deviceProfile.js): the first thing to read when a film will not play.
+    var profileLine = describeProfile(ctx.deviceProfile ? ctx.deviceProfile() : null)
+    if (profileLine) rows.appendChild(row('This TV plays', profileLine, function () { ctx.toast('Sent to the server so it can play films as they are.') }))
     rows.appendChild(row('About', 'Beebo TV ' + BUILD.version + ' · ' + ctx.platform.kind, function () { ctx.toast('Beebo TV ' + BUILD.version + ' (' + BUILD.platform + ')') }))
   }
 

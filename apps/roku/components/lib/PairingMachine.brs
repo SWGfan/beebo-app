@@ -107,7 +107,7 @@ function pairHandle(st as object, ev as object) as object
     r = ev.parsed
     if r.status = "approved" then
       st.phase = "approved"
-      st.token = r.token
+      st.token = "" ' the viewer token is NOT kept in state: only this one action carries it (PairView uses it once, then drops it)
       st.name = r.name
       a = pairAction("approved")
       a.token = r.token

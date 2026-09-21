@@ -16,6 +16,8 @@ import com.beeboentertainment.movie.BeeboApp
 import com.beeboentertainment.movie.core.AudioOption
 import com.beeboentertainment.movie.core.AutoQuality
 import com.beeboentertainment.movie.core.DownmixStyle
+import com.beeboentertainment.movie.core.HomeTheaterRules
+import com.beeboentertainment.movie.core.PlayMethod
 import com.beeboentertainment.movie.core.NetworkPathKind
 import com.beeboentertainment.movie.core.PassthroughSetting
 import com.beeboentertainment.movie.core.PlaybackSheetModel
@@ -29,6 +31,8 @@ import com.beeboentertainment.movie.core.SubtitlePolicy
 import com.beeboentertainment.movie.core.TrackChoice
 import com.beeboentertainment.movie.core.UrlUtils
 import com.beeboentertainment.movie.data.AudioCapsRequest
+import com.beeboentertainment.movie.data.NegotiateResponse
+import com.beeboentertainment.movie.data.NegotiateResult
 import com.beeboentertainment.movie.data.PlaybackApi
 import com.beeboentertainment.movie.data.PlaybackAudioPlan
 import com.beeboentertainment.movie.data.PlaybackInfo
@@ -37,6 +41,7 @@ import com.beeboentertainment.movie.data.PlaybackRefusedException
 import com.beeboentertainment.movie.data.PlaybackStartRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -89,6 +94,9 @@ class PlaybackChoicesController(
     private var attachedEmbeddedKey: String? = null
     private var resumedConversion = false
 
+    /** True while a direct stream (the picture copied into HLS by the computer, see docs/HOME-THEATER.md) is on screen instead of the file. */
+    private var directStream = false
+
     /** The remembered sound choices (per account, on the computer) and this device's own passthrough switch. */
     private var sound = SoundPrefs()
     private var passthrough = PassthroughSetting.fromId(app.session.plain.getString(PassthroughSetting.PREF_KEY, null))
@@ -140,6 +148,7 @@ class PlaybackChoicesController(
         fellBack = false
         attachedEmbeddedKey = null
         playing = QualityChoice.ORIGINAL
+        directStream = false
         loadJob?.cancel()
         switchJob?.cancel()
         val uri = item.localConfiguration?.uri?.toString()
@@ -156,6 +165,11 @@ class PlaybackChoicesController(
             playing = QualityChoice.fromId(extras.getString(EXTRA_PLAYING)).takeIf { it.isTranscode } ?: QualityChoice.P720
             ticket = extras.getString(EXTRA_TICKET).orEmpty()
             resumedConversion = true
+            // A direct stream that kept playing in the background is not a conversion: keep saying what it is.
+            if (extras.getString(EXTRA_DIRECT) == "1") {
+                directStream = true
+                playing = QualityChoice.ORIGINAL
+            }
         } else if (uri.contains("/hls/")) {
             onLabel(null)
             return
@@ -214,8 +228,46 @@ class PlaybackChoicesController(
             return
         }
         val target = resolve(quality)
+        // A computer with the home-theatre plan (docs/HOME-THEATER.md) is asked how to play the original for THIS device: as it is
+        // (nothing changes), repackaged with the picture copied (a direct stream) or converted. Anything that goes wrong here
+        // leaves the original playing exactly as before.
+        if (target == QualityChoice.ORIGINAL &&
+            HomeTheaterRules.shouldNegotiate(i.homeTheater != null, true, casting, subtitle?.isImage == true)
+        ) {
+            val plan = negotiatedPlan(id)
+            if (id != itemId) return
+            when (plan?.playMethod) {
+                PlayMethod.DIRECT_STREAM -> { applyStream(QualityChoice.ORIGINAL, plan); return }
+                PlayMethod.TRANSCODE -> if (i.transcode.available) { applyStream(bestFor(i)); return }
+                else -> Unit // DirectPlay, or no plan: the original that is already playing
+            }
+        }
         if (target != QualityChoice.ORIGINAL || needsReattach(subtitle)) applyStream(target)
         else player()?.let { applySelections(it.currentTracks) }
+    }
+
+    /**
+     * POST /api/playback/negotiate with this device's declared profile (DeviceProfileProbe). "Preparing" (a big film is being read
+     * once) is asked again a few times while the original plays. Never throws: no plan means "keep what is playing".
+     */
+    private suspend fun negotiatedPlan(id: String): NegotiateResponse? {
+        val declaration = runCatching { DeviceProfileProbe.declaration(activity, passthrough) }.getOrNull() ?: return null
+        repeat(HomeTheaterRules.MAX_PREPARE_TRIES) {
+            val result = try {
+                api.negotiate(kind, id, "original", audio?.streamIndex, declaration.client, declaration.profile)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.d(TAG, "No playback plan for $id: ${e.message}")
+                return null
+            }
+            when (result) {
+                is NegotiateResult.Plan -> return result.plan
+                is NegotiateResult.Preparing -> delay(result.retryAfterMs)
+            }
+            if (id != itemId) return null
+        }
+        return null
     }
 
     /** Casting started or stopped. A TV that can't play the original gets a conversion instead. */
@@ -251,6 +303,12 @@ class PlaybackChoicesController(
     fun onPlayerError(error: PlaybackException): Boolean {
         val i = info ?: return false
         if (!active || fellBack) return false
+        if (directStream) {
+            fellBack = true
+            toast("The repackaged stream stopped, so the original is playing instead.")
+            switchTo { applyStream(QualityChoice.ORIGINAL) }
+            return true
+        }
         if (playing.isTranscode) {
             fellBack = true
             toast("The converted stream stopped, so the original is playing instead.")
@@ -594,7 +652,7 @@ class PlaybackChoicesController(
         if (AutoQuality.isPrivateHost(runCatching { Uri.parse(app.session.baseUrl).host }.getOrNull())) NetworkPathKind.LAN else NetworkPathKind.INTERNET
 
     /** Put [requested] on the player where it stands, with the chosen audio and subtitles. */
-    private suspend fun applyStream(requested: QualityChoice) {
+    private suspend fun applyStream(requested: QualityChoice, direct: NegotiateResponse? = null) {
         // Away from home this phone carries the film to the TV byte for byte, and a converted
         // stream is a playlist of many small pieces rather than one file, so it can't travel that
         // way. The TV gets the film as it already is on the home computer.
@@ -611,7 +669,13 @@ class PlaybackChoicesController(
         val mime: String?
         var newTicket = ""
         var newBurn: Int? = null
-        if (target == QualityChoice.ORIGINAL) {
+        if (target == QualityChoice.ORIGINAL && direct != null) {
+            // The computer's own repackaging of this file (picture copied, HDR and Dolby Vision kept): a plan the app may follow.
+            uri = UrlUtils.join(app.session.baseUrl, direct.url) ?: return
+            mime = MimeTypes.APPLICATION_M3U8
+            newTicket = direct.ticket
+            lastPlan = null
+        } else if (target == QualityChoice.ORIGINAL) {
             uri = originalUri ?: return
             mime = originalMime
             lastPlan = null
@@ -645,6 +709,7 @@ class PlaybackChoicesController(
             putString(EXTRA_ORIGINAL_MIME, originalMime)
             putString(EXTRA_PLAYING, target.id)
             putString(EXTRA_TICKET, newTicket)
+            putString(EXTRA_DIRECT, if (direct != null) "1" else "")
         }
         val replacement = item.buildUpon()
             .setMediaMetadata(item.mediaMetadata.buildUpon().setExtras(extras).build())
@@ -655,13 +720,14 @@ class PlaybackChoicesController(
         val oldTicket = ticket
         ticket = newTicket
         burning = newBurn
+        directStream = direct != null && target == QualityChoice.ORIGINAL
         playing = target
         attachedEmbeddedKey = embedded?.key
         p.setMediaItem(replacement, positionMs)
         p.prepare()
         p.playWhenReady = wasPlaying
         if (oldTicket.isNotBlank() && oldTicket != newTicket) activity.lifecycleScope.launch { api.stop(oldTicket) }
-        onLabel(QualityLabel.current(quality, playing))
+        onLabel(QualityLabel.current(quality, playing) + if (directStream) " · " + PlayMethod.DIRECT_STREAM.label.lowercase() else "")
     }
 
     /**
@@ -791,6 +857,7 @@ class PlaybackChoicesController(
         private const val EXTRA_ORIGINAL_MIME = "beebo.playback.originalMime"
         private const val EXTRA_PLAYING = "beebo.playback.playing"
         private const val EXTRA_TICKET = "beebo.playback.ticket"
+        private const val EXTRA_DIRECT = "beebo.playback.directStream"
 
         fun embeddedTag(option: SubtitleOption): String = "beebo-emb-${option.streamIndex}"
     }

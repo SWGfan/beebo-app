@@ -11,10 +11,10 @@ const path = require('node:path')
 const crypto = require('node:crypto')
 const auth = require('../electron/auth')
 const server = require('../electron/streamServer')
+const { testPort } = require('./helpers/testPort')
 
 const PASSWORD = 'Prefs-test-password-77'
 const SECRET = crypto.randomBytes(32).toString('hex')
-let portSequence = 0
 
 async function fixture(t) {
   const root = await fsp.mkdtemp(path.join(os.tmpdir(), 'beebo-prefs-'))
@@ -27,7 +27,7 @@ async function fixture(t) {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 46000 + (process.pid % 1500) + ++portSequence,
+    port: testPort(),
     store, getMoviesDir: () => moviesDir, getTvShowsDir: () => root,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [],
     agentSecret: SECRET, log: () => {}

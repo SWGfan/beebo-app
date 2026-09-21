@@ -13,6 +13,7 @@ const os = require('node:os')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const lyrics = localRequire('./electron/musicLyrics')
@@ -286,7 +287,7 @@ test('the /api/music routes', { skip: !FFMPEG && 'ffmpeg not found' }, async () 
       process.env.BEEBO_FFMPEG = which.stdout.split(/\r?\n/)[0].trim()
     }
 
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => path.join(root, 'Movies'), getTvShowsDir: () => null,
       getAllMoviesDirs: () => [path.join(root, 'Movies')], getAllTvShowsDirs: () => [],
@@ -452,7 +453,7 @@ test('/api/music with no Music folder configured', async () => {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   const { user } = auth.createUser(store, 'Listener', 'l@example.com')
   const token = server.makeApiToken(store, user.id)
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = server.startStreamServer({ port, store, getMoviesDir: () => null, getTvShowsDir: () => null, getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], getTmdbCacheDir: () => null, log: () => {} })
   try {
     const base = 'http://127.0.0.1:' + info.port

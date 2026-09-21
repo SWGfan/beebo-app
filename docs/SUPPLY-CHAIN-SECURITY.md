@@ -26,8 +26,7 @@ What protects the build, the dependencies and this repository. Related: [SECURIT
 
 npm 11.17 added an `allowScripts` policy. With `strict-allow-scripts=true`, a dependency whose
 `install`/`postinstall` script is not on the approved list makes `npm install` and `npm ci` fail
-instead of running it, which blunts postinstall-worm style attacks. Approved packages in the desktop app:
-`electron` (downloads its binary), `esbuild` (verifies its native binary), `fsevents` (macOS-only). If a
+instead of running it, which blunts postinstall-worm style attacks. Install scripts approved in the desktop app: only `fsevents` (macOS-only). Electron 42+ and esbuild need no install script, and `electron-winstaller` (a Squirrel.Windows helper Beebo does not ship) is denied. If a
 future dependency update adds or changes a script, the install fails with a message naming the package:
 review the script, then approve it (`npm approve-scripts <pkg>`, or add it to `allow-scripts` in the
 `.npmrc`). The `headless-docker.yml` test job stays on Node 22 (npm 10), which ignores these keys, so nothing

@@ -105,11 +105,14 @@ final class PlayerCoordinator: NSObject, ObservableObject {
     private var endObserver: NSObjectProtocol?
     private var switching = false
     private var stopped = false
+    /// Set to false once a direct play / direct stream could not be played on this device: the plain conversion is used from then on.
+    private var allowDirect = true
 
     init(api: BeeboAPI, preferences: PlaybackPreferences, request: PlaybackRequest) {
         self.api = api
         self.preferences = preferences
-        self.service = PlaybackService(api: api, preferences: preferences)
+        // The declaration of what this device can decode and show: the server picks direct play / direct stream / conversion from it.
+        self.service = PlaybackService(api: api, preferences: preferences, deviceProfile: DeviceCapabilitiesProbe.declaration())
         self.currentRef = request.ref
         self.startAt = request.resumeSeconds
         self.startPercent = request.resumePercent
@@ -173,7 +176,7 @@ final class PlayerCoordinator: NSObject, ObservableObject {
     ) async {
         phase = .loading
         do {
-            let prepared = try await service.prepare(ref, selection: wanted, reuseWatchSessionId: reuseWatchSession)
+            let prepared = try await service.prepare(ref, selection: wanted, reuseWatchSessionId: reuseWatchSession, allowDirect: allowDirect)
             if stopped {
                 await api.playbackStop(ticket: prepared.ticket)
                 return
@@ -230,6 +233,13 @@ final class PlayerCoordinator: NSObject, ObservableObject {
         guard let item = player.currentItem, !stopped else { return }
         switch item.status {
         case .failed:
+            // The server thought this device could play the original (or the repackaged stream) and AVPlayer refused it:
+            // once, go back to the proven conversion and carry on from the same place.
+            if let session, session.method != .transcode, allowDirect {
+                allowDirect = false
+                Task { await retry() }
+                return
+            }
             let detail = item.error?.localizedDescription ?? "Unknown error"
             phase = .failed("This video couldn't be played (\(detail)). Check that your Beebo server can convert video for Apple devices.")
         case .readyToPlay:
@@ -301,6 +311,7 @@ final class PlayerCoordinator: NSObject, ObservableObject {
         if let next = await service.nextUp(after: currentRef), !stopped {
             startAt = nil
             startPercent = nil
+            allowDirect = true // a new title gets its own chance to be played as it is
             await load(next, at: nil, percent: nil, selection: PlaybackSelection(), reuseWatchSession: nil)
         } else {
             onClose?()

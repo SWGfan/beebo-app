@@ -7,6 +7,7 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 
@@ -17,7 +18,7 @@ async function startServer(moviesDir, tmpRoot) {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
   const { user: other } = auth.createUser(store, 'Other', 'other@example.com')
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => null,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [], log: () => {},

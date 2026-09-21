@@ -6,6 +6,7 @@ const http = require('node:http')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 
@@ -42,7 +43,7 @@ async function withServer(options, fn) {
     store.set('authUsers', store.get('authUsers').map((u) => (u.id === user.id ? { ...u, isAdmin: true } : u)))
     const token = server.makeApiToken(store, user.id)
     const cookie = 'beebo_session=' + auth.signSession(store, user.id)
-    const port = 46000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

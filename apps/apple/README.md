@@ -78,12 +78,14 @@ locally without a Mac's server, `node tools/mock-server/server.js` serves a demo
 | Episodes | `GET /api/tvshows/<key>/episodes` | not in v1, so this one is the app-facing route |
 | Up next | `GET /api/upnext?kind=tv&id=` | |
 | Playback plan | `GET /api/playback/info?kind=&id=` | qualities, audio tracks, subtitle tracks, transcoder state |
-| Start stream | `POST /api/playback/start` | `{kind, id, quality, audio?, burnSubtitle?}` -> `{url:"/hls/<ticket>/index.m3u8"}` |
+| Negotiate | `POST /api/playback/negotiate` | only when `info.homeTheater` exists; `{kind, id, client, deviceProfile, quality, audio?}` -> `{method, url, ticket?}` (see *Home theatre* below) |
+| Start stream | `POST /api/playback/start` | older servers, and the fallback: `{kind, id, quality, audio?, burnSubtitle?}` -> `{url:"/hls/<ticket>/index.m3u8"}` |
+| Movie Night | `GET /api/movie-night/status`, `POST /api/movie-night/tv/create` | see *Movie Night* below |
 | Stop stream | `POST /api/playback/stop` | `{ticket}` |
 | History | `POST /api/watch-session`, `POST /api/progress` | same calls as the Android app |
 | Posters | `/media/poster/<id>.jpg` | no token needed; backdrops are absolute TMDB https URLs |
 
-The client never asks for `/file` or `/tvfile`: AVPlayer cannot open Matroska, and `playbackRules.js` treats MKV as
+On a server **without** `POST /api/playback/negotiate` the client never asks for `/file` or `/tvfile`: AVPlayer cannot open Matroska, and `playbackRules.js` treats MKV as
 "fine" for other clients. `/api/playback/start` always yields H.264 + AAC in MPEG-TS pieces behind a signed ticket in
 the path, so the player needs no auth header. Quality tops out at 1080p because that is what the server offers.
 
@@ -107,7 +109,7 @@ the path, so the player needs no auth header. Quality tops out at 1080p because 
   TV silently falls back to the typed sign-in.
 - **Not supported: streaming through the WebRTC tunnel.** Away from home the app works only if the home server is
   reachable over https at its `home.beebo.tv` address. Tunnel access remains a follow-up.
-- Unverified: `/api/viewer-session` did not exist when this was written, so its response shape is taken from the
+- Unverified against a running server (the route exists now, `desktop/apps/desktop/docs/VIEWER-EXCHANGE.md`, and the client follows that document, but no one has run them together): it did not exist when this was written, so its response shape is taken from the
   contract I was given, not from running server code.
 
 ## Privacy, network security, App Review facts
@@ -140,11 +142,34 @@ the path, so the player needs no auth header. Quality tops out at 1080p because 
   stream (video and timecode visible in the screenshot).
 - The built bundle contains `PrivacyInfo.xcprivacy` and the Info.plist keys (printed in the job log).
 
+**Added with the home-theatre work and NOT compiled or run by anyone here** (this was written on a Windows PC with no Swift toolchain, so treat it as unverified until the macOS CI job has built and tested it): the device profile
+(`DeviceProfile`, `DeviceCapabilitiesProbe` and the values AVFoundation / VideoToolbox really return on hardware), the negotiate flow and the fall back to the conversion, the Movie Night screens (`WKWebView` on iOS, the QR fallback on tvOS)
+and their unit tests (`HomeTheaterTests.swift`, `MovieNightTests.swift`). Whether an Apple TV really direct-plays an MP4 / MOV file, plays a repackaged fMP4 HLS stream in HDR / Dolby Vision, or shows the
+right HDR mode, has not been seen by anyone.
+
 Not verified by anything: any interaction (focus movement, remote gestures, taps, keyboard entry), Siri Remote behaviour,
 the Local Network permission prompt (the simulator does not raise it for loopback), a private LAN address, the real
 server's HLS output (the mock imitates it), Keychain behaviour on a real Apple TV, the transport bar menus, subtitle
 overlay placement, memory while scrolling many posters, the pairing screens against the live Worker, and
 `/api/viewer-session` against a real server.
+
+## Home theatre: the device profile and the plan (added 2026-09-21)
+
+`BeeboKit/DeviceProfile.swift` builds the capability declaration from a `DeviceCapabilities` value; `App/Shared/DeviceCapabilitiesProbe.swift` fills that from VideoToolbox
+(`VTIsHardwareDecodeSupported` for HEVC and AV1), `AVPlayer.availableHDRModes` (HDR10, HLG, Dolby Vision on the connected screen), `AVAudioSession` (output channels, spatial-audio route) and, on Apple TV, the HDMI
+output size. It goes in the JSON body of `POST /api/playback/negotiate` (`BeeboAPI.playbackNegotiate`) when `GET /api/playback/info` carries the `homeTheater` block (that is the feature test; an older server keeps
+`/api/playback/start`). Honest by construction (unit tests in `HomeTheaterTests.swift`): HEVC and AV1 only when the hardware decodes them; HDR only what the screen reported; Dolby Vision as profiles 5 and 8, never 7;
+**HDR10+ is never claimed; TrueHD, DTS, DTS-HD and DTS:X are never listed**; Atmos only when the audio route reports spatial audio; containers MP4 and MOV, **never Matroska**; streaming HLS (fMP4 and TS).
+
+`PlaybackService.prepare` follows the plan: **DirectPlay** = `AVPlayerItem` on `/file?...`; **DirectStream** = the repackaged HLS (`master.m3u8`, HDR and Dolby Vision kept); **Transcode** = the conversion as before. "Best available" quality
+asks for `original`; an explicit quality caps the picture. A "preparing" answer is asked again up to 8 times. A chosen audio track or a burnt-in picture subtitle always uses the conversion. If `AVPlayerItem` fails on a direct play or
+direct stream, `PlayerCoordinator` goes back **once** to the conversion from the same position (`allowDirect = false`) and resets for the next episode. A hostile or unfollowable answer falls back to the conversion.
+
+## Movie Night
+
+`MovieNightView` (Home shelf, shown when `GET /api/movie-night/status` answers): on **iPhone and iPad** it starts a room (`POST /api/movie-night/tv/create`) and opens the server's page
+(`<server>/movie-night/tv#k=<ticket>`) in a `WKWebView` that can only visit that server (`MovieNight.allowsNavigation`) with a non-persistent data store. **tvOS has no web view**, so on Apple TV the screen explains this and shows the address to
+open in a browser on another screen (`<server>/tv`) as text and a QR code. The reply is validated before anything opens (`MovieNight.tvURL`: exact path, 32-character ticket, fragment only).
 
 ## Top risks, in the order I would test them
 

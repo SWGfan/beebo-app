@@ -11,4 +11,7 @@
   <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
   <script type="text/brightscript" uri="pkg:/components/lib/Registry.brs" />
   <script type="text/brightscript" uri="pkg:/components/lib/Log.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/DeviceProfile.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/DeviceProbe.brs" />
 </component>

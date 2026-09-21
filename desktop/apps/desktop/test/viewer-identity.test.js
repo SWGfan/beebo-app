@@ -8,6 +8,7 @@ const os = require('node:os')
 const path = require('node:path')
 const crypto = require('node:crypto')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const vi = localRequire('./electron/viewerIdentity')
@@ -70,7 +71,7 @@ test('login lockouts follow the vouched viewer, not 127.0.0.1', async () => {
   try {
     const data = {}
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],
@@ -140,7 +141,7 @@ test('/api/remote-session signs in the person the agent vouches for, and nobody 
       ],
     }
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

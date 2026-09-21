@@ -11,6 +11,12 @@
 import { routes, routeUrl, buildUrl, redactUrl } from './util/urls.js'
 import { safeText } from './util/escape.js'
 import { movieNightRoutes, normalizeStatus, tvUrlFromReply } from './util/movienight.js'
+import { NEGOTIATE_PATH, negotiateBody, normalizeNegotiate } from './util/playback.js'
+import { PREROLL_PATH, SEEN_PATH, normalizePreroll, seenBody } from './util/preroll.js'
+import {
+  extraRoutes, normalizeLiveStatus, normalizeChannels, normalizeLiveWatch, normalizeBookShelf, normalizeBookDetail,
+  normalizeEpisodeShelf, normalizeStationShelf, normalizeRadioSession, radioLine
+} from './util/extras.js'
 import {
   normalizeMovie, normalizeShow, normalizeList, normalizeContinue, normalizeRecent, normalizeEpisodes,
   normalizePlaybackInfo, normalizePlaybackStart, normalizeNeighbour, normalizeUser
@@ -38,7 +44,8 @@ export function makeError(kind, status, url, serverMessage) {
 }
 
 /**
- * @param {{XHR:Function, getOrigin:function():string, getToken:function():string, onUnauthorized?:function():void}} deps
+ * @param {{XHR:Function, getOrigin:function():string, getToken:function():string, onUnauthorized?:function():void,
+ *          getProfile?:function():object, clientName?:string}} deps
  */
 export function createClient(deps) {
   var XHR = deps.XHR
@@ -206,6 +213,34 @@ export function createClient(deps) {
         return s
       })
     },
+    // docs/HOME-THEATER.md: the server decides direct play / direct stream / transcode from this device's declared profile.
+    // Only call it when playbackInfo() said the server has it (info.homeTheater); an older server keeps playbackStart().
+    // The profile travels in the JSON BODY (a packaged TV app cannot send the X-Beebo-Device-Profile header cross-origin).
+    playbackNegotiate: function (kind, id, opts) {
+      var o = opts || {}
+      var body = negotiateBody({
+        kind: kind, id: id, client: deps.clientName, profile: deps.getProfile ? deps.getProfile() : null,
+        quality: o.quality, audio: o.audio
+      })
+      return post({ path: NEGOTIATE_PATH }, body, { timeout: TIMEOUT_MS.start }).then(function (r) {
+        var p = normalizeNegotiate(r.body)
+        if (!p) throw makeError('bad_response', r.status, NEGOTIATE_PATH)
+        return p
+      })
+    },
+    // Cinema Mode pre-show (docs CINEMA-MODE.md): the local trailer / intro files to play before a film. Never rejects: a
+    // server without the feature, a person who has it off, or any failure is just "no pre-show" and the film starts.
+    preroll: function (id) {
+      return get({ path: PREROLL_PATH, query: { kind: 'movie', id: id } }, { timeout: TIMEOUT_MS.normal }).then(
+        function (r) { return normalizePreroll(r.body) },
+        function () { return [] }
+      )
+    },
+    prerollSeen: function (item) {
+      var body = seenBody(item)
+      if (!body) return Promise.resolve()
+      return post({ path: SEEN_PATH }, body, { timeout: TIMEOUT_MS.quick }).then(function () {}, function () {})
+    },
     playbackStop: function (ticket) {
       if (!ticket) return Promise.resolve()
       return post(routes.playbackStop(), { ticket: ticket }, { timeout: TIMEOUT_MS.quick }).then(function () {}, function () {})
@@ -236,6 +271,72 @@ export function createClient(deps) {
         if (!t.ok) throw makeError('bad_response', r.status, '/api/movie-night/tv/create')
         return t
       })
+    },
+    // ---- Live TV, Audiobooks, Podcasts, Internet radio (util/extras.js). The *Shelf / liveRow calls never reject for a server
+    // that lacks the feature (404 / 403 / off / empty): they resolve to an empty list, so the Home row is just not shown.
+    // (A 401 still signs the TV out through onUnauthorized like every other call.)
+    liveRow: function () {
+      return get(extraRoutes.liveStatus(), { timeout: TIMEOUT_MS.quick }).then(function (r) {
+        if (!normalizeLiveStatus(r.body).available) return []
+        return get(extraRoutes.liveChannels(), { timeout: TIMEOUT_MS.normal }).then(function (c) { return normalizeChannels(c.body) })
+      }).then(null, function () { return [] })
+    },
+    liveWatch: function (channelKey) {
+      return post(extraRoutes.liveWatch(), { channel: channelKey }, { timeout: TIMEOUT_MS.start }).then(function (r) {
+        var w = normalizeLiveWatch(r.body)
+        if (!w) throw makeError('bad_response', r.status, '/api/livetv/watch')
+        return w
+      })
+    },
+    liveStop: function (ticket) {
+      if (!ticket) return Promise.resolve()
+      return post(extraRoutes.liveStop(), { ticket: ticket }, { timeout: TIMEOUT_MS.quick }).then(function () {}, function () {})
+    },
+    bookShelf: function () {
+      var soft = function (p) { return p.then(function (r) { return r.body }, function (e) { if (e && e.kind === 'unauthorized') throw e; return null }) }
+      return Promise.all([soft(get(extraRoutes.bookContinue(), { timeout: TIMEOUT_MS.normal })), soft(get(extraRoutes.books(), { timeout: TIMEOUT_MS.normal }))]).then(function (r) {
+        return normalizeBookShelf(r[0], r[1])
+      })
+    },
+    bookDetail: function (id) {
+      return get(extraRoutes.book(id), { timeout: TIMEOUT_MS.normal }).then(function (r) {
+        var d = normalizeBookDetail(r.body)
+        if (!d) throw makeError('bad_response', r.status, '/api/audiobooks/book')
+        return d
+      })
+    },
+    saveBookProgress: function (id, position) {
+      // POST (not PUT): the TV-app CORS allow-list is GET / POST only. `updatedAt` lets the server keep the newest listen.
+      return post(extraRoutes.bookProgress(id), { position: Math.max(0, Math.floor(position)), updatedAt: Date.now(), deviceId: 'tv' }, { timeout: TIMEOUT_MS.quick }).then(function () {}, function () {})
+    },
+    podcastShelf: function () {
+      var soft = function (p) { return p.then(function (r) { return r.body }, function (e) { if (e && e.kind === 'unauthorized') throw e; return null }) }
+      return Promise.all([soft(get(extraRoutes.podcastContinue(), { timeout: TIMEOUT_MS.normal })), soft(get(extraRoutes.podcastLatest(), { timeout: TIMEOUT_MS.normal }))]).then(function (r) {
+        return normalizeEpisodeShelf(r[0], r[1])
+      })
+    },
+    savePodcastProgress: function (key, position, duration) {
+      return post(extraRoutes.podcastProgress(key), { position: Math.max(0, Math.floor(position)), duration: Math.max(0, Math.floor(duration || 0)) }, { timeout: TIMEOUT_MS.quick }).then(function () {}, function () {})
+    },
+    radioShelf: function () {
+      var soft = function (p) { return p.then(function (r) { return r.body }, function (e) { if (e && e.kind === 'unauthorized') throw e; return null }) }
+      return Promise.all([soft(get(extraRoutes.radioFavorites(), { timeout: TIMEOUT_MS.normal })), soft(get(extraRoutes.radioRecent(), { timeout: TIMEOUT_MS.normal }))]).then(function (r) {
+        if (r[0] === null && r[1] === null) return [] // the server has no radio feature
+        var shelf = normalizeStationShelf(r[0], r[1], null)
+        if (shelf.length) return shelf
+        // Nothing saved yet: the popular stations of the server's own directory service (the server makes that call, not the TV).
+        return soft(get(extraRoutes.radioPopular(), { timeout: TIMEOUT_MS.list })).then(function (p) { return normalizeStationShelf(null, null, p) })
+      })
+    },
+    radioPlay: function (stationId) {
+      return post(extraRoutes.radioPlay(), { stationId: stationId }, { timeout: TIMEOUT_MS.start }).then(function (r) {
+        var s = normalizeRadioSession(r.body)
+        if (!s) throw makeError('bad_response', r.status, '/api/radio/play')
+        return s
+      })
+    },
+    radioNow: function (sessionId) {
+      return get(extraRoutes.radioSession(sessionId), { timeout: TIMEOUT_MS.quick }).then(function (r) { return radioLine(r.body) }, function () { return '' })
     },
     /** Plain-text GET (subtitle files). Same auth-free media token in the URL as the server issued. */
     getText: function (relPath) {

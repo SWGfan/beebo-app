@@ -5,12 +5,12 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const enc = (s) => Buffer.from(s, 'utf8').toString('base64url')
 
-let portSeq = 0
 
 async function fixture({ compat = true, extra = {}, prepare, serverExtra = {}, withStandardFiles = true } = {}) {
   const server = localRequire('./electron/streamServer')
@@ -67,7 +67,7 @@ async function fixture({ compat = true, extra = {}, prepare, serverExtra = {}, w
   for (const [id, pw] of [['u-owner', 'owner-password-1'], ['u-kid', 'kid-password-1'], ['u-adult', 'adult-password-1']]) auth.setUserPassword(store, id, pw)
   parental.setPolicy(store, 'u-kid', parental.presetPolicy('kids'))
 
-  const port = 47500 + (process.pid % 300) + 11 * (++portSeq)
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir],

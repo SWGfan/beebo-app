@@ -34,6 +34,7 @@ const server = require('../electron/streamServer')
 const auth = require('../electron/auth')
 const videoQuality = require('../electron/videoQuality')
 const awayQualityPolicy = require('../electron/awayQualityPolicy')
+const { testPort } = require('./helpers/testPort')
 
 const AGENT_SECRET = crypto.randomBytes(32).toString('hex')
 const AWAY = { 'x-forwarded-for': '203.0.113.9' } // marks a request as NOT home, like away-quality-cap.test.js's AWAY_HEADERS
@@ -52,7 +53,7 @@ const licenseStandard = { evaluate: () => ({ enforced: true, serve: true, payloa
 async function startServer({ dir, cacheDir, license } = {}) {
   const store = makeStore()
   const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
-  const port = 48200 + Math.floor(Math.random() * 400)
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => dir, getTvShowsDir: () => null,
     getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

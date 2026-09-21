@@ -9,6 +9,7 @@ const path = require('node:path')
 const { createRequire } = require('node:module')
 const api = require('../electron/migrationApi')
 const fx = require('./helpers/migrationFixtures')
+const { testPort } = require('./helpers/testPort')
 
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
@@ -177,7 +178,7 @@ test('on the real stream server: the desktop bridge imports for the owner, a mem
     const { user: kid } = auth.createUser(store, 'Kid', 'kid@example.com')
     const tokKid = server.makeApiToken(store, kid.id)
     const tokOwner = server.makeApiToken(store, ownerUser.id)
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
       getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir],

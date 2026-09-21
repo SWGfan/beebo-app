@@ -199,8 +199,23 @@ export function normalizePlaybackInfo(b) {
     audio: audio,
     subtitles: subs,
     qualities: qualities,
-    transcodeAvailable: !!(body.transcode && body.transcode.available === true)
+    transcodeAvailable: !!(body.transcode && body.transcode.available === true),
+    // GET /api/playback/info carries a `homeTheater` block on a server that has POST /api/playback/negotiate
+    // (docs/HOME-THEATER.md). Its presence is the feature test: an older server has none, and the player then keeps using
+    // /api/playback/start. `badges` are the file's own labels ("4K", "Dolby Vision", "Atmos"...), shown as text.
+    homeTheater: !!(body.homeTheater && typeof body.homeTheater === 'object'),
+    badges: homeTheaterBadges(body.homeTheater)
   }
+}
+
+function homeTheaterBadges(ht) {
+  var out = []
+  var src = ht && typeof ht === 'object' ? list(ht.badges) : []
+  for (var i = 0; i < src.length && out.length < 8; i++) {
+    var b = str(src[i], 20)
+    if (b) out.push(b)
+  }
+  return out
 }
 
 /** /api/playback/start -> { url, ticket } or null */

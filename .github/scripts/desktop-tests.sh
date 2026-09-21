@@ -9,18 +9,23 @@
 # (the workflow runs `npm ci` in resources/beebo-rtc-host for that).
 set +e -uo pipefail # collect every failure; exit status is decided at the end
 
+# Tests must never touch real accounts: no certificate renewals with a real DuckDNS token file on the machine.
+export BEEBO_NO_CERT_CHECK=1
 PER_FILE_TIMEOUT="${PER_FILE_TIMEOUT:-300}" # seconds; rtc-host.e2e takes ~70s locally
 
-# TODO: fix and remove from this list. Both fail on main as of 2026-09-16, before CI
-# existed. They are skipped so CI is green for everything else, and printed as a
-# warning on every run so they stay visible.
+# TODO: fix and remove from this list. It fails on main as of 2026-09-16, before CI
+# existed. It is skipped so CI is green for everything else, and printed as a
+# warning on every run so it stays visible.
 #   computer-gallery.test.js  - "Actual API handler: bearer authentication, live admin
-#                               revocation, paging and video Range" fails
-#   storybook-runtime.test.js - "Installer includes only original book templates and
-#                               external workers; voice choices have a strict allowlist" fails
+#                               revocation, paging and video Range" fails (the vm-extracted
+#                               handler gets 500 where 403 is expected: the test predates
+#                               globals the handler now uses). Since Vite 8 the file also
+#                               needs @babel/parser, which is no longer installed as a side
+#                               effect: add it as an exact-pinned devDependency when fixing.
+# (storybook-runtime.test.js used to be listed here. It passes on Windows, and on Linux now
+# that its ffmpeg fixture is named for the platform: ffmpeg.exe only on Windows.)
 KNOWN_FAILING=(
   computer-gallery.test.js
-  storybook-runtime.test.js
 )
 
 timeout_cmd=()

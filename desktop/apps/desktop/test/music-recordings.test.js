@@ -9,6 +9,7 @@ const os = require('node:os')
 const path = require('node:path')
 const { Readable } = require('node:stream')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const recordingsLib = localRequire('./electron/musicRecordings')
@@ -117,7 +118,7 @@ test('/api/music/recordings and the page\'s /music-api/recordings: everything is
   const tokenB = server.makeApiToken(store, bob.id)
   const cookieA = 'beebo_session=' + auth.signSession(store, alice.id)
   const cookieB = 'beebo_session=' + auth.signSession(store, bob.id)
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = server.startStreamServer({ port, store, getMoviesDir: () => null, getTvShowsDir: () => null, getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], getTmdbCacheDir: () => null, log: () => {}, musicRecordingsDir: dir })
   try {
     const base = 'http://127.0.0.1:' + info.port

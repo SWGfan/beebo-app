@@ -4,6 +4,7 @@ import { PeopleRow } from './CastRow.jsx'
 import PersonView from './PersonView.jsx'
 import WatchTogetherButton from './WatchTogetherButton.jsx'
 import MovieNightButton from './MovieNightButton.jsx'
+import PhoneSpeakersButton from './PhoneSpeakersButton.jsx'
 import MetadataEditor from './MetadataEditor.jsx'
 import { useBackKeys } from './useBackKeys.js'
 import { TMDB_ATTRIBUTION, formatClock, formatRating, starSlots, tmdbImageUrl } from '../lib/movieFormat.js'
@@ -283,6 +284,7 @@ export default function MovieDetail({
                   <button type="button" className="md-btn" onClick={() => trailer(trailerFor)}>{t('detail.watchTrailerLong')}</button>
                   <WatchTogetherButton kind="movie" fileName={movie.fileName} title={title} />
                   <MovieNightButton fileName={movie.fileName} title={title} />
+                  <PhoneSpeakersButton kind="movie" fileName={movie.fileName} title={title} />
                   <button type="button" className="md-btn" onClick={onFixMatch} title={t('detail.fixMatchHint')}>{t('detail.fixMatch')}</button>
                   {window.beeboentertainment?.metadata ? (
                     <button type="button" className="md-btn" onClick={() => setEditing(true)} title={t('detail.editInfoHint')}>{t('detail.editInfo')}</button>

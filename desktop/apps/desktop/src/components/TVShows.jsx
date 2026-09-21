@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import NewItems, { useNewItems } from './NewItems.jsx'
 import AddToPlaylist, { encodeId } from './AddToPlaylist.jsx'
 import WatchTogetherButton from './WatchTogetherButton.jsx'
+import PhoneSpeakersButton from './PhoneSpeakersButton.jsx'
 import {
   AlphabetBar,
   AlphabetRail,
@@ -1436,6 +1437,7 @@ export default function TVShows({ backSignal } = {}) {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <AddToPlaylist item={{ type: 'episode', id: encodeId(row.ep.relPath || row.ep.fileName) }} title={row.ep.fileName} />
                           <WatchTogetherButton kind="tv" compact fileName={row.ep.fileName} relPath={row.ep.relPath} title={`${show.name} ${row.ep.episode !== null ? 'Ep ' + row.ep.episode : row.ep.fileName}`} />
+                          <PhoneSpeakersButton kind="tv" compact fileName={row.ep.fileName} relPath={row.ep.relPath} title={`${show.name} ${row.ep.episode !== null ? 'Ep ' + row.ep.episode : row.ep.fileName}`} />
                           {isRecentlyAdded(recentlyAdded[row.ep.path]) && (
                             <>
                               <span

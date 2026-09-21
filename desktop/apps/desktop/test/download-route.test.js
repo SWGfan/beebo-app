@@ -5,6 +5,7 @@ const os = require('node:os')
 const path = require('node:path')
 const crypto = require('node:crypto')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const server = localRequire('./electron/streamServer')
@@ -19,7 +20,7 @@ test('/file serves a download: validators, ranges, resume with If-Range, HEAD, n
     await fs.writeFile(path.join(dir, 'Big Film (2021).mkv'), bytes)
     const data = {}
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] } }
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [], log: () => {}
@@ -87,7 +88,7 @@ test('/download/android-app can be resumed with a Range request', async () => {
     await fs.writeFile(apkPath, apk)
     const data = { androidApkPath: apkPath }
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] } }
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [], log: () => {}

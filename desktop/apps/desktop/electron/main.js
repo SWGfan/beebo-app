@@ -403,6 +403,9 @@ let certRunInFlight = null
 // a timer after startup, once a day after that, and by the Settings button.
 // Resolves to { ok, reason } and never rejects.
 async function runCertificateCheck({ force = false, manual = false } = {}) {
+  // Tests (and any throw-away run) must never renew a real certificate with the owner's real DuckDNS token file:
+  // BEEBO_NO_CERT_CHECK=1 turns this whole check off. desktop-tests.sh and the offline harness set it.
+  if (process.env.BEEBO_NO_CERT_CHECK === '1') return { ok: false, reason: 'certificate check disabled for this run' }
   if (certRunInFlight) return certRunInFlight
   certRunInFlight = (async () => {
     try {
@@ -1876,6 +1879,10 @@ try {
 try {
   require('./movieNightIpc').register({ ipcMain, BrowserWindow, store, auth, getStreamPort: () => (streamServerInfo && streamServerInfo.port) || getStreamPort(), log: (m) => console.log(m) })
 } catch (e) { console.log('[movie-night] unavailable:', e && e.message) }
+// Phone speakers: the details page's button that starts a room for guests' phones, and its settings (phoneSpeakersIpc.js).
+try {
+  require('./phoneSpeakersIpc').register({ ipcMain, BrowserWindow, clipboard, store, auth, getStreamPort: () => (streamServerInfo && streamServerInfo.port) || getStreamPort(), log: (m) => console.log(m) })
+} catch (e) { console.log('[phone-speakers] unavailable:', e && e.message) }
 
 // Used for the "🗑 Delete this copy" action on duplicate episodes/movies —
 // only allows deleting a file that's actually inside one of the app's own

@@ -4,7 +4,7 @@ sub init()
 
   ' Global state shared by every component. The token is only ever read to build an
   ' Authorization header (lib/Api.brs) and is never logged.
-  m.global.addFields({ server: "", token: "", userName: "", quality: "auto", subtitles: "off", authFailures: 0 })
+  m.global.addFields({ server: "", token: "", userName: "", quality: "auto", subtitles: "off", authFailures: 0, deviceProfile: "" })
   s = regLoadSettings()
   m.global.server = s.server
   m.global.token = s.token
@@ -12,6 +12,9 @@ sub init()
   m.global.quality = s.quality
   m.global.subtitles = s.subtitles
   m.global.observeField("authFailures", "onAuthFailure")
+  ' What this Roku can decode and show (JSON, "" if the probe failed): sent with POST /api/playback/negotiate so the
+  ' server plays films as they are when it can (docs/HOME-THEATER.md). Read once; see lib/DeviceProbe.brs.
+  m.global.deviceProfile = dpProbeJson()
 
   m.stack = []
   if s.server = "" then
@@ -84,6 +87,14 @@ sub onNavigate(event as object)
     else
       showRoot("HomeView", {})
     end if
+  else if action = "paired" then
+    ' A phone-approved sign-in that the home server exchanged for an API token (POST /api/viewer-session).
+    regSaveServer(nav.url)
+    regSaveToken(nav.token, nav.userName)
+    m.global.server = nav.url
+    m.global.token = nav.token
+    m.global.userName = nav.userName
+    showRoot("HomeView", {})
   else if action = "signedin" then
     regSaveToken(nav.token, nav.userName)
     m.global.token = nav.token

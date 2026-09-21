@@ -1,6 +1,8 @@
 package com.beeboentertainment.movie.data
 
 import com.beeboentertainment.movie.core.AudioOption
+import com.beeboentertainment.movie.core.HomeTheaterRules
+import com.beeboentertainment.movie.core.PlayMethod
 import com.beeboentertainment.movie.core.AutoQuality
 import com.beeboentertainment.movie.core.QualityChoice
 import com.beeboentertainment.movie.core.SubtitleOption
@@ -11,6 +13,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -95,6 +100,14 @@ data class PlaybackPrefs(
 @Serializable
 data class OnlineSearchInfo(val configured: Boolean = false)
 
+/**
+ * The `homeTheater` block of `GET /api/playback/info`. Its presence is the feature test for `POST /api/playback/negotiate`
+ * (docs/HOME-THEATER.md): an older computer has none and the app keeps deciding by itself. [badges] are the file's own labels
+ * ("4K", "Dolby Vision", "Atmos").
+ */
+@Serializable
+data class HomeTheaterInfo(val badges: List<String> = emptyList())
+
 @Serializable
 data class PlaybackInfo(
     val ok: Boolean = false,
@@ -128,7 +141,9 @@ data class PlaybackInfo(
      */
     val chapters: JsonElement? = null,
     val versions: JsonElement? = null,
-    val preferredVersionId: JsonElement? = null
+    val preferredVersionId: JsonElement? = null,
+    /** Null on a computer that predates the home-theatre plan (no negotiate route). */
+    val homeTheater: HomeTheaterInfo? = null
 ) {
     /** The conversions worth offering (none above the file's own picture). */
     val offered: List<QualityChoice>
@@ -192,6 +207,32 @@ data class PlaybackStartResponse(
 
 @Serializable
 data class PlaybackStopRequest(val ticket: String)
+
+/** The answer of `POST /api/playback/negotiate`: a plan and the address that plays it. */
+@Serializable
+data class NegotiateResponse(
+    val ok: Boolean = false,
+    val method: String = "",
+    val url: String = "",
+    val ticket: String = "",
+    val mimeType: String = "",
+    val container: String = "",
+    val durationSec: Double = 0.0,
+    val error: String? = null,
+    val message: String? = null,
+    val retryAfterSec: Double? = null
+) {
+    val playMethod: PlayMethod? get() = PlayMethod.fromWire(method)
+    val followable: Boolean get() = ok && HomeTheaterRules.followable(playMethod, url)
+}
+
+sealed interface NegotiateResult {
+    /** How to play it. Only ever a plan on one of the three routes it may name. */
+    data class Plan(val plan: NegotiateResponse) : NegotiateResult
+
+    /** 503 `preparing`: a big film is being read once so it can be streamed without converting it. Ask again. */
+    data class Preparing(val retryAfterMs: Long) : NegotiateResult
+}
 
 @Serializable
 data class PlaybackPrefsUpdate(
@@ -291,6 +332,26 @@ class PlaybackApi(
         val r = json.decodeFromString(PlaybackStartResponse.serializer(), call(request("/api/playback/start").post(body).build()))
         if (!r.ok || r.url.isBlank()) throw PlaybackRefusedException(r.error ?: "failed", r.message ?: "Couldn't change the quality.")
         return r
+    }
+
+    /**
+     * Direct play / direct stream / transcode, decided by the computer from this device's declared profile. Call it only when
+     * [PlaybackInfo.homeTheater] is present. The profile goes in the JSON body. Throws [PlaybackRefusedException] for an answer
+     * that is not a plan the app may follow (the caller then keeps what it had).
+     */
+    suspend fun negotiate(kind: String, id: String, quality: String, audioStreamIndex: Int?, client: String, profile: JsonObject): NegotiateResult {
+        val body = buildJsonObject {
+            put("kind", kind)
+            put("id", id)
+            put("client", client)
+            put("quality", quality)
+            if (audioStreamIndex != null) put("audio", audioStreamIndex)
+            put("deviceProfile", profile)
+        }.toString().toRequestBody(jsonType)
+        val r = json.decodeFromString(NegotiateResponse.serializer(), call(request("/api/playback/negotiate").post(body).build()))
+        if (r.error == "preparing") return NegotiateResult.Preparing(HomeTheaterRules.prepareWaitMs(r.retryAfterSec))
+        if (r.followable) return NegotiateResult.Plan(r)
+        throw PlaybackRefusedException(r.error ?: "not_followable", r.message ?: "The computer's answer couldn't be used.")
     }
 
     suspend fun stop(ticket: String) {

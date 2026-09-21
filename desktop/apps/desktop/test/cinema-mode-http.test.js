@@ -13,8 +13,8 @@ const server = require('../electron/streamServer')
 const parental = require('../electron/parentalControls')
 
 const SECRET = crypto.randomBytes(32).toString('hex')
-let portSequence = 0
 const http = require('node:http')
+const { testPort } = require('./helpers/testPort')
 const rawGet = (base, rawPath) => new Promise((resolve) => {
   const u = new URL(base)
   const req = http.request({ host: u.hostname, port: u.port, path: rawPath, method: 'GET' }, (res) => { const parts = []; res.on('data', (c) => parts.push(c)); res.on('end', () => resolve(Buffer.concat(parts).toString('latin1'))) })
@@ -59,7 +59,7 @@ async function fixture(t, { online } = {}) {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 45000 + (process.pid % 1400) + ++portSequence + 400,
+    port: testPort(),
     store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir], getTmdbCacheDir: () => cacheDir,
     agentSecret: SECRET, log: () => {},

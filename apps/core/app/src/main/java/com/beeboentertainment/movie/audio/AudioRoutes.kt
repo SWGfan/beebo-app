@@ -20,6 +20,7 @@ object AudioRoutes {
     const val LIVE_TV_WATCH = "livetv/watch/{key}"
     const val ACCOUNT_SECURITY = "account-security"
     const val JOIN_WATCH_TOGETHER = "join-watch-together"
+    const val MOVIE_NIGHT = "movienight"
 
     fun book(id: String) = "audiobooks/book/$id"
     fun series(id: String) = "audiobooks/series/$id"
@@ -49,12 +50,13 @@ object AudioRoutes {
         LIVE_TV_WATCH -> "Live TV"
         ACCOUNT_SECURITY -> "Account security"
         JOIN_WATCH_TOGETHER -> "Watch together"
+        MOVIE_NIGHT -> "Movie Night"
         else -> null
     }
 
     /** Routes that must stay reachable but never get a bottom-bar tab. */
     val ALL = listOf(
         AUDIOBOOKS, AUDIOBOOK_BOOK, AUDIOBOOK_SERIES, AUDIOBOOK_LISTEN, PODCASTS, PODCAST_SHOW, PODCAST_LISTEN,
-        RADIO, RADIO_LISTEN, LIVE_TV, LIVE_TV_WATCH, ACCOUNT_SECURITY, JOIN_WATCH_TOGETHER
+        RADIO, RADIO_LISTEN, LIVE_TV, LIVE_TV_WATCH, ACCOUNT_SECURITY, JOIN_WATCH_TOGETHER, MOVIE_NIGHT
     )
 }

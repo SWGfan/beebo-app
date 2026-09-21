@@ -28,6 +28,19 @@ apps/xbox/
 Shared code (in `apps/smarttv`, used by all three TV builds): `app/js/nav/gamepad.js` (controller mapping, new),
 `app/js/platform/xbox.js` and `hls.js` (Xbox-only glue, new), `tools/stage.mjs` (the staging step, now shared).
 
+## What the shared app now does on Xbox (home-theatre work, 2026-09-21)
+
+These come from `apps/smarttv` (see its README, sections "Home theatre", "Live TV, Audiobooks, Podcasts and Radio" and "Cinema Mode pre-show"), so they arrive on Xbox by rebuilding. What is specific to Xbox:
+
+* **Device profile.** The WebView2 shell declares itself as client `xbox`. Codecs and containers come from `canPlayType` / `MediaSource.isTypeSupported`; HDR10 is claimed only when
+  `matchMedia('(dynamic-range: high)')` matches; UHD only when the physical screen (`screen` x `devicePixelRatio`) is 3800 px wide or more. When hls.js plays the stream (the shell's runtime choice)
+  the profile also says `hls-fmp4`, so the server may repackage a film's picture instead of converting it; with native HLS only `hls-ts` is claimed. TrueHD / DTS are never listed, HDR10+ and Dolby Vision are never claimed.
+* **Direct play.** A film the server says the Xbox can open as a file (MP4; MKV where the WebView2 build allows it) is played from `/file?...` by the `<video>` element. If the web view refuses it, the player goes back once to the conversion.
+* **Home rows and pre-show.** Live TV, Audiobooks, Podcasts, Radio and the Cinema Mode pre-show appear when the server has them. They need the same *Settings > Allow TV apps to connect* switch (the exact calls were added to the server's CORS allow-list).
+* Xbox audio in the shell is a normal `<audio>` element inside WebView2; the console's own background-audio rules for a UWP app are **unverified** (the app may pause audio books and radio when it loses focus).
+
+**UNVERIFIED:** none of it has run on an Xbox. `npm test` here covers the shell files only; the shared logic is tested in `apps/smarttv`.
+
 ---
 
 ## What you (the owner) must do

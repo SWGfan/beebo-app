@@ -35,10 +35,18 @@ const EXACT_ROUTES = new Set([
   // Read by the TV app itself (who am I, up next, next-episode context).
   '/api/me', '/api/upnext', '/api/episode-context',
   // Movie Night: the TV app asks whether it is available and starts a room (docs/MOVIE-NIGHT.md). Both need a Bearer token.
-  '/api/movie-night/status', '/api/movie-night/tv/create'
+  '/api/movie-night/status', '/api/movie-night/tv/create',
+  // Live TV, Audiobooks, Podcasts and Internet radio rows of the TV apps (apps/smarttv, apps/xbox). Only the calls the TV makes:
+  // never /api/livetv/admin/*, the DVR, the library rescan, or any settings route. All need a Bearer token.
+  '/api/livetv/status', '/api/livetv/channels', '/api/livetv/watch', '/api/livetv/stop',
+  '/api/audiobooks/status', '/api/audiobooks/books', '/api/audiobooks/continue',
+  '/api/podcasts/status', '/api/podcasts/latest', '/api/podcasts/continue',
+  '/api/radio/status', '/api/radio/favorites', '/api/radio/recent', '/api/radio/browse', '/api/radio/play'
 ])
 // This path and anything beneath it (path + '/...').
-const TREE_ROUTES = ['/api/v1', '/api/tvshows', '/api/movies', '/api/playlists', '/api/playback']
+const TREE_ROUTES = ['/api/v1', '/api/tvshows', '/api/movies', '/api/playlists', '/api/playback',
+  // one book / one episode / one radio session: detail, progress, now playing (the audio itself needs no CORS)
+  '/api/audiobooks/book', '/api/podcasts/episode', '/api/radio/session']
 
 function normalizePath(pathname) {
   return String(pathname || '').replace(/\/+$/, '')

@@ -15,11 +15,11 @@ const auth = require('../electron/auth')
 const server = require('../electron/streamServer')
 const theme = require('../electron/theme')
 const pwa = require('../electron/pwa')
+const { testPort } = require('./helpers/testPort')
 
 const PASSWORD = 'Pwa-test-password-77'
 const SECRET = crypto.randomBytes(32).toString('hex')
 const MOVIE = 'Zebra Quartz Secret Film (2019).mp4'
-let portSequence = 0
 
 async function fixture(t) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'beebo-pwa-'))
@@ -33,7 +33,7 @@ async function fixture(t) {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 46500 + (process.pid % 1000) + ++portSequence,
+    port: testPort(),
     store, getMoviesDir: () => moviesDir, getTvShowsDir: () => root,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [],
     agentSecret: SECRET, log: () => {}

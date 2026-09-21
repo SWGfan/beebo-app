@@ -208,6 +208,33 @@ public struct BeeboAPI: Sendable {
         throw APIError.refused(code: code.isEmpty ? "failed" : code, message: message)
     }
 
+    /// Direct play / direct stream / transcode, decided by the server from this device's declared profile (docs/HOME-THEATER.md).
+    /// Call it only when `PlaybackInfo.homeTheater` is present; an older server has no such route. The profile travels in the JSON body.
+    public func playbackNegotiate(
+        kind: MediaKind,
+        id: String,
+        quality: String,
+        audioStreamIndex: Int? = nil,
+        profile: DeviceProfileDeclaration
+    ) async throws -> NegotiateOutcome {
+        var body: [String: Any] = ["kind": kind.rawValue, "id": id, "quality": quality, "client": profile.client.isEmpty ? "appletv" : profile.client]
+        body["deviceProfile"] = profile.object
+        if let audioStreamIndex { body["audio"] = audioStreamIndex }
+        let request = try makeRequest("POST", "/api/playback/negotiate", body: body)
+        let (data, response) = try await rawSend(request)
+        if response.statusCode == 401 { throw APIError.unauthorized }
+        let parsed = try? JSONDecoder().decode(NegotiatedPlan.self, from: data)
+        if response.statusCode == 503, let parsed, (parsed.error ?? "") == "preparing" {
+            let wait = parsed.retryAfterSec ?? 3
+            return .preparing(retryAfter: min(10, max(1, wait)))
+        }
+        if let parsed, parsed.isFollowable { return .plan(parsed) }
+        if let parsed, parsed.ok { throw APIError.badResponse }
+        let code = parsed?.error ?? Self.errorCode(in: data)
+        let message = parsed?.message ?? Self.errorMessage(in: data) ?? Self.playbackRefusal(code, status: response.statusCode)
+        throw APIError.refused(code: code.isEmpty ? "failed" : code, message: message)
+    }
+
     static func playbackRefusal(_ code: String, status: Int) -> String {
         switch code {
         case "busy": return "The Beebo computer is busy converting other videos. Try again in a little while."
@@ -238,6 +265,17 @@ public struct BeeboAPI: Sendable {
             "duration": max(0, duration),
         ]
         let _: OkResponse = try await perform(makeRequest("POST", "/api/progress", body: body))
+    }
+
+    // MARK: - Movie Night (docs/MOVIE-NIGHT.md)
+
+    public func movieNightStatus() async throws -> MovieNightStatus {
+        try await perform(makeRequest("GET", "/api/movie-night/status"))
+    }
+
+    /// Starts a room as the signed-in person. Open `MovieNight.tvURL(base:room:)` in a web view.
+    public func movieNightCreateRoom() async throws -> MovieNightRoom {
+        try await perform(makeRequest("POST", "/api/movie-night/tv/create", body: [:]))
     }
 
     public func fetchText(_ url: URL) async throws -> String {

@@ -15,12 +15,12 @@ const resetCodes = require('../electron/resetCodes')
 const securityLog = require('../electron/securityLog')
 const authSessions = require('../electron/authSessions')
 const server = require('../electron/streamServer')
+const { testPort } = require('./helpers/testPort')
 
 const PASSWORD = 'lantern-copper-orbit-42'
 const NEW_PASSWORD = 'a-brand-new-lantern-passphrase-7'
 const SECRET = crypto.randomBytes(32).toString('hex')
 const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
-let portSequence = 0
 
 async function fixture(t, { admins = ['owner'] } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'beebo-account-security-'))
@@ -37,7 +37,7 @@ async function fixture(t, { admins = ['owner'] } = {}) {
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 45000 + (process.pid % 1500) + ++portSequence,
+    port: testPort(),
     store, getMoviesDir: () => moviesDir, getTvShowsDir: () => root,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [],
     agentSecret: SECRET, log: () => {}

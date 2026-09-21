@@ -10,10 +10,10 @@ const assert = require('node:assert/strict')
 const auth = require('../../electron/auth')
 const parental = require('../../electron/parentalControls')
 const server = require('../../electron/streamServer')
+const { testPort } = require('./testPort')
 
 const PASSWORD = 'Public-api-test-password-77'
 const AGENT_SECRET = crypto.randomBytes(32).toString('hex')
-let portSequence = 0
 
 const ALIEN = {
   id: 8091,
@@ -60,7 +60,7 @@ async function createFixture(t, options = {}) {
   parental.setPolicy(store, 'kid', parental.presetPolicy('kids'))
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 45000 + (process.pid % 1400) + ++portSequence,
+    port: testPort(),
     store,
     getMoviesDir: () => moviesDir,
     getTvShowsDir: () => tvDir,

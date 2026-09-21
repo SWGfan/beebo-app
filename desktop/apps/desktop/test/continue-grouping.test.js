@@ -7,6 +7,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const history = localRequire('./electron/history')
@@ -171,7 +172,7 @@ test('server: /api/continue groups (lowercase duplicate included), titles use th
       watchHistory: [...houseRows('u1'), ...houseRows('u2')].map((r) => ({ ...r, fileName: native(r.fileName) })).concat(session('u1', 'Alpha (2020).mp4', 'Alpha', 'movie', 900, 6000, T0 + 1)),
       libraryFlags: { u1: {}, u2: {} }
     })
-    const port = 48000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => movies, getTvShowsDir: () => tv,
       getAllMoviesDirs: () => [movies], getAllTvShowsDirs: () => [tv],

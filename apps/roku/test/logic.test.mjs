@@ -14,7 +14,7 @@ const cli = path.join(root, 'node_modules', '@rokucommunity', 'brs', 'bin', 'cli
 
 // Pure files only (Theme/Registry/Api need Roku-only objects at call time, not load time, but
 // they are not part of the logic under test).
-const LIB_FILES = ['Urls', 'Format', 'Paging', 'Log', 'Models', 'Discovery', 'PairingContract', 'PairingMachine', 'Playback']
+const LIB_FILES = ['Urls', 'Format', 'Paging', 'Log', 'Models', 'Discovery', 'PairingContract', 'PairingMachine', 'Playback', 'DeviceProfile', 'MovieNight']
 
 test('BrightScript pure logic (brs interpreter)', () => {
   const files = [...LIB_FILES.map((f) => path.join(lib, f + '.brs')), path.join(root, 'test', 'brs', 'logic_tests.brs')]
@@ -32,5 +32,5 @@ test('BrightScript pure logic (brs interpreter)', () => {
   assert.ok(done, 'test run did not finish:\n' + out.slice(-2000))
   assert.deepEqual(failures, [], 'failing checks:\n' + failures.join('\n'))
   const passed = Number((/passed=\s*(\d+)/.exec(done) || [])[1])
-  assert.ok(passed > 150, `expected >150 passing checks, saw ${passed}`)
+  assert.ok(passed > 250, `expected >250 passing checks, saw ${passed}`)
 })

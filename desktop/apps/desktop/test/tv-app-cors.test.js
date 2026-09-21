@@ -14,24 +14,36 @@ const server = require('../electron/streamServer')
 const auth = require('../electron/auth')
 const cors = require('../electron/corsPolicy')
 const desktopSettingsPolicy = require('../electron/desktopSettingsPolicy')
+const { testPort } = require('./helpers/testPort')
 
 const PASSWORD = 'Tv-app-cors-test-password-9'
 const AGENT_SECRET = crypto.randomBytes(32).toString('hex')
-let seq = 0
 
 // Each of these is a route the TV app calls (or may call); the second column is a concrete path.
 const ALLOWED = [
   '/api/ping', '/api/login', '/api/viewer-session', '/api/v1', '/api/v1/library/movies', '/api/continue',
   '/api/recently-added', '/api/tvshows', '/api/tvshows/abc', '/api/movies', '/api/movies/x/y',
   '/api/playlists', '/api/playlists/p1', '/api/playback/info', '/api/playback/start', '/api/watch-session',
-  '/api/progress', '/api/markers', '/api/me', '/api/upnext', '/api/episode-context', '/api/ping/'
+  '/api/progress', '/api/markers', '/api/me', '/api/upnext', '/api/episode-context', '/api/ping/',
+  // the Live TV / Audiobooks / Podcasts / Radio rows of the TV apps
+  '/api/livetv/status', '/api/livetv/channels', '/api/livetv/watch', '/api/livetv/stop',
+  '/api/audiobooks/status', '/api/audiobooks/books', '/api/audiobooks/continue', '/api/audiobooks/book/0123456789abcdef',
+  '/api/audiobooks/book/0123456789abcdef/progress', '/api/podcasts/status', '/api/podcasts/latest', '/api/podcasts/continue',
+  '/api/podcasts/episode/0123456789ab.0123456789abcdef/progress', '/api/radio/status', '/api/radio/favorites',
+  '/api/radio/recent', '/api/radio/browse', '/api/radio/play', '/api/radio/session/abc'
 ]
 const DISALLOWED = [
   '/api/admin/summary', '/api/admin/settings', '/api/admin/users/approve', '/api/admin', '/api/me/delete',
   '/api/private-vault', '/api/parental/unlock', '/api/school/report', '/api/remote-session', '/api/movie-version',
   '/api/moviesX', '/api/movies%2F..%2Fadmin', '/api/license/status', '/api/history', '/api/favorites',
   '/api/profiles/switch', '/api/photos', '/api/music', '/api/party/start', '/api/viewing-privacy', '/api/tvshowsX',
-  '/api', '/', '/admin', '/login', '/file', '/tvfile', '/health'
+  '/api', '/', '/admin', '/login', '/file', '/tvfile', '/health',
+  // next to the TV rows: the owner-only and setup routes of the same features never get CORS
+  '/api/livetv', '/api/livetv/admin/device', '/api/livetv/admin/settings', '/api/livetv/dvr', '/api/livetv/dvr/schedule',
+  '/api/livetv/advanced', '/api/livetv/guide', '/api/livetv/favourite', '/api/livetvX/status',
+  '/api/audiobooks', '/api/audiobooks/rescan', '/api/audiobooks/skipped', '/api/audiobooks/lookup', '/api/audiobooks/prefs',
+  '/api/audiobooks/bookX', '/api/podcasts', '/api/podcasts/settings', '/api/podcasts/cleanup', '/api/podcasts/subscriptions',
+  '/api/podcasts/opml', '/api/podcasts/refresh', '/api/radio', '/api/radio/settings', '/api/radio/recordings', '/api/radio/custom'
 ]
 const ORIGINS = ['null', 'https://tv.example.test', 'file://', 'http://192.168.1.50:8080']
 
@@ -49,7 +61,7 @@ async function boot(t, { tvAppCors, license } = {}) {
   const store = { data, get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 45400 + (process.pid % 900) + ++seq, store, getMoviesDir: () => root, getTvShowsDir: () => root,
+    port: testPort(), store, getMoviesDir: () => root, getTvShowsDir: () => root,
     getAllMoviesDirs: () => [root], getAllTvShowsDirs: () => [], log: () => {},
     agentSecret: AGENT_SECRET, ...(license ? { license } : {})
   })

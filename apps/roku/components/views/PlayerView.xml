@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
   PlayerView - plays one film/episode (or walks a playlist queue) with the Roku Video node
-  from the server's HLS transcode (H.264 + AAC), reports progress, resumes, and offers a
-  lower-quality retry on error.
+  from the server's HLS transcode (H.264 + AAC), or, on a server that has POST /api/playback/negotiate, in the way the
+  server picks from this Roku's declared device profile (the file as it is, repackaged, or converted; docs/HOME-THEATER.md).
+  Reports progress, resumes, and offers a lower-quality retry on error.
   params: { kind, id, title, resumeSeconds, audio?, subtitle?: {url,title,language},
             queue?: [ {kind,id,title,resumeSeconds} ], index? }
   The Video node itself provides OK/Play/Pause, FF/RW and instant replay.
@@ -15,6 +16,7 @@
   <script type="text/brightscript" uri="pkg:/components/views/PlayerView.brs" />
   <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
   <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/DeviceProfile.brs" />
   <children>
     <Rectangle id="black" translation="[0,0]" width="1920" height="1080" color="0x000000FF" />
     <Video id="video" translation="[0,0]" width="1920" height="1080" visible="false" />
@@ -23,5 +25,6 @@
     <StatusPanel id="status" visible="false" />
     <Timer id="reportTimer" repeat="true" duration="15" />
     <Timer id="closeTimer" repeat="false" duration="3" />
+    <Timer id="prepTimer" repeat="false" duration="3" />
   </children>
 </component>

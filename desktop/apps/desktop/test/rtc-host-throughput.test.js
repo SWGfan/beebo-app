@@ -12,6 +12,9 @@ const H = require('./helpers/rtcHarness')
 const { makeClient } = require('./perf/tunnelViewer')
 
 const skip = H.NM ? false : 'werift not found (set BEEBO_RTC_NODE_MODULES)'
+// The second group also needs the REAL cloud Worker (helpers/rtcHarness.startWorker imports worker/worker.js),
+// which is private: skip those four when it is absent (the public repository), run them in the private monorepo.
+const skipWorld = skip || require('./helpers/privateParts').skipIfMissing('worker/worker.js', 'worker/test/d1-mock.mjs')
 const sleep = H.sleep
 
 let host = null
@@ -214,7 +217,7 @@ async function viewer(opts = {}) {
   return { v, c, pc: v.pc, channel: v.channels[0], viewerId: v.viewerId }
 }
 
-test('a viewer that takes 256 KiB gets 64 KiB frames, one that takes 16 KiB gets small ones, every byte exact', { skip, timeout: 90000 }, async () => {
+test('a viewer that takes 256 KiB gets 64 KiB frames, one that takes 16 KiB gets small ones, every byte exact', { skip: skipWorld, timeout: 90000 }, async () => {
   const want = H.rangeHash(0, TOTAL - 1)
   for (const [max, biggest] of [[262144, 65533], [65536, 65533], [16384, 16381]]) {
     const x = await viewer({ maxMessageSize: max })
@@ -234,7 +237,7 @@ test('a viewer that takes 256 KiB gets 64 KiB frames, one that takes 16 KiB gets
   }
 })
 
-test('a viewer that sought away: the old stream stops and the new range arrives exact, even while the send queue is full', { skip, timeout: 90000 }, async () => {
+test('a viewer that sought away: the old stream stops and the new range arrives exact, even while the send queue is full', { skip: skipWorld, timeout: 90000 }, async () => {
   const x = await viewer()
   try {
     await x.c.hello()
@@ -253,7 +256,7 @@ test('a viewer that sought away: the old stream stops and the new range arrives 
   } finally { x.pc.close() }
 })
 
-test('stripes: extra connections of the same viewer join a download; nothing else can', { skip, timeout: 120000 }, async () => {
+test('stripes: extra connections of the same viewer join a download; nothing else can', { skip: skipWorld, timeout: 120000 }, async () => {
   const { w, token, agent } = await world_()
   const gen = await w._test.derivePasswordHash('generated-pass-1')
   const own = await w._test.derivePasswordHash('robins own password')
@@ -329,7 +332,7 @@ test('stripes: extra connections of the same viewer join a download; nothing els
 })
 
 
-test('stripes share ONE away-stream slot; separate viewers each take their own', { skip, timeout: 180000 }, async () => {
+test('stripes share ONE away-stream slot; separate viewers each take their own', { skip: skipWorld, timeout: 180000 }, async () => {
   const opened = []
   const close = () => { for (const x of opened) { try { x.pc.close() } catch {} } opened.length = 0 }
   // The status of a one-kilobyte range of a "video" file: 206, or 429 when the household is at its limit.

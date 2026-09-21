@@ -27,7 +27,10 @@ sub apiInit()
 end sub
 
 ' spec keys (all optional): transform, timeoutMs, auth (default true), url (absolute
-' override, e.g. the pairing service), raw (skip JSON parse/transform)
+' override, e.g. the pairing service), raw (skip JSON parse/transform), bearer (an explicit one-off
+' credential for auth:false calls: the pairing viewer token for POST /api/viewer-session. It is sent
+' only in the Authorization header, a 401 for it is NOT "the saved sign-in was rejected", and the
+' HttpTask refuses it over plain http off the home network)
 function apiSend(method as string, path as string, body as dynamic, spec as object, callback as function, context = invalid as dynamic) as string
   base = m.global.server
   url = ""
@@ -47,19 +50,32 @@ function apiSend(method as string, path as string, body as dynamic, spec as obje
     token: ""
     raw: false
   }
-  if body <> invalid then req.body = FormatJson(body)
+  if body <> invalid then
+    ' a body that is already a JSON string (POST /api/playback/negotiate splices the device profile in) is sent as it is
+    if type(body) = "roString" or type(body) = "String" then
+      req.body = body
+    else
+      req.body = FormatJson(body)
+    end if
+  end if
   if spec.timeoutMs <> invalid then req.timeoutMs = spec.timeoutMs
   if spec.transform <> invalid then req.transform = spec.transform
   if spec.raw <> invalid then req.raw = spec.raw
   ' The bearer token only ever goes to the home server, never to another host.
-  if useAuth and Left(url, Len(base)) = base and base <> "" then req.token = m.global.token
+  explicit = false
+  if useAuth and Left(url, Len(base)) = base and base <> "" then
+    req.token = m.global.token
+  else if not useAuth and fmtStr(spec.bearer, "") <> "" then
+    req.token = spec.bearer
+    explicit = true
+  end if
 
   m.apiSeq = m.apiSeq + 1
   id = "api" + Str(m.apiSeq).trim()
   task = CreateObject("roSGNode", "HttpTask")
   task.id = id
   task.observeField("response", "apiOnResponse")
-  m.apiPending[id] = { task: task, callback: callback, context: context, authed: req.token <> "" }
+  m.apiPending[id] = { task: task, callback: callback, context: context, authed: req.token <> "" and not explicit }
   task.request = req
   task.control = "RUN"
   return id

@@ -265,6 +265,13 @@ contextBridge.exposeInMainWorld('beeboentertainment', {
     saveSettings: (partial) => ipcRenderer.invoke('movieNight:saveSettings', partial || {})
   },
 
+  // Phone speakers (electron/phoneSpeakersIpc.js): start a room for a film, and its settings.
+  phoneSpeakers: {
+    start: (opts) => ipcRenderer.invoke('phoneSpeakers:start', opts || {}),
+    getSettings: () => ipcRenderer.invoke('phoneSpeakers:getSettings'),
+    setSettings: (patch) => ipcRenderer.invoke('phoneSpeakers:setSettings', patch || {})
+  },
+
   // Edit info, the artwork picker and the metadata language (electron/metadataIpc.js). Desktop-only:
   // nothing in the web pages, phone apps or public API can reach these.
   metadata: {

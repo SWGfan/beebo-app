@@ -4,6 +4,7 @@ const os = require('node:os')
 const path = require('node:path')
 const auth = require('../electron/auth')
 const plan = require('../electron/householdPlan')
+const { testPort } = require('./helpers/testPort')
 
 function store(initial = {}) {
   const data = structuredClone(initial)
@@ -124,7 +125,7 @@ test('first-owner creation cannot exceed the same household limit', () => {
   const agentSecret = 'household-capacity-test-secret-' + 'k'.repeat(40)
   let info
   try {
-    info = server.startStreamServer({ port: 47500 + Math.floor(Math.random() * 500), store: data, getMoviesDir: () => path.join(os.tmpdir(), 'beebo-nonexistent-household-test-library'), getTvShowsDir: () => '', getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], log: () => {}, agentSecret })
+    info = server.startStreamServer({ port: testPort(), store: data, getMoviesDir: () => path.join(os.tmpdir(), 'beebo-nonexistent-household-test-library'), getTvShowsDir: () => '', getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], log: () => {}, agentSecret })
     const base = 'http://127.0.0.1:' + info.port
     const headers = { authorization: 'Bearer ' + server.makeApiToken(data, 'person0'), 'x-beebo-agent-key': agentSecret, 'content-type': 'application/json' }
     for (const [url, body] of [['/api/admin/users/reactivate', { userId: 'revoked' }], ['/api/admin/requests/approve', { requestId: 'request' }]]) {

@@ -175,6 +175,11 @@ fun MoreScreen(
             MenuCard(MenuItem(AudioRoutes.LIVE_TV, "📡", "Live TV",
                 "Watch your own antenna through your own tuner. Pause, rewind and go live."), Modifier, onOpen)
         }
+        // Party games for the living-room TV, played from phones; on a TV the games open right here (docs/MOVIE-NIGHT.md).
+        if (features.has(ServerFeature.MOVIE_NIGHT) && !app.session.isGuest) {
+            MenuCard(MenuItem(AudioRoutes.MOVIE_NIGHT, "🎉", "Movie Night",
+                "Trivia, a poster game and a fair vote for tonight's film. Everyone joins from their phone, no account."), Modifier, onOpen)
+        }
         if (features.has(ServerFeature.WATCH_TOGETHER)) {
             MenuCard(MenuItem(AudioRoutes.JOIN_WATCH_TOGETHER, "🍿", "Join a watch together room",
                 "Paste an invite link or code to watch in step with friends on this Beebo."), Modifier, onOpen)

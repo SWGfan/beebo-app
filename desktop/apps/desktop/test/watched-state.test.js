@@ -7,6 +7,7 @@ const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const watchedState = localRequire('./electron/watchedState')
@@ -224,7 +225,7 @@ test('server: scoped endpoints, Continue Watching, episode ticks, old-route comp
         }
       }
     })
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => movies, getTvShowsDir: () => tv,
       getAllMoviesDirs: () => [movies], getAllTvShowsDirs: () => [tv],

@@ -12,6 +12,7 @@ const { execFileSync } = require('node:child_process')
 const auth = require('../electron/auth')
 const server = require('../electron/streamServer')
 const M = require('../electron/markerModel')
+const { testPort } = require('./helpers/testPort')
 
 function makeCert(dir) {
   try {
@@ -52,7 +53,7 @@ test('admin website: Markers tab shows auto-detected markers with per-show Re-sc
   data.autoMarkers = auto
   auth.forgetSecrets(); server.forgetSecrets()
   const info = server.startStreamServer({
-    port: 46000 + Math.floor(Math.random() * 900), store, getMoviesDir: () => dir, getTvShowsDir: () => tvDir,
+    port: testPort(), store, getMoviesDir: () => dir, getTvShowsDir: () => tvDir,
     getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [tvDir], log: () => {},
     autoMarkers: { startDelayMs: 3600 * 1000, intervalMs: 3600 * 1000 }
   })

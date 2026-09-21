@@ -10,6 +10,7 @@ const fsSync = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const actorGaps = localRequire('./electron/actorGaps')
@@ -194,7 +195,7 @@ test('the actor-page endpoints over a fixture library with a mocked TMDB', async
     const token = server.makeApiToken(store, user.id)
 
     delete process.env.TMDB_API_KEY
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => tvDir,
       getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [tvDir],

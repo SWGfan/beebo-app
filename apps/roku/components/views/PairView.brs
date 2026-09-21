@@ -26,7 +26,7 @@ sub init()
   m.step1.text = "1.  On your phone or computer, open"
   m.step1.translation = [L.marginX, 250]
   m.uri.translation = [L.marginX, 290]
-  m.step2.text = "2.  Sign in to Beebo there and enter this code"
+  m.step2.text = "2.  Sign in to Beebo there, then enter this code"
   m.step2.translation = [L.marginX, 400]
   m.code.translation = [L.marginX, 440]
   m.status.translation = [L.marginX, 620]
@@ -96,6 +96,7 @@ sub perform(a as object)
     m.pollTimer.control = "stop"
     m.tickTimer.control = "stop"
     onApproved(a.token, a.name)
+    a.token = "" ' this action object is done with the viewer token
   end if
 end sub
 
@@ -143,14 +144,20 @@ sub onTick()
   feed({ type: "tick", now: nowSec() })
 end sub
 
-' ---- approval ---------------------------------------------------------------------------
-' `token` is a 12-hour Beebo *viewer* token; the home server's HTTP API does not accept it
-' (see PairingContract.brs). It is used only when tokenExchange is switched on, is never
-' stored, and is dropped here.
+' ---- approval and the viewer-session exchange -----------------------------------------------
+' `token` is the 12-hour Beebo *viewer* token for the house. It is traded ONCE for a normal API session
+' (POST /api/viewer-session, see lib/PairingContract.brs and docs VIEWER-EXCHANGE.md), the same way
+' apps/smarttv and apps/apple do. It lives only in m.approvedToken for as long as that takes, is
+' never stored, logged or put in a URL, and is cleared as soon as the server has answered.
+' Anything but a 200 falls back to typing a username and password.
 sub onApproved(token as string, houseName as string)
   m.approvedToken = token
-  m.approvedName = houseName
-  if m.global.server = "" and houseName <> "" then
+  m.exchangeTries = 0
+  if m.global.server <> "" then
+    startExchange(m.global.server)
+    return
+  end if
+  if pairIsHouseName(houseName) then
     target = urlServerFromBeeboName(houseName)
     if target.ok then
       m.st.phase = "checking"
@@ -160,24 +167,70 @@ sub onApproved(token as string, houseName as string)
       return
     end if
   end if
-  finishApproved(m.global.server)
+  dropToken()
+  goSignIn("", "Your phone approved this Roku, but Beebo didn't say which home it belongs to. Enter your server address, then sign in with your username and password.")
 end sub
 
 sub onHomeChecked(resp as object, ctx as dynamic)
   reachable = false
   if resp.ok and resp.data <> invalid then reachable = LCase(fmtStr(resp.data.app, "")) = "beeboentertainment"
   if reachable then
-    finishApproved(m.checkUrl)
+    startExchange(m.checkUrl)
   else
+    dropToken()
     m.st.phase = "unreachable"
     render()
   end if
 end sub
 
-sub finishApproved(serverUrl as string)
-  m.approvedToken = "" ' see onApproved: the viewer token is not usable as an API token
-  message = "Your phone approved this Roku. To finish, sign in with your username and password."
-  m.top.navigate = { action: "server", url: serverUrl, params: { message: message } }
+sub dropToken()
+  m.approvedToken = ""
+end sub
+
+' One POST to the home server. The token is only ever put in the Authorization header, and only for
+' https or a private LAN address.
+sub startExchange(serverUrl as string)
+  if not pairSafeExchangeUrl(serverUrl) or not pairIsViewerToken(m.approvedToken) then
+    dropToken()
+    goSignIn(serverUrl, pairExchangeText({ status: "unreachable", code: "" }))
+    return
+  end if
+  m.st.phase = "checking"
+  m.status.text = "Approved. Signing in..."
+  di = CreateObject("roDeviceInfo")
+  name = fmtStr(di.GetFriendlyName(), "").trim()
+  if name = "" then name = "Roku"
+  c = pairContract()
+  m.exchangeUrl = serverUrl
+  apiPost(c.exchangePath, pairExchangeBody(name), { url: serverUrl + c.exchangePath, auth: false, bearer: m.approvedToken, timeoutMs: 20000 }, onExchange)
+  render()
+end sub
+
+sub onExchange(resp as object, ctx as dynamic)
+  ' No answer at all (network / timeout): ask again once. Any real answer is final: a 401 means pair again,
+  ' and asking more only trips the address lockout.
+  if (resp.errorKind = "network" or resp.errorKind = "timeout") and m.exchangeTries < 1 then
+    m.exchangeTries = m.exchangeTries + 1
+    startExchange(m.exchangeUrl)
+    return
+  end if
+  dropToken()
+  r = pairClassifyExchange(resp.status, resp.data)
+  if r.status = "signed_in" then
+    ' Home server address + the new API token, exactly as if /api/login had answered.
+    m.top.navigate = { action: "paired", url: m.exchangeUrl, token: r.token, userName: r.userName }
+    return
+  end if
+  goSignIn(m.exchangeUrl, pairExchangeText(r))
+end sub
+
+' The typed sign-in (always works): show why the phone code was not enough.
+sub goSignIn(serverUrl as string, message as string)
+  if serverUrl = "" then
+    m.top.navigate = { action: "reset", view: "SetupView", params: {} }
+  else
+    m.top.navigate = { action: "server", url: serverUrl, params: { message: message } }
+  end if
 end sub
 
 ' ---- screen ---------------------------------------------------------------------------------
@@ -205,6 +258,8 @@ sub render()
     m.status.text = pairDeniedText(st.reason)
   else if st.phase = "unreachable" then
     m.status.text = "Your phone approved this Roku, but your home's direct address couldn't be reached from here. If you're at home, go back and choose the Beebo found on your network."
+  else if st.phase = "checking" then
+    ' status text is set by the step that entered this phase (checking the address, then signing in)
   else if st.phase = "error" then
     if st.error = "unavailable" then
       m.status.text = "Sign-in with a phone code isn't switched on yet. Go back and type your server address, or use a username and password."

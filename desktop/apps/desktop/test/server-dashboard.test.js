@@ -10,6 +10,7 @@ const os = require('node:os')
 const path = require('node:path')
 const { EventEmitter } = require('node:events')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const D = localRequire('./electron/serverDashboard')
@@ -252,7 +253,7 @@ test('/api/admin/dashboard on a real server: sections, a stream in Now playing, 
       ]
     }
     const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({
       port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir,
       getAllMoviesDirs: () => [dir], getAllTvShowsDirs: () => [],

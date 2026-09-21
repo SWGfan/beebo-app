@@ -28,6 +28,19 @@ Only for the routes the TV app uses (whole path segments, so `/api/moviesX` does
 (`/api/me`, `/api/upnext` and `/api/episode-context` are not in the original list but the TV app
 calls them. `/api/me/delete` is deliberately not covered: `/api/me` matches only itself.)
 
+The Samsung / LG / Xbox app's **Live TV, Audiobooks, Podcasts and Radio** rows (2026-09-21) add these, and only these
+(all need a Bearer token; anything else under those names, above all `/api/livetv/admin/*`, the DVR, the audiobook
+rescan / lookup, and every settings, subscription and recording route, stays without CORS headers):
+
+| Exactly this path | This path and everything beneath it |
+| --- | --- |
+| `/api/movie-night/status`, `/api/movie-night/tv/create`, `/api/livetv/status`, `/api/livetv/channels`, `/api/livetv/watch`, `/api/livetv/stop`, `/api/audiobooks/status`, `/api/audiobooks/books`, `/api/audiobooks/continue`, `/api/podcasts/status`, `/api/podcasts/latest`, `/api/podcasts/continue`, `/api/radio/status`, `/api/radio/favorites`, `/api/radio/recent`, `/api/radio/browse`, `/api/radio/play` | `/api/audiobooks/book` (one book: detail, progress), `/api/podcasts/episode` (one episode: progress), `/api/radio/session` (one session: now playing) |
+
+The methods stay `GET, POST, OPTIONS`: the TV app saves audiobook progress with `POST .../progress` (the server accepts POST as
+well as PUT) and never uses DELETE. The audio itself (`?mt=` media token) and the live-TV pieces (signed ticket in the path) are
+played by `<audio>` / `<video>` elements, which need no CORS. The TV app sends its device profile in the JSON **body** of
+`POST /api/playback/negotiate`, because `X-Beebo-Device-Profile` is not in the allowed-headers list.
+
 1. **Preflight** (`OPTIONS` with `Origin` and `Access-Control-Request-Method`) to one of those
    routes is answered `204` with
    `Access-Control-Allow-Origin: <the request's Origin>`,

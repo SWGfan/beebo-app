@@ -18,7 +18,7 @@ sub init()
   m.user.horizAlign = "right"
   m.user.translation = [L.screenWidth - L.marginX - 500, L.tabBarY + 26]
 
-  m.tabNames = ["Home", "Movies", "TV Shows", "Playlists", "Search", "Settings"]
+  m.tabNames = ["Home", "Movies", "TV Shows", "Playlists", "Movie Night", "Search", "Settings"]
   m.tabs.translation = [L.marginX + 190, L.tabBarY]
   m.tabs.buttons = m.tabNames
   m.tabs.observeField("moved", "onTabMoved")
@@ -116,8 +116,11 @@ sub onTabSelected()
   else if idx = 3 then
     navPush("PlaylistsView", {})
   else if idx = 4 then
-    navPush("SearchView", {})
+    ' Movie Night: the server draws it as a web page; this screen says where to open it (lib/MovieNight.brs)
+    navPush("MovieNightView", {})
   else if idx = 5 then
+    navPush("SearchView", {})
+  else if idx = 6 then
     navPush("SettingsView", {})
   end if
 end sub

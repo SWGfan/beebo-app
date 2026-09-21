@@ -160,6 +160,8 @@ button { font: inherit; color: inherit; }
 .row { display: block; height: 96px; margin-bottom: 14px; padding: 24px 32px; border-radius: var(--radius); background: var(--bg-card); }
 .row .k { display: inline-block; width: 520px; font-weight: var(--fw-bold); }
 .row .v { color: var(--text-dim); }
+.row .v.clip1 { display: inline-block; max-width: 660px; vertical-align: top; }
+.row .k.clip1 { vertical-align: top; }
 .row.is-focused { background: var(--focus-bg); color: var(--focus-text); }
 .row.is-focused .v { color: var(--focus-text); }
 

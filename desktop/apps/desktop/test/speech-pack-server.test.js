@@ -7,6 +7,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const F = require('./helpers/addonFixtures')
+const { testPort } = require('./helpers/testPort')
 const { localRequire } = F
 
 async function startServer(moviesDir, speechPack) {
@@ -15,7 +16,7 @@ async function startServer(moviesDir, speechPack) {
   const data = {}
   const store = { get: (k) => data[k], set: (k, v) => { data[k] = v }, delete: (k) => { delete data[k] }, onDidChange: () => () => {} }
   const { user } = auth.createUser(store, 'Viewer', 'viewer@example.com')
-  const port = 47000 + Math.floor(Math.random() * 900) + 50
+  const port = testPort()
   const info = server.startStreamServer({
     port, store, getMoviesDir: () => moviesDir, getTvShowsDir: () => null,
     getAllMoviesDirs: () => [moviesDir], getAllTvShowsDirs: () => [], log: () => {},

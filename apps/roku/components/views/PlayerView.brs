@@ -7,6 +7,7 @@ sub init()
   m.status = m.top.findNode("status")
   m.reportTimer = m.top.findNode("reportTimer")
   m.closeTimer = m.top.findNode("closeTimer")
+  m.prepTimer = m.top.findNode("prepTimer")
   themeLabel(m.note, "body", "textDim")
   m.spinner.poster.uri = "pkg:/images/PLACEHOLDER_spinner.png"
   m.spinner.translation = [L.screenWidth / 2 - 48, 420]
@@ -19,6 +20,7 @@ sub init()
   m.video.observeField("position", "onPosition")
   m.reportTimer.observeField("fire", "onReportTimer")
   m.closeTimer.observeField("fire", "onCloseTimer")
+  m.prepTimer.observeField("fire", "onPrepTimer")
 
   m.queue = []
   m.index = 0
@@ -37,6 +39,12 @@ sub init()
   m.runId = 0
   m.closed = false
   m.quality = ""
+  m.useNegotiate = false
+  m.forceLegacy = false
+  m.negotiated = invalid
+  m.prepTries = 0
+  m.streamUrl = ""
+  m.streamFormat = "hls"
 end sub
 
 sub onParams()
@@ -78,6 +86,11 @@ sub startCurrent()
   m.duration = 0
   m.position = 0
   m.startResp = invalid
+  m.negotiated = invalid
+  m.prepTries = 0
+  m.streamUrl = ""
+  m.streamFormat = "hls"
+  m.prepTimer.control = "stop"
   m.sessionDone = false
   m.startedPlayback = false
   m.statusIsError = false
@@ -112,9 +125,59 @@ sub onInfo(resp as object, ctx as dynamic)
   quality = m.forceQuality
   if quality = "" then quality = playPickQuality(info.qualities, m.global.quality)
   m.quality = quality
-  body = playStartBody(m.cur.kind, m.cur.id, quality, m.audio)
-  apiPost("/api/playback/start", body, { timeoutMs: 60000 }, onStart, { run: m.runId })
+  ' Feature test: only a newer server has the `homeTheater` block in /api/playback/info (and POST /api/playback/negotiate).
+  ' A chosen audio track always goes through the conversion (a direct play cannot switch tracks on every model), and so does
+  ' everything after a direct play / direct stream failed once on this Roku.
+  m.useNegotiate = info.homeTheater <> invalid and m.audio = invalid and not m.forceLegacy and m.forceQuality = ""
+  if m.useNegotiate then postNegotiate() else postStartLegacy()
   apiPost("/api/watch-session", playSessionBody(m.cur.kind, m.cur.id), { timeoutMs: 15000 }, onSession, { run: m.runId })
+end sub
+
+' The plain conversion: H.264 + AAC HLS at the picked quality (older servers, and the fallback).
+sub postStartLegacy()
+  body = playStartBody(m.cur.kind, m.cur.id, m.quality, m.audio)
+  apiPost("/api/playback/start", body, { timeoutMs: 60000 }, onStart, { run: m.runId })
+end sub
+
+' Newer servers: send this Roku's device profile and let the server pick DirectPlay / DirectStream / Transcode.
+sub postNegotiate()
+  body = playNegotiateBody(m.cur.kind, m.cur.id, m.global.quality, m.audio, m.global.deviceProfile)
+  apiPost("/api/playback/negotiate", body, { timeoutMs: 60000 }, onNegotiate, { run: m.runId })
+end sub
+
+sub onNegotiate(resp as object, ctx as dynamic)
+  if ctx.run <> m.runId then return
+  if resp.ok then
+    plan = playParseNegotiate(resp.data)
+    if plan.ok then
+      m.negotiated = plan
+      m.startResp = resp.data
+      m.streamUrl = plan.url
+      m.streamFormat = plan.format
+      m.ticket = plan.ticket
+      if plan.duration > 0 then m.duration = plan.duration
+      logInfo("player", "plan " + plan.method)
+      maybePlay()
+      return
+    end if
+    ' An answer this channel cannot follow: the proven conversion still works.
+    postStartLegacy()
+    return
+  end if
+  ' A big film is being read once so it can be streamed without converting it: ask again in a few seconds.
+  wait = playPrepareWaitSec(resp.status, resp.data)
+  if wait > 0 and m.prepTries < 8 then
+    m.prepTries = m.prepTries + 1
+    showLoading("Getting this ready...")
+    m.prepTimer.duration = wait
+    m.prepTimer.control = "start"
+    return
+  end if
+  showFailure(resp)
+end sub
+
+sub onPrepTimer()
+  postNegotiate()
 end sub
 
 sub onStart(resp as object, ctx as dynamic)
@@ -124,6 +187,8 @@ sub onStart(resp as object, ctx as dynamic)
     return
   end if
   m.startResp = resp.data
+  m.streamUrl = fmtStr(resp.data.url, "")
+  m.streamFormat = "hls"
   m.ticket = fmtStr(resp.data.ticket, "")
   if fmtNum(resp.data.durationSec, 0) > 0 then m.duration = fmtNum(resp.data.durationSec, 0)
   maybePlay()
@@ -141,14 +206,14 @@ sub maybePlay()
   if m.startResp = invalid or not m.sessionDone then return
   if m.startedPlayback then return
   m.startedPlayback = true
-  url = urlAbsolute(m.global.server, fmtStr(m.startResp.url, ""))
+  url = urlAbsolute(m.global.server, m.streamUrl)
   if url = "" then
     showFailure({ status: 0, code: "", message: "The server didn't return a video address.", errorKind: "http" })
     return
   end if
   c = CreateObject("roSGNode", "ContentNode")
   c.url = url
-  c.streamFormat = "hls"
+  c.streamFormat = m.streamFormat
   c.title = fmtStr(m.cur.title, "")
   if m.duration > 0 then c.Length = Int(m.duration)
   resume = fmtInt(m.cur.resumeSeconds, 0)
@@ -213,6 +278,15 @@ end sub
 sub onVideoError()
   m.reportTimer.control = "stop"
   reportProgress(false)
+  if m.negotiated <> invalid and m.negotiated.method <> "Transcode" and not m.forceLegacy then
+    ' The server thought this Roku could play the original (or the repackaged stream); it could not. Convert instead, from here.
+    m.forceLegacy = true
+    m.video.control = "stop"
+    stopTranscode()
+    m.cur.resumeSeconds = Int(m.position)
+    startCurrent()
+    return
+  end if
   msg = playVideoErrorText(m.video.errorCode, m.video.errorMsg)
   m.video.control = "stop"
   m.video.visible = false
@@ -280,6 +354,7 @@ sub finishItem(finished as boolean)
   if finished and m.index + 1 < m.queue.count() then
     m.index = m.index + 1
     m.forceQuality = ""
+    m.forceLegacy = false ' a new file gets its own chance to be played as it is
     startCurrent()
     return
   end if

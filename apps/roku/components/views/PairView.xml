@@ -2,7 +2,8 @@
 <!--
   PairView - device-code sign-in ("show a code, approve it on your phone"), driven by the pure
   state machine in lib/PairingMachine.brs against the contract in lib/PairingContract.brs
-  (worker/tvPair.js). See the README for what a successful pairing gives a Roku today.
+  (worker/tvPair.js). An approved code is traded for a normal API session with POST /api/viewer-session
+  (the same exchange apps/smarttv and apps/apple use); see the README, "Sign-in and the tvpair contract".
 -->
 <component name="PairView" extends="BeeboView">
   <interface>

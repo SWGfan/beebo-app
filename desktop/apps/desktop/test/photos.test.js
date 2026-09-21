@@ -6,6 +6,7 @@ const path = require('node:path')
 const http = require('node:http')
 const crypto = require('node:crypto')
 const { createRequire } = require('node:module')
+const { testPort } = require('./helpers/testPort')
 const appRoot = path.resolve(__dirname, '..')
 const localRequire = createRequire(path.join(appRoot, 'package.json'))
 const exif = localRequire('./electron/photoExif')
@@ -445,7 +446,7 @@ test('HTTP: real stream server gates /api/photos, media tokens, chunk upload ove
     const users = [{ ...OWNER }, { ...MEMBER }]
     const store = memStore({ photosDirs: [pics], authUsers: users })
     store.path = path.join(dir, 'config.json') // photos cache lives beside the settings file
-    const port = 47000 + Math.floor(Math.random() * 900) + 50
+    const port = testPort()
     info = server.startStreamServer({ port, store, getMoviesDir: () => dir, getTvShowsDir: () => dir, getAllMoviesDirs: () => [], getAllTvShowsDirs: () => [], log: () => {} })
     const base = 'http://127.0.0.1:' + info.port
     for (let i = 0; i < 50; i++) { try { await (await fetch(base + '/api/ping')).arrayBuffer(); break } catch { await new Promise((r) => setTimeout(r, 100)) } }

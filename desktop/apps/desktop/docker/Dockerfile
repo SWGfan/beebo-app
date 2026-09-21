@@ -75,7 +75,8 @@ COPY headless ./headless
 COPY resources/beebo-rtc-host/beebo-rtc-host.js resources/beebo-rtc-host/beebo-game-client.js resources/beebo-rtc-host/package.json ./resources/beebo-rtc-host/
 COPY resources/voice-samples ./resources/voice-samples
 COPY resources/welcome-to-beebo.mp4 ./resources/
-COPY mirror-app/privacy-policy.html mirror-app/version.json ./mirror-app/
+# (No mirror-app/ here any more: that folder is not part of the public source, so a COPY of it broke the
+# public image build. GET /privacy serves the built-in generic notice when the policy file is absent.)
 COPY android-app/version.json ./android-app/
 COPY auto-app/version.json ./auto-app/
 COPY THIRD_PARTY_LICENSES ./THIRD_PARTY_LICENSES

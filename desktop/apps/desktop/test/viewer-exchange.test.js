@@ -17,6 +17,7 @@ const server = require('../electron/streamServer')
 const licenseToken = require('../electron/licenseToken')
 const viewerExchange = require('../electron/viewerExchange')
 const { createLocalAccessPolicy } = require('../electron/localAccessPolicy')
+const { testPort } = require('./helpers/testPort')
 
 const PASSWORD = 'Viewer-exchange-test-password-9'
 const OWNER_EMAIL = 'owner@example.com'
@@ -432,14 +433,13 @@ test('logs and the audit record never hold the viewer token, the API token or th
 
 // ---------------------------------------------------------------- a real server
 
-let seq = 0
 async function boot(t, { lic = licence(), data, house = HOUSE, serverOpts = {} } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'beebo-viewer-exchange-'))
   const store = makeStore(data)
   auth.forgetSecrets(); server.forgetSecrets()
   const logs = []
   const info = server.startStreamServer({
-    port: 44000 + (process.pid % 1400) + ++seq, store, getMoviesDir: () => root, getTvShowsDir: () => root,
+    port: testPort(), store, getMoviesDir: () => root, getTvShowsDir: () => root,
     getAllMoviesDirs: () => [root], getAllTvShowsDirs: () => [], log: (m) => logs.push(String(m)),
     agentSecret: AGENT_SECRET, license: lic, getHouseName: () => house, ...serverOpts
   })

@@ -13,10 +13,11 @@ app.
 | Area | Behaviour |
 | --- | --- |
 | First run | Scans the Roku's own /24 for a Beebo server (`GET /api/ping`, port 47811), or you type an address, a Beebo name (`<name>.home.beebo.tv:47811`), or use a phone code (see *Sign-in*). |
-| Sign in | Username + password against `POST /api/login` (on-screen keyboard). Phone-code pairing is implemented against the real `worker/tvPair.js`, but cannot finish a sign-in yet (see *Sign-in*). |
+| Sign in | A **phone code** (approve on the phone, nothing typed on the remote) that ends at `POST /api/viewer-session` on the home server (a 30-day API token), or username + password against `POST /api/login` (on-screen keyboard). See *Sign-in*. |
 | Home | Continue Watching + Recently Added rows; Movies and TV Shows grids (lazily paged); Playlists; Search (keyboard + voice where the remote has a mic); Settings. |
 | Detail | Backdrop/poster/synopsis, year/runtime/rating/quality, Play / Resume / Start over, audio and subtitle choice (movies), seasons and episodes (shows) with watched marks. |
-| Playback | Roku `Video` node on the server's **H.264 + AAC HLS transcode**, resume, progress reported every 15 s and on pause/stop/finish, playlist queues, "try a lower quality" on error. OK / Play / Pause / FF / RW / replay are the Video node's own. |
+| Playback | Roku `Video` node. On a server with `POST /api/playback/negotiate` the Roku sends its **device profile** and plays what the server picks (the file as it is, a repackaged HLS stream, or the H.264 + AAC conversion); on an older server it plays the H.264 + AAC HLS transcode as before. Resume, progress every 15 s and on pause/stop/finish, playlist queues, "try a lower quality" on error, and one automatic fall back to the conversion if a direct play fails. OK / Play / Pause / FF / RW / replay are the Video node's own. |
+| Movie Night | A **Movie Night** tab that checks `GET /api/movie-night/status` and shows the address (`<server>/tv`) to open on a device that has a browser. A Roku has no web view, so it cannot draw the games itself (see *Movie Night*). |
 | Remote | Full D-pad focus (tabs <-> content <-> grids/lists), Back walks up then exits, focus ring on everything, FHD layout inside the 5% title-safe margins. |
 
 ## Layout
@@ -31,7 +32,7 @@ apps/roku/
   components/
     BeeboScene.*                 root: global state, view stack, sign-in expiry
     views/                       BeeboView (base) + Setup, Pair, SignIn, Home, Detail, Search,
-                                 Playlists, Settings, Player
+                                 Playlists, MovieNight, Settings, Player
     widgets/                     ButtonRow (buttons / tab bar), StatusPanel, PickerDialog, LibraryGrid
     items/PosterItem.*           grid/row cell
     tasks/HttpTask.*             one HTTP request on a background thread
@@ -39,6 +40,9 @@ apps/roku/
     lib/                         shared BrightScript (pulled in with <script> tags)
       Theme.brs                  THE ONE PLACE for colors, fonts, sizes  <-- restyle here
       PairingContract.brs        THE ONE PLACE that knows the tvpair wire format
+      DeviceProfile.brs          THE ONE PLACE that builds the device profile + the negotiate body/answer  <-- pure, unit-tested
+      MovieNight.brs             Movie Night address + status text (pure, unit-tested)
+      DeviceProbe.brs            Roku-only: asks roDeviceInfo what this Roku can decode / show (not unit-tested)
       Urls / Format / Paging / Models / Playback / Discovery / PairingMachine / Log   (pure, unit-tested)
       Api / Registry / Nodes     Roku-only glue (not unit-tested)
   images/PLACEHOLDER_*.png       generated placeholder art (npm run placeholders)
@@ -53,7 +57,7 @@ apps/roku/
 cd apps/roku
 npm install
 npm run lint     # BrighterScript: every .brs/.xml, 0 diagnostics required
-npm test         # 200+ checks of the pure logic under the brs interpreter
+npm test         # 370+ checks of the pure logic under the brs interpreter
 npm run build    # lint + out/beebo-roku.zip   (also built by .github/workflows/roku-build.yml)
 ```
 
@@ -86,13 +90,12 @@ use the **paged public API** where the server has it.
 | Episodes | `GET /api/tvshows/<key>/episodes` | seasons, watched %, names |
 | Search | the two list routes with `q=` | debounced 0.6 s |
 | Playlists | `GET /api/playlists`, `/api/playlists/<id>` | music tracks are skipped |
-| Playback | `GET /api/playback/info`, `POST /api/playback/start {kind,id,quality,audio?}` -> `/hls/<ticket>/index.m3u8`, `POST /api/playback/stop` | H.264+AAC MPEG-TS HLS, VOD. Quality is decided here: "auto" = best non-upscale of 1080p/720p/480p |
+| Playback | `GET /api/playback/info`, `POST /api/playback/negotiate {kind,id,client:"roku",deviceProfile,quality,audio?}` (only when `info.homeTheater` exists), else `POST /api/playback/start {kind,id,quality,audio?}` -> `/hls/<ticket>/index.m3u8`; `POST /api/playback/stop` | See *Home theatre* below. The conversion is H.264+AAC MPEG-TS HLS, VOD. Quality: "auto" = the server plays the file as it is when it can (`quality:"original"`), or on an older server the best non-upscale of 1080p/720p/480p |
+| Movie Night | `GET /api/movie-night/status` | availability only (see *Movie Night*) |
 | Progress | `POST /api/watch-session {kind,id}` -> `sessionId`; `POST /api/progress {sessionId,currentTime,duration}` | camelCase keys are required; the JSON is built case-sensitively |
 | Images | `/media/poster/<id>.jpg`, `/media/poster-tv/<id>.jpg` | public; TMDB backdrops are https and fetched directly |
 
-Why HLS only: the scoping doc's codec risk (HEVC, MKV, DTS on cheap Rokus). The server already
-transcodes to H.264/AAC HLS for phones/Chromecast; the Roku always asks for that. Direct play of
-already-compatible MP4 is a possible later optimisation (`direct` verdicts are in `/api/playback/info`).
+On a **server without the negotiate route** the Roku still always asks for the H.264/AAC HLS conversion (the scoping doc's codec risk: HEVC, MKV, DTS on cheap Rokus). See *Home theatre*.
 
 ### Finding the server; home vs away
 
@@ -108,22 +111,38 @@ already-compatible MP4 is a possible later optimisation (`direct` verdicts are i
   A house behind carrier-grade NAT cannot be reached this way. Away, the home server's plan gate
   (`remote_requires_plan`, 402) is shown as a friendly message.
 
-### Sign-in and the tvpair contract (read this)
+### Sign-in and the tvpair contract
 
-`components/lib/PairingContract.brs` is coded against the **merged** `worker/tvPair.js`
-(`POST /tvpair/start`, `/tvpair/poll`, RFC 8628 style: code shown large with `beebo.tv/tv`, polling
-at the server's `interval`, `slow_down` = 429 handled, expiry, denial reasons, feature-off = 404).
-The state machine (`PairingMachine.brs`) is pure and unit-tested.
+`components/lib/PairingContract.brs` is coded against the **merged** `worker/tvPair.js` (`POST /tvpair/start`, `/tvpair/poll`, RFC 8628 style: code shown large with `beebo.tv/tv`, polling at the
+server's `interval`, `slow_down` = 429 handled, expiry, denial reasons, feature-off = 404) and the desktop's **`POST /api/viewer-session`** (`desktop/apps/desktop/docs/VIEWER-EXCHANGE.md`), exactly as `apps/smarttv` and
+`apps/apple` use it. The state machine (`PairingMachine.brs`) is pure and unit-tested.
 
-**But** what `tvPair.js` hands the TV is the 12-hour **viewer token** for the house (the phone app's
-WebRTC credential) plus the house `name`. The home server's HTTP API does **not** accept that token:
-`/api/*` wants the token from `/api/login` or `/api/remote-session`, and `/api/remote-session` only
-trusts a request that came through the host agent's tunnel. So today a Roku can use pairing to
-**learn the house name** (=> `<name>.home.beebo.tv:47811`, filling in the server address with no
-typing), after which it asks for the username/password. **Making the phone code a complete sign-in
-needs a small server change** (a route on the desktop that verifies a Worker viewer token over plain
-HTTPS and returns a normal API token, honouring member vs owner exactly as `/api/remote-session`
-does). `PairView.finishApproved` is where to plug it in. The viewer token is never stored.
+What "approved" hands the Roku is a 12-hour **viewer** token plus the house `name`. The Roku then:
+
+1. picks the server: the address it already has, else `https://<name>.home.beebo.tv:47811` built from the house name and checked with `/api/ping`;
+2. sends **one** `POST <server>/api/viewer-session` with `Authorization: Bearer <viewer token>` and `{ "deviceName": "<the Roku's name>" }` (`PairView.startExchange`). The token goes only in that header, only over https or to a private
+   LAN address (`pairSafeExchangeUrl`), is never stored, logged or kept in the state machine, and is cleared as soon as the server answers;
+3. on `200 { token, user, ... }` stores the **30-day API token** exactly like an `/api/login` token (the `paired` action in `BeeboScene`) and opens Home;
+4. on anything else falls back to the typed username + password with a plain sentence saying why (`pairExchangeText`): 404 older server, 401 "pair again" (never retried: ten wrong tokens lock the address for 15 minutes),
+   403 (two-factor, private profile, administrator, no away-from-home access, owner switched it off, household / guest pass), 402 relay plan, 429, or no answer (asked again **once** if the reply never arrived).
+
+`Api.brs` gained a one-off `bearer` option for this call; a 401 for it never counts as "the saved sign-in was rejected". Passwords are never stored: they are sent to `/api/login` only and the field is cleared.
+
+## Home theatre: the device profile and the plan
+
+`components/lib/DeviceProfile.brs` (pure) builds the capability declaration from what `DeviceProbe.brs` reads from `roDeviceInfo` at start-up (`CanDecodeVideo` / `CanDecodeAudio`, `GetVideoMode`, `GetDisplayType`,
+`GetDisplayProperties`), and the player sends it in the body of `POST /api/playback/negotiate`. Honest by construction (unit tests pin every rule): a codec is listed only when `roDeviceInfo` said yes; HDR only when the display
+said so, otherwise `hdr: []` (the server tone-maps); **Dolby Vision, HDR10+ and Atmos are never claimed; TrueHD, DTS-HD and DTS:X are never listed; DTS core is listed (pass-through only) only when `CanDecodeAudio` reports it**;
+`maxHeight` is 2160 only for a 4K-capable output. Containers are the ones Roku documents (mp4, mov, mkv, ts); streaming is HLS (ts and fmp4).
+
+The player follows the plan: **DirectPlay** = the Video node opens `/file?...` with `streamFormat` mp4 / mkv / ts; **DirectStream** and **Transcode** = HLS. A "preparing" answer is asked again up to 8 times. A chosen audio track always uses
+the conversion. If the Video node errors on a direct play or direct stream the Roku goes back **once** to the plain conversion from the same position. A server without the `homeTheater` block in `/api/playback/info` is played exactly as before.
+
+## Movie Night
+
+The desktop server draws Movie Night as a web page and phones join by scanning its QR code (`docs/MOVIE-NIGHT.md`). A Roku has no web view and no QR generator in SceneGraph, so the **Movie Night** tab only checks
+`GET /api/movie-night/status` and shows the address to open (`<server>/tv`) on a laptop, tablet or another TV on the same Wi-Fi. `POST /api/movie-night/tv/create` is deliberately **not** used: a room made that way can only be drawn by the page that holds
+its ticket. Drawing the lobby natively (poll `/movie-night-api/poll`) is a follow-up.
 
 ## Paging and memory
 
@@ -170,6 +189,9 @@ integration, a content-metadata feed.
 
 ## What is not verified
 
+* **Added with the home-theatre work (none of it has run on a Roku):** the device profile as `roDeviceInfo` really answers it (the exact keys of `CanDecodeVideo` / `CanDecodeAudio` / `GetDisplayProperties` are from the documentation), whether a direct play of an MKV
+  or a repackaged fMP4 HLS stream plays and seeks on each model, the fall back after a Video-node error, the Movie Night tab layout, and the whole `POST /api/viewer-session` round trip (unit-tested for the contract, never run against a server).
+
 Everything that needs a real Roku: actual rendering and layout (RowList row geometry, label
 truncation, focus ring look, safe zones), remote-key behaviour and focus hand-offs, the on-screen
 keyboard/`StandardKeyboardDialog` (password mode), MiniKeyboard voice entry, HLS playback and seeking,
@@ -182,8 +204,7 @@ external WebVTT subtitles, https certificate checks against `home.beebo.tv`, LAN
 1. **HLS playback** of the server's transcode on a real Roku: start, seek (the server starts ffmpeg at
    the requested segment; first segment after a seek can be slow), resume position, 1080p on a
    low-end stick. Fallback in the UI: "Try a lower quality".
-2. **Phone-code sign-in cannot complete** (viewer token vs API token, above): decide whether to add
-   the server route. Until then sign-in is username/password.
+2. **Phone-code sign-in** now ends at `POST /api/viewer-session`: try it against a real server with `BEEBO_TVPAIR_ENABLED=1` on the Worker. Username/password still works.
 3. **Subtitles**: external WebVTT via `content.SubtitleConfig` is untested; Roku may want `SubtitleTracks`.
 4. **Home rows (`RowList`)**: item/label geometry is my best reading of the RowList fields; check it
    first (sizes are in `HomeView.brs` init + `Theme.brs`).
@@ -207,7 +228,9 @@ external WebVTT subtitles, https certificate checks against `home.beebo.tv`, LAN
 - [ ] Playback: starts, OK pauses, FF/RW/replay, seek, Back saves your place (check Continue Watching on the phone), playlist continues to the next item.
 - [ ] Kill the server mid-video: friendly error with "Try a lower quality".
 - [ ] Sign out (Settings) and back in; sign-in ended by the server returns to the sign-in screen.
-- [ ] "Find my Beebo with a code": code shows, phone approval page (once built) approves, house name fills the address.
+- [ ] "Find my Beebo with a code": code shows, the phone approves, the Roku signs in by itself (or says why it could not and offers the typed sign-in).
+- [ ] A 4K HDR MKV: the Home theatre plan (check the log line `plan DirectPlay` / `DirectStream` / `Transcode`), HDR shows on an HDR TV, seeking works; an SDR TV gets a tone-mapped conversion.
+- [ ] Movie Night tab: status line and the address are right.
 - [ ] Search by keyboard and by voice.
 - [ ] A 1300+ show library: memory stays flat while scrolling (`telnet <ip> 8085`, `free`).
 

@@ -462,6 +462,7 @@ module.exports = {
   ticketAudio,
   readTicketAudio,
   channelRoles,
+  roleTarget,
   stereoDownmixFilter,
   surround51Filter,
   layoutWords,
