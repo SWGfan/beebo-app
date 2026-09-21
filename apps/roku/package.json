@@ -12,6 +12,6 @@
   },
   "devDependencies": {
     "@rokucommunity/brs": "^0.47.6",
-    "brighterscript": "^0.70.0"
+    "brighterscript": "^0.73.4"
   }
 }
