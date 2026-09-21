@@ -1,0 +1,128 @@
+{
+  "title": "Domino and Honey and a Perfectly Sunny Day",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 8,
+  "endingCount": 1,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{LOP}}",
+      "role": "the clever, cuddly black-and-white French Lop",
+      "default": "Domino"
+    },
+    {
+      "token": "{{REX}}",
+      "role": "the shy, sweetening white-and-golden Mini Rex (she)",
+      "default": "Honey"
+    },
+    {
+      "token": "{{PARTNER_A}}",
+      "role": "one of their humans",
+      "default": "Nick"
+    },
+    {
+      "token": "{{PARTNER_B}}",
+      "role": "one of their humans",
+      "default": "Sam"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Domino and Honey and a Perfectly Sunny Day",
+    "dedication": "For Nick and Sam, and the two bunnies who own them"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Every morning began the same way, and Domino knew it better than anyone. Long before the coffee finished, before Nick and Sam had even found their slippers, the big black-and-white French Lop was already sitting squarely in front of the back door — ears draped like two elegant ribbons, one eyebrow raised, as if to say, \"You're late.\"\n\nDomino had learned the exact jingle of the keys, the exact creak of the door, and the exact look that meant the backyard was about to open. And peeking out from under the little table behind him, two soft ears and one very cautious eye belonged to Honey — a white and golden-brown Mini Rex who wasn't quite sure about mornings yet, but was very sure about Domino.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "Domino was, if we're being honest, a little too clever for his own good. He had worked out which cupboard hid the parsley, how to tip open the toy basket, and exactly how to thump one big back foot to make Nick come running. This morning he had \"arranged\" a slipper so it pointed helpfully toward the door — not in the way, just... a gentle suggestion. \"Subtle,\" said Sam, stepping over it with a grin.\n\nBut for all his schemes, Domino had one soft and wonderful weakness: he absolutely loved to be held. Scoop him up and he melted like a warm loaf of bread, going boneless and blissful in your arms, eyes drifting shut, perfectly content to be carried anywhere and petted for as long as anyone liked. Honey watched all of this from a safe distance, the way you might watch a magician you don't quite trust yet.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "Then — the click of the latch, the whoosh of fresh morning air — and the door swung open onto a backyard glowing green and gold.\n\nDomino marched straight out like he owned the place, which, in his mind, he absolutely did. Honey came more slowly. First one paw. Then a pause. Then a small, careful hop, ears swivelling at every bird and every breeze. The grass was cool and damp and enormous, and for a skittish little rabbit it was the biggest, most wonderful, most slightly-terrifying thing in the whole world.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 4
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "Breakfast in the backyard was a serious business. Domino moved through the clover like a food critic — sampling one leaf, rejecting another, finally settling on the single most perfect patch and tucking in with a happy little sigh.\n\nHoney nibbled carefully at the very edge of the lawn, ready to bolt at the smallest surprise. But the sun was warm, and the grass was sweet, and slowly, slowly, her nose stopped twitching quite so fast. She was beginning to understand something important: out here, nothing bad ever happened. Out here, there was only green, and gold, and quiet.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "When his belly was full, Domino did the thing he did best. He flopped. One second he was upright, and the next he had tipped dramatically onto his side in a warm square of sunshine — legs stretched out, eyes half-closed, the very picture of a rabbit without a single worry in the world.\n\nHoney crept closer to watch. She had never quite dared to flop; it meant letting your guard all the way down. But she found a warm little patch of her own, tucked her paws beneath her, and let the sun sink deep into her golden-brown fur. It felt, she decided, very good indeed.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 6
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "And then Domino binkied.\n\nIf you have never seen a rabbit binky, it is one of the happiest things in all of nature: a sudden, joyful leap into the air, a twist, a kick of the heels — a little \"I am SO happy I simply cannot contain it\" explosion of pure hop. Domino binkied clear across the lawn, ears flying, showing off shamelessly, zooming past Honey in a blur of black and white. Nick laughed out loud. Sam clapped. Even the birds seemed impressed.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "Honey watched him go, her little heart beating fast — but this time, not entirely from fear. Something in her wanted to try. She gathered herself, wiggled her back feet, and did it: a small, wobbly, absolutely magnificent first binky — barely off the ground, but a real binky all the same. She landed and froze, astonished at her own bravery.\n\nThen Sam knelt very slowly and held out one gentle hand. And this time — for the very first time — Honey leaned in, and let herself be softly, carefully petted. Coming along, one brave little hop at a time.",
+      "choices": [
+        {
+          "text": "Turn the page",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": true,
+      "endingTitle": "A Perfectly Sunny Day",
+      "endingType": "good",
+      "text": "By evening the light had turned honey-gold, and two happily exhausted rabbits let themselves be gathered up and carried back inside — Domino melting into the cuddle as always, Honey still glowing from her big brave day.\n\nThey had munched the good grass. They had caught the good sun. They had binkied their hearts out, and come home to the two people who loved them most. Domino settled in for a well-earned nap, held close, one eye cracked open just in case someone opened the parsley cupboard. And Honey, tucked in nearby, felt something she had been feeling more and more these days: safe.\n\nTomorrow the door would open again, and they would do it all over again. Because that, for two well-loved rabbits, is a perfectly happy life.",
+      "choices": []
+    }
+  ],
+  "setHash": "91eb90262656067e",
+  "resolvedNames": {
+    "{{LOP}}": "Domino",
+    "{{REX}}": "Honey",
+    "{{PARTNER_A}}": "Nick",
+    "{{PARTNER_B}}": "Sam"
+  }
+}

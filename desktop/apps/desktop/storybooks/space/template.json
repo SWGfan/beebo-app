@@ -1,0 +1,219 @@
+{
+  "title": "The Backyard Rocket to Marshmallow Planet",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character and rocket captain",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend and co-pilot on the trip",
+      "default": "Sam"
+    },
+    {
+      "token": "{{ALIEN_NAME}}",
+      "role": "the polite, friendly alien you meet who loves snacks and jokes",
+      "default": "Robin"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}}'s Trip to Marshmallow Planet",
+    "dedication": "For {{CHILD_NAME}}"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Out in your backyard, tucked behind the tomato plants, sits the rocket you and {{FRIEND_NAME}} built from a refrigerator box, some string lights, and a lot of tinfoil. Tonight the stars look especially close, like they're waiting for you. You buckle into the cockpit as co-pilot {{FRIEND_NAME}} flips the cardboard switches.\n\n\"Captain,\" says {{FRIEND_NAME}}, \"how should we get this thing into space?\"",
+      "choices": [
+        {
+          "text": "Do a big countdown from ten together",
+          "target": 2
+        },
+        {
+          "text": "Pack the perfect snack box first",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You count down together, loud and proud, all the way from ten. On \"blast off,\" the string lights blink like crazy and the whole rocket rumbles gently. Up you go, past the treehouse, past the clouds, past the moon smiling down.\n\n{{FRIEND_NAME}} presses their nose to the window. \"There!\" A soft, round planet glows ahead like a giant pillow.",
+      "choices": [
+        {
+          "text": "Aim straight for the marshmallow planet",
+          "target": 4
+        },
+        {
+          "text": "Fly a slow loop to look around first",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "First things first: no astronaut travels on an empty tummy. You and {{FRIEND_NAME}} pack a snack box with crackers, apple slices, two juice pouches, and a secret bag of marshmallows for emergencies. Then you count down and lift off in a shimmer of tinfoil and starlight.\n\nSoon a soft, round planet glows ahead, and it looks exactly like a giant marshmallow.",
+      "choices": [
+        {
+          "text": "Aim straight for the marshmallow planet",
+          "target": 4
+        },
+        {
+          "text": "Fly a slow loop to look around first",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You bring the rocket down, and instead of a bump you land with the softest boing you've ever felt. The whole planet is squishy and warm, like landing on a giant pillow fort. You bounce twice just from stepping out.\n\n\"This is the best planet ever,\" laughs {{FRIEND_NAME}}, sinking ankle-deep into the fluffy ground.",
+      "choices": [
+        {
+          "text": "Follow the little footprints leading over a squishy hill",
+          "target": 6
+        },
+        {
+          "text": "Bounce around and explore on your own first",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You fly a slow, careful loop, and from up here you can see the marshmallow planet has tiny fluffy houses, swirly gumdrop trees, and one small figure waving both arms at you. It seems very excited and very polite about it.\n\n\"I think someone wants to say hello,\" says {{FRIEND_NAME}}. You bring the rocket down with a gentle boing.",
+      "choices": [
+        {
+          "text": "Follow the little footprints leading over a squishy hill",
+          "target": 6
+        },
+        {
+          "text": "Bounce around and explore on your own first",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You follow the footprints over a squishy hill and meet {{ALIEN_NAME}}, a small, round alien with three friendly eyes and a very neat bow tie. \"Welcome, travelers,\" it says, giving a polite little bow. \"We do not get many visitors. May I offer you a snack?\"\n\n{{ALIEN_NAME}} holds out a plate of glittering star-cookies that smell like birthday cake.",
+      "choices": [
+        {
+          "text": "Trade your crackers for the star-cookies",
+          "target": 8
+        },
+        {
+          "text": "Offer to swap knock-knock jokes instead",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You bounce across the fluffy land, boinging higher with every hop, until you boing right into a polite little alien named {{ALIEN_NAME}}. Instead of being upset, it giggles and boings you back. \"Oh, a bouncing game! How lovely,\" it says, straightening its tiny bow tie.\n\n\"Come,\" says {{ALIEN_NAME}}, \"you must be hungry after all that hopping.\"",
+      "choices": [
+        {
+          "text": "Trade your crackers for the star-cookies",
+          "target": 8
+        },
+        {
+          "text": "Offer to swap knock-knock jokes instead",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You trade a stack of your crackers for a plate of {{ALIEN_NAME}}'s star-cookies, and it is the best deal in the galaxy. The cookies taste like birthday cake, and {{ALIEN_NAME}} says your crackers taste like \"crunchy sunshine.\" Everyone is delighted.\n\n\"On our planet,\" {{ALIEN_NAME}} explains, \"trading snacks is how we say we are friends.\" It claps all four of its little hands.",
+      "choices": [
+        {
+          "text": "Ask {{ALIEN_NAME}} to show you its favorite bouncing spot",
+          "target": 12
+        },
+        {
+          "text": "Say it's getting late and head back to the rocket",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You clear your throat and go for it: \"Knock knock.\" {{ALIEN_NAME}} gasps with joy. \"Who is there? Who is there?\" It has never heard a knock-knock joke before, and it thinks the whole thing is pure magic.\n\nYou and {{FRIEND_NAME}} take turns telling every joke you know, and {{ALIEN_NAME}} laughs so hard it floats an inch off the fluffy ground.",
+      "choices": [
+        {
+          "text": "Teach {{ALIEN_NAME}} one more joke to tell its family",
+          "target": 10
+        },
+        {
+          "text": "Say it's getting late and head back to the rocket",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "Friends Across the Stars",
+      "endingType": "good",
+      "text": "{{ALIEN_NAME}} leads you to a hill made of the fluffiest marshmallow of all, and you spend the evening bouncing, trading snacks, and telling jokes until the stars come out. Before you leave, {{ALIEN_NAME}} gives you a tiny glowing pebble. \"So you remember the way back,\" it says.\n\nYou fly home with the pebble glowing on your dashboard, already planning your next visit. Some friends live right next door, and some live a whole galaxy away, and both kinds are wonderful.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "Home in Time for Cocoa",
+      "endingType": "good",
+      "text": "You wave goodbye to {{ALIEN_NAME}}, who packs you a lunchbox of star-cookies for the trip and makes you promise to come back. The rocket lifts off with a soft boing, and you sail home past the smiling moon. {{FRIEND_NAME}} waves out the window the whole way down.\n\nYou land right back behind the tomato plants, just in time for cocoa. \"Best backyard in the universe,\" you both agree, munching star-cookies under the real stars.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Great Marshmallow Nap",
+      "endingType": "silly-trapped",
+      "text": "All that bouncing and snacking makes you and {{FRIEND_NAME}} so cozy that you sink slowly, softly, into the world's biggest marshmallow and cannot find the energy to climb out. {{ALIEN_NAME}} tucks a fluffy blanket over you both and hums a gentle space lullaby.\n\nYou sleep the whole night on Marshmallow Planet, warm and safe and snoring in tiny puffs. In the morning {{ALIEN_NAME}} wakes you with pancakes, and you decide getting stuck in a marshmallow is possibly the coziest adventure of all.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "What did they build?",
+      "choices": [
+        "a rocket",
+        "a boat",
+        "a car"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "Where are they flying to?",
+      "choices": [
+        "space",
+        "the beach",
+        "a farm"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What is the rocket made from?",
+      "choices": [
+        "a box",
+        "bricks",
+        "snow"
+      ],
+      "correct": 0
+    }
+  ]
+}

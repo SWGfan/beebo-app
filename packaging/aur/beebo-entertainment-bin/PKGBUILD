@@ -1,0 +1,77 @@
+# Maintainer: Beebo Entertainment <support@beeboentertainment.com>
+#
+# DRAFT for the AUR. The Linux release does not exist yet. Before submitting:
+#   1. publish the .deb on https://github.com/SWGfan/beebotv/releases (linux-build.yml),
+#      with the file name pattern below (set linux.artifactName in package.json);
+#   2. set pkgver to that release and replace the sha256 below:  sha256sum <the .deb>
+#   3. run:  makepkg --printsrcinfo > .SRCINFO    and    namcap PKGBUILD *.pkg.tar.zst
+# The layout of the .deb (files under "/opt/Beebo Entertainment", executable
+# "beeboentertainment-desktop") is what electron-builder produces for this project; it was
+# NOT confirmed against a real build yet, so check `bsdtar -tf <deb>` and adjust package().
+
+pkgname=beebo-entertainment-bin
+_appname=beebo-entertainment
+pkgver=0.1.57
+pkgrel=1
+pkgdesc='Home media server and player for your own movies, TV, music and photos (proprietary, prebuilt)'
+arch=('x86_64')
+url='https://beeboentertainment.com'
+license=('LicenseRef-Beebo')
+depends=('gtk3' 'nss' 'alsa-lib' 'libnotify' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 'libsecret' 'util-linux-libs')
+optdepends=('intel-media-driver: hardware video transcoding on Intel GPUs (VA-API)'
+            'libva-mesa-driver: hardware video transcoding on AMD GPUs (VA-API)'
+            'libappindicator-gtk3: tray icon on some desktops')
+provides=("${_appname}")
+conflicts=("${_appname}")
+options=('!strip' '!debug')
+source_x86_64=("${_appname}-${pkgver}-amd64.deb::https://github.com/SWGfan/beebotv/releases/download/Beebo-${pkgver}/beebo-entertainment_${pkgver}_amd64.deb")
+sha256sums_x86_64=('REPLACE_WITH_SHA256_OF_THE_DEB')
+
+prepare() {
+  mkdir -p "${srcdir}/deb"
+  bsdtar -xf "${srcdir}/${_appname}-${pkgver}-amd64.deb" -C "${srcdir}/deb"
+  mkdir -p "${srcdir}/data"
+  bsdtar -xf "${srcdir}"/deb/data.tar.* -C "${srcdir}/data"
+}
+
+package() {
+  cd "${srcdir}/data"
+
+  # The application itself.
+  install -d "${pkgdir}/opt/${_appname}"
+  cp -a "opt/Beebo Entertainment/." "${pkgdir}/opt/${_appname}/"
+
+  # Chromium's SUID sandbox helper must be root-owned and setuid.
+  if [ -f "${pkgdir}/opt/${_appname}/chrome-sandbox" ]; then
+    chmod 4755 "${pkgdir}/opt/${_appname}/chrome-sandbox"
+  fi
+
+  # Command on PATH.
+  install -d "${pkgdir}/usr/bin"
+  ln -s "/opt/${_appname}/beeboentertainment-desktop" "${pkgdir}/usr/bin/${_appname}"
+
+  # Icons shipped in the .deb, if any.
+  if [ -d usr/share/icons ]; then
+    install -d "${pkgdir}/usr/share"
+    cp -a usr/share/icons "${pkgdir}/usr/share/"
+  fi
+
+  # Desktop entry (own file, so it does not depend on the .deb's file name).
+  install -d "${pkgdir}/usr/share/applications"
+  cat > "${pkgdir}/usr/share/applications/${_appname}.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Beebo Entertainment
+GenericName=Home Media Server
+Comment=Your movies, TV, music and photos on every screen at home
+Exec=${_appname} %U
+Icon=beeboentertainment-desktop
+Terminal=false
+Categories=AudioVideo;Video;Audio;
+StartupWMClass=Beebo Entertainment
+EOF
+
+  # Licences: Beebo's terms and the bundled LGPL FFmpeg notices.
+  install -d "${pkgdir}/usr/share/licenses/${pkgname}"
+  cp -a "${pkgdir}/opt/${_appname}/resources/THIRD_PARTY_LICENSES/." "${pkgdir}/usr/share/licenses/${pkgname}/"
+}

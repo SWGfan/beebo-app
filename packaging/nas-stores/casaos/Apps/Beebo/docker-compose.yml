@@ -1,0 +1,106 @@
+# DRAFT CasaOS / ZimaOS app (store protocol v2: x-casaos block). Needs the image published first.
+name: beebo-entertainment
+services:
+  beebo:
+    # TODO: published image and tag (see packaging/ghcr/README.md).
+    image: ghcr.io/swgfan/beebo-server:0.1.57
+    container_name: beebo-entertainment
+    restart: unless-stopped
+    network_mode: bridge
+    # Start as root so PUID/PGID are applied, then the entrypoint drops to that user.
+    user: "0"
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      # A bridged container cannot ask the router to open ports.
+      BEEBO_UPNP: "0"
+    ports:
+      - target: 47811
+        published: "47811"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /DATA/AppData/$AppID/config
+        target: /config
+      - type: bind
+        source: /DATA/Media/Movies
+        target: /media/movies
+      - type: bind
+        source: /DATA/Media/TV Shows
+        target: /media/tv
+      - type: bind
+        source: /DATA/Media/Music
+        target: /media/music
+      - type: bind
+        source: /DATA/Media/Pictures
+        target: /media/photos
+    # Hardware transcoding on Intel/AMD: enable only if the host has /dev/dri, otherwise the container will not start.
+    # devices:
+    #   - /dev/dri:/dev/dri
+    x-casaos:
+      envs:
+        - container: PUID
+          description:
+            en_US: User id Beebo runs as.
+        - container: PGID
+          description:
+            en_US: Group id Beebo runs as.
+        - container: TZ
+          description:
+            en_US: Time zone.
+        - container: BEEBO_TMDB_API_KEY
+          description:
+            en_US: Optional TMDB key (free at themoviedb.org) for posters, titles and cast.
+      ports:
+        - container: "47811"
+          description:
+            en_US: Beebo server, web viewer and admin pages (HTTPS, self-signed certificate).
+      volumes:
+        - container: /config
+          description:
+            en_US: Settings, accounts, watch history, artwork cache, certificates. Back this up.
+        - container: /media/movies
+          description:
+            en_US: Movie files.
+        - container: /media/tv
+          description:
+            en_US: TV show files.
+        - container: /media/music
+          description:
+            en_US: Music files.
+        - container: /media/photos
+          description:
+            en_US: Photos.
+x-casaos:
+  id: com.beeboentertainment.beebo
+  main: beebo
+  index: /
+  port_map: "47811"
+  scheme: https
+  # TODO: public icon (SVG or PNG) and screenshots; the store build copies them next to the app.
+  icon: https://raw.githubusercontent.com/SWGfan/beebotv/main/packaging/assets/beebo-icon.png
+  title:
+    en_US: Beebo Entertainment
+  tagline:
+    en_US: Your movies, TV, music and photos on every screen at home
+  description:
+    en_US: >-
+      Beebo Entertainment is a home media server. Point it at your folders of movies, TV shows,
+      music and photos and it builds a library with posters and details, with a web viewer, phone and
+      TV apps and an admin page. First run: open the container log; it prints a setup address and a
+      one-time code for creating the owner account.
+  author: Beebo Entertainment
+  developer: Beebo Entertainment
+  category: Media
+  architectures:
+    - amd64
+    - arm64
+  version: "0.1.57"
+  update_at: "2026-09-21"
+  website: https://beeboentertainment.com
+  repo: https://github.com/SWGfan/beebotv
+  support: https://github.com/SWGfan/beebotv/issues
+  docs: https://beeboentertainment.com/help.html
+  release_notes:
+    en_US: First CasaOS release.

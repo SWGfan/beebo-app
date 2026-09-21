@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.env
+.DS_Store
+*.log
+apps/desktop/tools/duckdns-token.txt

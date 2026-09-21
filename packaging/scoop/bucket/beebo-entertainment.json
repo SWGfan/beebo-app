@@ -1,0 +1,44 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
+    "version": "0.1.57",
+    "description": "Home media server and player for your own movies, TV, music and photos, with phone and TV apps.",
+    "homepage": "https://beeboentertainment.com",
+    "license": {
+        "identifier": "Proprietary",
+        "url": "https://beeboentertainment.com/terms.html"
+    },
+    "notes": [
+        "Beebo Entertainment is installed machine-wide with its own installer (Windows asks for administrator permission).",
+        "It also updates itself from inside the app; 'scoop update beebo-entertainment' installs the newest release the same way."
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/SWGfan/beebotv/releases/download/Beebo-0.1.57/BeeboEntertainmentSetup.exe",
+            "hash": "51f6a295a172eed3eedc6f43e25590ff6ebfe3fcbc5461bd247732315918d596"
+        }
+    },
+    "installer": {
+        "file": "BeeboEntertainmentSetup.exe",
+        "args": [
+            "/S"
+        ],
+        "keep": false
+    },
+    "uninstaller": {
+        "script": [
+            "$uninstaller = \"$env:ProgramFiles\\Beebo Entertainment\\Uninstall Beebo Entertainment.exe\"",
+            "if (Test-Path $uninstaller) { Start-Process -FilePath $uninstaller -ArgumentList '/allusers', '/S' -Wait }"
+        ]
+    },
+    "checkver": {
+        "github": "https://github.com/SWGfan/beebotv",
+        "regex": "/releases/tag/Beebo-([\\d.]+)"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/SWGfan/beebotv/releases/download/Beebo-$version/BeeboEntertainmentSetup.exe"
+            }
+        }
+    }
+}

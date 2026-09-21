@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="DiscoveryTask" extends="Task">
+  <interface>
+    <!-- optional: { extraHosts: ["192.168.1.10"] } tried first (e.g. the last known server) -->
+    <field id="input" type="assocarray" />
+    <!-- { scanned, total } while running -->
+    <field id="progress" type="assocarray" />
+    <!-- { ok, servers: [ { url, host } ], reason } when finished -->
+    <field id="result" type="assocarray" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/tasks/DiscoveryTask.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Urls.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Discovery.brs" />
+</component>

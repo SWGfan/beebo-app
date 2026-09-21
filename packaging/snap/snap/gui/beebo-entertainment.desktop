@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Beebo Entertainment
+GenericName=Home Media Server
+Comment=Your movies, TV, music and photos on every screen at home
+Exec=beebo-entertainment %U
+Icon=${SNAP}/meta/gui/icon.png
+Terminal=false
+Categories=AudioVideo;Video;Audio;
+Keywords=media;server;movies;tv;music;photos;streaming;
+StartupNotify=true

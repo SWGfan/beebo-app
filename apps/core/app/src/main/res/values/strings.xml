@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Beebo Entertainment</string>
+    <string name="cast_button">Cast to TV</string>
+    <string name="flag_quality">Bad quality</string>
+    <string name="surf_prev">Previous</string>
+    <string name="surf_next">Next</string>
+    <string name="surf_from_start">Start from the beginning</string>
+    <!-- Voice and TV search (docs/VOICE.md) -->
+    <string name="voice_search_hint">Search your Beebo library</string>
+    <string name="shortcut_continue_watching">Continue watching</string>
+    <string-array name="shortcut_continue_watching_synonyms">
+        <item>continue watching</item>
+        <item>resume</item>
+        <item>keep watching</item>
+    </string-array>
+</resources>

@@ -1,0 +1,125 @@
+# Dependabot version updates. Weekly, one grouped PR per ecosystem for minor/patch bumps;
+# major bumps come as their own PRs so they get a proper look. Security updates (which
+# need "Dependabot alerts" + "Dependabot security updates" enabled in repo settings) are
+# separate from this file and open immediately.
+#
+# cooldown: a release must be 7 days old before Dependabot proposes it, a small delay that
+# blunts "compromised release yanked within days" supply-chain attacks (same idea as
+# min-release-age in the .npmrc files).
+#
+# Electron, electron-builder and vite are upgraded deliberately (they need a manual test
+# pass), so their major bumps are ignored here.
+version: 2
+
+updates:
+  # ---- npm -----------------------------------------------------------------------------
+  - package-ecosystem: npm
+    directory: /desktop/apps/desktop
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: America/Toronto }
+    open-pull-requests-limit: 5
+    cooldown: { default-days: 7 }
+    groups:
+      desktop-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: electron
+        update-types: ["version-update:semver-major"]
+      - dependency-name: electron-builder
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vite
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: npm
+    directory: /desktop/apps/desktop/resources/beebo-rtc-host
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: America/Toronto }
+    open-pull-requests-limit: 3
+    cooldown: { default-days: 7 }
+    groups:
+      rtc-host-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /apps/roku
+    schedule: { interval: weekly, day: monday, time: "07:00", timezone: America/Toronto }
+    open-pull-requests-limit: 3
+    cooldown: { default-days: 7 }
+    groups:
+      roku-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /apps/smarttv
+    schedule: { interval: weekly, day: monday, time: "07:00", timezone: America/Toronto }
+    open-pull-requests-limit: 3
+    cooldown: { default-days: 7 }
+    groups:
+      smarttv-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /apps/xbox
+    schedule: { interval: weekly, day: monday, time: "07:00", timezone: America/Toronto }
+    open-pull-requests-limit: 3
+    cooldown: { default-days: 7 }
+    groups:
+      xbox-minor-patch:
+        update-types: [minor, patch]
+
+  # The npm workspace root also has a lockfile.
+  - package-ecosystem: npm
+    directory: /desktop
+    schedule: { interval: weekly, day: monday, time: "07:30", timezone: America/Toronto }
+    open-pull-requests-limit: 2
+    cooldown: { default-days: 7 }
+    groups:
+      desktop-root-minor-patch:
+        update-types: [minor, patch]
+
+  # ---- GitHub Actions (all pinned by SHA; Dependabot rewrites the SHA and the # vX comment)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "05:00", timezone: America/Toronto }
+    open-pull-requests-limit: 5
+    cooldown: { default-days: 7 }
+    groups:
+      actions-minor-patch:
+        update-types: [minor, patch]
+
+  # ---- Docker (headless server image) ---------------------------------------------------
+  - package-ecosystem: docker
+    directory: /desktop/apps/desktop/docker
+    schedule: { interval: weekly, day: monday, time: "05:30", timezone: America/Toronto }
+    open-pull-requests-limit: 3
+    cooldown: { default-days: 7 }
+    groups:
+      docker-minor-patch:
+        update-types: [minor, patch]
+
+  # ---- Gradle (Android phone app and car app) ------------------------------------------
+  - package-ecosystem: gradle
+    directory: /apps/core
+    schedule: { interval: weekly, day: tuesday, time: "06:00", timezone: America/Toronto }
+    open-pull-requests-limit: 5
+    cooldown: { default-days: 7 }
+    groups:
+      core-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: gradle
+    directory: /apps/auto
+    schedule: { interval: weekly, day: tuesday, time: "06:00", timezone: America/Toronto }
+    open-pull-requests-limit: 5
+    cooldown: { default-days: 7 }
+    groups:
+      auto-minor-patch:
+        update-types: [minor, patch]
+
+  # ---- Swift (BeeboKit / Apple client) -------------------------------------------------
+  - package-ecosystem: swift
+    directory: /apps/apple
+    schedule: { interval: weekly, day: tuesday, time: "06:30", timezone: America/Toronto }
+    open-pull-requests-limit: 3
+    cooldown: { default-days: 7 }
+    groups:
+      apple-minor-patch:
+        update-types: [minor, patch]

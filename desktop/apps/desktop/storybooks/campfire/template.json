@@ -1,0 +1,239 @@
+{
+  "title": "Silly Stories by the Campfire",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character, the story starter",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "the wise-cracking older sibling",
+      "default": "Sam"
+    },
+    {
+      "token": "{{SECOND_NAME}}",
+      "role": "the tiny brave sibling",
+      "default": "Robin"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "a hooting owl who keeps joining in",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}}'s Silly Campfire Night",
+    "dedication": "For every family who laughs instead of shivers."
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "The campfire crackled softly, and marshmallows waited on their sticks, all golden and gooey. You pulled your blanket up to your chin, ready for a night of stories. {{FRIEND_NAME}} leaned back like a fancy storyteller and said, \"Gather round, everyone, for a tale so spooky your socks will fall off.\" From the little camp chair, {{SECOND_NAME}} stood straight up and announced, \"I am NOT scared. I am the bravest one here, and also the shortest.\" High in the tree, {{PET_NAME}} hooted, \"Hoo! Hoo!\" as if to say the story had better start soon. You were the story starter tonight, so you got to pick.",
+      "choices": [
+        {
+          "text": "Let {{FRIEND_NAME}} tell a 'spooky' story (that turns silly).",
+          "target": 2
+        },
+        {
+          "text": "Let tiny brave {{SECOND_NAME}} go first.",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "\"Once upon a time,\" {{FRIEND_NAME}} whispered, wiggling both eyebrows, \"there was a mysterious noise in the woods. It went... squelch, squelch, SQUELCH.\" {{SECOND_NAME}} gasped, then narrowed both eyes and declared, \"I bet it was a monster. A big one. I will fight it.\" \"It was,\" said {{FRIEND_NAME}}, pausing for drama, \"a snail. Wearing rain boots.\" {{PET_NAME}} hooted twice, \"Hoo! Hoo!\" which everyone agreed meant the owl thought that was hilarious. You laughed so hard your marshmallow nearly slid off the stick.",
+      "choices": [
+        {
+          "text": "Ask what the snail did next.",
+          "target": 4
+        },
+        {
+          "text": "Let {{SECOND_NAME}} add a brave part to the story.",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "{{SECOND_NAME}} climbed onto the log like a tiny hero on a giant mountain. \"My story,\" {{SECOND_NAME}} announced, \"is about a teeny tiny bug who was the boss of the whole forest.\" \"A bug boss? What does the bug boss say?\" asked {{FRIEND_NAME}}, hiding a grin. {{SECOND_NAME}} put both hands on both hips and squeaked in a big deep voice, \"EVERYONE GETS A SNACK.\" {{PET_NAME}} approved loudly from the tree, \"Hoo! Hoo!\" and you decided a bug that hands out snacks was the greatest boss you had ever heard of.",
+      "choices": [
+        {
+          "text": "Ask what snack the bug boss gives out.",
+          "target": 4
+        },
+        {
+          "text": "Let {{FRIEND_NAME}} add a wise-cracking twist.",
+          "target": 6
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "\"{{CHILD_NAME}}, this is the important part, so lean in,\" said {{FRIEND_NAME}} in a hush. You leaned in, and so did everyone else, even the marshmallows. \"The snail,\" {{FRIEND_NAME}} continued, \"slid up to a door and knocked. Knock, knock, knock. And do you know who answered?\" {{SECOND_NAME}} bounced and guessed, \"The bug boss! With snacks!\" \"Close enough,\" laughed {{FRIEND_NAME}}, and {{PET_NAME}} added a proud \"Hoo! Hoo!\" like it had planned that twist the whole time.",
+      "choices": [
+        {
+          "text": "Make the ending about a giant, silly snack party.",
+          "target": 7
+        },
+        {
+          "text": "Make the ending about everyone becoming friends.",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "\"My turn, my turn,\" said {{SECOND_NAME}}, hopping up so fast the blanket flew off. \"The brave hero, who was me, walked right up to the snail and said, do not worry, snail, I will help you cross the road!\" {{FRIEND_NAME}} clapped slowly and said, \"A hero who helps snails cross roads. Very slow adventures, but very kind.\" \"The kindest,\" agreed {{SECOND_NAME}}, nodding hard. {{PET_NAME}} swooped to a lower branch and hooted, \"Hoo! Hoo!\" as if volunteering to help carry the snail's tiny suitcase.",
+      "choices": [
+        {
+          "text": "Send the hero and the snail to a snack party.",
+          "target": 7
+        },
+        {
+          "text": "Give the story a cozy, sleepy ending.",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "\"Okay, but here is the twist,\" said {{FRIEND_NAME}}, wiggling fingers like sparkles. \"The bug boss was actually afraid of one thing in the whole forest. Want to guess what?\" You guessed, \"A frog?\" and {{SECOND_NAME}} guessed, \"A bigger bug boss?\" \"Nope,\" grinned {{FRIEND_NAME}}. \"Tickles. The bug boss was terribly ticklish.\" {{SECOND_NAME}} giggled so hard the log wobbled, and {{PET_NAME}} hooted along, \"Hoo! Hoo! Hoo!\" until the whole family was laughing at a ticklish bug that ran a forest.",
+      "choices": [
+        {
+          "text": "End with a great big tickle-laugh celebration.",
+          "target": 8
+        },
+        {
+          "text": "End the story soft and sleepy.",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "\"A snack party?\" {{FRIEND_NAME}} said, rubbing both hands together. \"Now THAT is a story I can finish.\" You imagined a long table in the forest with acorn cookies and dewdrop juice. \"Do not forget the marshmallows,\" whispered {{SECOND_NAME}}, holding up a very toasty one as proof. \"Never,\" you promised. {{PET_NAME}} hooted, \"Hoo! Hoo!\" and even seemed to point a wing at the real marshmallows over the real fire, which made everyone hungry all over again.",
+      "choices": [
+        {
+          "text": "Finish the whole silly party ending together.",
+          "target": 10
+        },
+        {
+          "text": "Roast one more marshmallow and end cozy.",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "\"You know what the best part of every story is?\" you asked, poking the fire so the sparks danced. \"Snacks,\" said {{SECOND_NAME}} instantly. \"Punchlines,\" said {{FRIEND_NAME}} at the same time, and then the two of them pointed at each other and laughed. \"How about both, and also friends,\" you offered, and everyone agreed that was the best kind of ending. {{PET_NAME}} gave a warm, round \"Hoo... hoo,\" the sleepy kind, like the owl was tucking the whole story into bed.",
+      "choices": [
+        {
+          "text": "Wrap up with a big group giggle.",
+          "target": 10
+        },
+        {
+          "text": "Wrap up with a quiet, starry moment.",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "The fire had settled into a soft orange glow, and yawns were sneaking around the circle. \"And the snail,\" murmured {{FRIEND_NAME}}, quieter now, \"finally made it home and put its little rain boots by the door.\" {{SECOND_NAME}} rubbed both eyes and whispered, \"That is a good ending. Snails need rest too.\" You nodded, warm under your blanket. {{PET_NAME}} gave one gentle \"hoo,\" so soft it sounded like goodnight, and the stars blinked on one by one above the trees.",
+      "choices": [
+        {
+          "text": "Say goodnight with one more giggle.",
+          "target": 12
+        },
+        {
+          "text": "Look up and count the stars together.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": false,
+      "text": "Everyone started adding to the party at once, talking over each other in the happiest way. \"The snail brings the cookies!\" you said. \"The bug boss brings the juice!\" cheered {{SECOND_NAME}}. \"And I,\" declared {{FRIEND_NAME}}, standing tall, \"will bring the jokes, because someone has to.\" {{PET_NAME}} flapped down to the log's edge and hooted, \"Hoo! Hoo!\" which clearly meant the owl would bring the music. The whole imaginary forest was ready to celebrate, and so was your very real, very cozy campfire.",
+      "choices": [
+        {
+          "text": "End with the biggest, silliest laugh of the night.",
+          "target": 11
+        },
+        {
+          "text": "End snuggled up under the stars.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Great Marshmallow Giggle",
+      "endingType": "silly-safe",
+      "text": "{{FRIEND_NAME}} tried to tell one final joke, but a marshmallow flopped right off the stick and landed with a soft plop on {{FRIEND_NAME}}'s nose. There was a frozen second, and then everyone burst into the biggest laugh of the whole night. \"I meant to do that,\" said {{FRIEND_NAME}} through the giggles, marshmallow and all. \"That was the bravest marshmallow I ever saw,\" declared {{SECOND_NAME}}, wiping happy tears. {{PET_NAME}} hooted so hard it nearly tipped off the branch, \"Hoo! Hoo! Hoo!\" You leaned into the warm circle of your family and thought no spooky story could ever be better than this.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "One Last Giggle Goodnight",
+      "endingType": "silly-safe",
+      "text": "\"Okay, last one, I promise,\" whispered {{FRIEND_NAME}}, \"why did the campfire go to school? To get a little brighter.\" {{SECOND_NAME}} groaned and giggled at the exact same time, which is a very hard thing to do. \"That was terrible,\" you said, grinning. \"Do it again tomorrow.\" \"Obviously,\" said {{FRIEND_NAME}}, tucking the blanket around {{SECOND_NAME}}'s shoulders. {{PET_NAME}} gave one last cozy \"hoo,\" and the four of you sat quiet and happy while the fire hummed its little goodnight song.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "Under a Sky Full of Stars",
+      "endingType": "good",
+      "text": "You all leaned back to look up, and the sky was absolutely stuffed with stars. \"One, two, three... okay, there are too many,\" said {{FRIEND_NAME}}, giving up with a smile. \"I counted a hundred,\" declared {{SECOND_NAME}}, who had definitely not counted a hundred. \"Then a hundred it is,\" you said softly, because tonight anything felt possible. {{PET_NAME}} settled its feathers and gave a slow, contented \"hoo,\" and one by one the yawns won, and the stories drifted off with the smoke. It was, everyone agreed, the coziest campfire night of all.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "Where does the story happen?",
+      "choices": [
+        "🔥 at a campfire",
+        "at school",
+        "on a boat"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What treat are they roasting?",
+      "choices": [
+        "marshmallows",
+        "fish",
+        "pancakes"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What animal hoots in the tree?",
+      "choices": [
+        "an owl",
+        "a frog",
+        "a cow"
+      ],
+      "correct": 0
+    }
+  ]
+}

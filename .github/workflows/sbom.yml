@@ -1,0 +1,77 @@
+# CycloneDX SBOMs (JSON, spec 1.6) for the npm projects in this repository that ship: the
+# desktop app and its rtc-host, plus the smart-TV, Roku and Xbox clients. Runs on demand and whenever
+# a GitHub release is published, and uploads each SBOM as a workflow artifact (90-day
+# retention). Attach the desktop one to the release by hand.
+#
+# Read-only token. The SBOM is built from package-lock.json only (no install, no scripts run).
+name: SBOM
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sbom-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "24"
+  # Pinned so a new upstream release cannot change what runs in CI unreviewed.
+  CYCLONEDX_NPM_VERSION: "6.0.1"
+  NPM_CONFIG_FUND: "false"
+  NPM_CONFIG_AUDIT: "false" # an SBOM job needs no advisory lookups
+
+jobs:
+  sbom:
+    name: SBOM (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: desktop, dir: desktop/apps/desktop }
+          - { name: rtc-host, dir: desktop/apps/desktop/resources/beebo-rtc-host }
+          - { name: smarttv, dir: apps/smarttv }
+          - { name: roku, dir: apps/roku }
+          - { name: xbox, dir: apps/xbox }
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Resolve a lockfile if the project has none (no scripts, no install)
+        env:
+          PROJECT_DIR: ${{ matrix.dir }}
+        run: |
+          if [ ! -f package-lock.json ]; then
+            echo "::warning::$PROJECT_DIR has no package-lock.json; resolving one for this run only"
+            npm install --package-lock-only --ignore-scripts
+          fi
+      - name: Generate the CycloneDX SBOM
+        env:
+          SBOM_NAME: ${{ matrix.name }}
+        run: |
+          npx --yes "@cyclonedx/cyclonedx-npm@${CYCLONEDX_NPM_VERSION}" \
+            --package-lock-only \
+            --spec-version 1.6 \
+            --mc-type application \
+            --output-format JSON \
+            --output-file "$RUNNER_TEMP/beebo-${SBOM_NAME}.cdx.json"
+          ls -la "$RUNNER_TEMP/beebo-${SBOM_NAME}.cdx.json"
+          sha256sum "$RUNNER_TEMP/beebo-${SBOM_NAME}.cdx.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom-${{ matrix.name }}
+          path: ${{ runner.temp }}/beebo-${{ matrix.name }}.cdx.json
+          if-no-files-found: error
+          retention-days: 90

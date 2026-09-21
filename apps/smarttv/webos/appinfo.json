@@ -1,0 +1,12 @@
+{
+  "id": "tv.beebo.smarttv",
+  "version": "0.1.0",
+  "vendor": "Beebo Entertainment",
+  "type": "web",
+  "main": "index.html",
+  "title": "Beebo",
+  "icon": "icon80.png",
+  "largeIcon": "icon130.png",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": true
+}

@@ -1,0 +1,91 @@
+name: Beebo
+options:
+  bundleIdPrefix: com.beeboentertainment
+  developmentLanguage: en
+  deploymentTarget:
+    iOS: "16.0"
+    tvOS: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: false
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+packages:
+  BeeboKit:
+    path: .
+targets:
+  BeeboTV:
+    type: application
+    platform: tvOS
+    sources:
+      - path: App/Shared
+      - path: App/tvOS
+        excludes:
+          - Info.plist
+      - path: Resources/PrivacyInfo.xcprivacy
+    dependencies:
+      - package: BeeboKit
+    info:
+      path: App/tvOS/Info.plist
+      properties:
+        CFBundleDisplayName: Beebo
+        NSLocalNetworkUsageDescription: Beebo connects to your Beebo server on your home network to browse and play your library.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.beeboentertainment.apple
+        PRODUCT_NAME: Beebo
+        ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+  BeeboiOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/Shared
+      - path: App/iOS
+        excludes:
+          - Info.plist
+      - path: Resources/PrivacyInfo.xcprivacy
+    dependencies:
+      - package: BeeboKit
+    info:
+      path: App/iOS/Info.plist
+      properties:
+        CFBundleDisplayName: Beebo
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSLocalNetworkUsageDescription: Beebo connects to your Beebo server on your home network to browse and play your library.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.beeboentertainment.apple
+            CFBundleURLSchemes:
+              - beebo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.beeboentertainment.apple
+        PRODUCT_NAME: Beebo
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+schemes:
+  BeeboTV:
+    build:
+      targets:
+        BeeboTV: all
+  BeeboiOS:
+    build:
+      targets:
+        BeeboiOS: all

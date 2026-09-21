@@ -1,0 +1,234 @@
+{
+  "title": "The Midnight Bakery of Talking Treats",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend who loves to bake with you",
+      "default": "Sam"
+    },
+    {
+      "token": "{{MOUSE_NAME}}",
+      "role": "a shy, kind little baker mouse in an apron",
+      "default": "Crumb"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}} and the Midnight Bakery",
+    "dedication": "For every little helper who is sweeter than sugar."
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Long past bedtime, a warm golden light glows in the window of the tiny corner bakery. You press your nose to the glass, and your best friend {{FRIEND_NAME}} presses right beside you. \"Do you smell that?\" whispered {{FRIEND_NAME}}. \"Warm cinnamon and honey and something magic.\" The little door creaks open all by itself. From inside, a soft voice squeaks up at you. \"Squeak — oh, hello. Please, please come in,\" whispered {{MOUSE_NAME}}, a shy mouse in a floury blue apron. \"I am ever so behind, and sunrise is coming.\"",
+      "choices": [
+        {
+          "text": "Step inside and offer to help {{MOUSE_NAME}} right away.",
+          "target": 2
+        },
+        {
+          "text": "Peek around the magical bakery first with {{FRIEND_NAME}}.",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You tiptoe inside, and the warm air wraps around you like a blanket. {{MOUSE_NAME}} twisted the corner of the apron nervously. \"Squeak — thank you. I have never asked for help before,\" whispered {{MOUSE_NAME}}. \"You see, at midnight my treats wake up and talk, and they can be a handful.\" \"Good evening!\" sang a fat cinnamon bun from the counter. \"Are these the helpers? Splendid!\" {{FRIEND_NAME}} laughed out loud and clapped. \"The bun just winked at me!\" cried {{FRIEND_NAME}}. \"This is the best night ever.\"",
+      "choices": [
+        {
+          "text": "Head to the mixing bowls to start a fresh batch.",
+          "target": 4
+        },
+        {
+          "text": "Go quiet the noisy treats that already woke up.",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "You and {{FRIEND_NAME}} wander between shelves stacked with sleepy pies and humming jars of sprinkles. A tray of gingerbread people stretched, yawned, and began to shuffle in a slow little line. \"The gingerbread is dancing!\" gasped {{FRIEND_NAME}}, pointing with wide eyes. \"One, two, cha-cha-cha!\" chirped a gingerbread girl, kicking up a puff of flour. {{MOUSE_NAME}} scurried after you, whiskers trembling. \"Squeak — they are friendly, I promise, only very giggly,\" whispered {{MOUSE_NAME}}. \"But we must get to work, or the morning treats will not be ready.\"",
+      "choices": [
+        {
+          "text": "Start mixing a big bowl of cookie dough.",
+          "target": 4
+        },
+        {
+          "text": "Help {{MOUSE_NAME}} gather the wandering treats.",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You roll up your sleeves and crack the eggs while {{FRIEND_NAME}} pours in the flour, whoosh, in a soft white cloud. \"More sugar, more sugar!\" cheered a measuring cup, hopping on the counter. {{MOUSE_NAME}} stirred with a spoon almost as big as its whole body. \"Squeak — gently now, we do not want lumps,\" whispered {{MOUSE_NAME}}. \"You are wonderful at this.\" {{FRIEND_NAME}} grinned and bumped your elbow. \"We make a great team, {{CHILD_NAME}},\" said {{FRIEND_NAME}}. The dough smelled like vanilla dreams.",
+      "choices": [
+        {
+          "text": "Scoop the dough into cookie shapes.",
+          "target": 6
+        },
+        {
+          "text": "Roll the dough flat for a giant birthday cake.",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "The awake treats are a merry, wiggly mess. A row of eclairs is sliding across the counter like tiny sleds. \"Squeak — please be gentle with the eclairs,\" whispered {{MOUSE_NAME}}, holding out two trembling paws. \"They are shy, like me.\" \"Wheee, catch us if you can!\" giggled an eclair, zipping past your fingers. {{FRIEND_NAME}} cupped a soft macaron in both hands and hummed a little song until it settled. \"There, there,\" murmured {{FRIEND_NAME}}, \"back to your tray, sleepy one.\" One by one, the treats calmed down and lined up sweetly.",
+      "choices": [
+        {
+          "text": "Now help bake a fresh batch of cookies.",
+          "target": 6
+        },
+        {
+          "text": "Set up the frosting station for the cakes.",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You press little cutters into the dough, making stars and moons and one wobbly heart. Into the warm oven they go, and the whole bakery fills with a cozy, toasty smell. \"Almost golden, almost ready!\" sang the oven in a low, humming voice. {{MOUSE_NAME}} peeked through the little glass door, tail curled with excitement. \"Squeak — you did that beautifully,\" whispered {{MOUSE_NAME}}. \"Look, they are puffing up!\" {{FRIEND_NAME}} did a happy little spin. \"Best bakers in the whole world!\" cheered {{FRIEND_NAME}}.",
+      "choices": [
+        {
+          "text": "Decorate the warm cookies with icing.",
+          "target": 8
+        },
+        {
+          "text": "Rush to help the cakes calling from the next room.",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You roll the dough into one enormous round layer while {{FRIEND_NAME}} holds the pan steady. \"Frost me next!\" cried a little cupcake, bouncing up and down. \"Ooh, me me me!\" A whole choir of cupcakes joined in, wobbling their paper cups. {{MOUSE_NAME}} laughed the tiniest laugh, a soft squeaky hiccup of a giggle. \"Squeak — one at a time, dear cupcakes,\" whispered {{MOUSE_NAME}}. \"There is frosting enough for everyone.\" You dip the spatula in fluffy pink cloud-frosting and get ready to swirl.",
+      "choices": [
+        {
+          "text": "Frost the cupcakes and the big cake together.",
+          "target": 8
+        },
+        {
+          "text": "Add sprinkles and let the treats decorate themselves.",
+          "target": 10
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "Swirl, swirl, swirl goes the frosting, soft as a pillow. You pipe smiley faces on the cookies, and {{FRIEND_NAME}} adds tiny sugar-pearl noses. \"Ooh, I look dashing!\" declared a cookie, admiring itself in a shiny spoon. {{MOUSE_NAME}} carried a candy cherry twice its size, wobbling all the way. \"Squeak — the very last one goes on top,\" whispered {{MOUSE_NAME}}, and plop, it landed just right. Outside, the sky was turning the softest pink. \"We finished!\" gasped {{FRIEND_NAME}}. \"Right before sunrise!\"",
+      "choices": [
+        {
+          "text": "Ring the little bell to wake the town for breakfast.",
+          "target": 11
+        },
+        {
+          "text": "Share the very first warm cookie all together.",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "In the next room, three tall cakes wait on turning stands, each humming a different sleepy tune. \"Layer me tall and proud!\" boomed a chocolate cake in a deep, rumbly voice. \"And me with strawberries!\" sang a lighter, twinkly sponge. {{MOUSE_NAME}} handed you a bowl of berries, paws shaking just a little less now. \"Squeak — you have made me so brave tonight,\" whispered {{MOUSE_NAME}}. {{FRIEND_NAME}} stacked the layers carefully, tongue poking out in concentration. \"Steady, steady, and done!\" said {{FRIEND_NAME}}, stepping back to admire the towers.",
+      "choices": [
+        {
+          "text": "Share the very first slice all together.",
+          "target": 12
+        },
+        {
+          "text": "Carry the cakes proudly to the front window.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": false,
+      "text": "You tip the sprinkle jars, and rainbow sprinkles tumble down like happy confetti. The treats squealed with delight and began decorating each other. \"Polka dots for me, please!\" laughed a donut, spinning in a circle. \"And stripes for me!\" cried a tart, striping itself with jam. {{MOUSE_NAME}} clapped its tiny paws together. \"Squeak — I have never seen them so joyful,\" whispered {{MOUSE_NAME}}. {{FRIEND_NAME}} was laughing so hard that flour puffed off the apron. \"This is pure magic, {{CHILD_NAME}},\" said {{FRIEND_NAME}}, wiping a happy tear.",
+      "choices": [
+        {
+          "text": "Open the bakery door as the sun peeks up.",
+          "target": 11
+        },
+        {
+          "text": "Line the treats up proudly in the front window.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "Sunrise Breakfast for Everyone",
+      "endingType": "good",
+      "text": "You ring the little brass bell, and its bright ting-a-ling floats out into the waking street. One by one, sleepy neighbors shuffle in, sniffing the wonderful smells. \"Everything is ready, thanks to my brave new friends,\" whispered {{MOUSE_NAME}}, standing a little taller than before. \"Best bakery in town!\" cheered a warm bun from the tray, and everyone laughed. {{FRIEND_NAME}} squeezed your hand. \"We did it together, {{CHILD_NAME}},\" said {{FRIEND_NAME}}. As the sun rose gold and pink, the whole town shared warm treats, and {{MOUSE_NAME}} was shy no more. What a sweet, sweet morning.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The First Warm Bite",
+      "endingType": "good",
+      "text": "You all gather close as {{MOUSE_NAME}} breaks the very first warm treat into three perfect pieces. \"Squeak — the first bite always tastes like friendship,\" whispered {{MOUSE_NAME}}, cheeks pink with pride. \"Mmm, it really does!\" hummed a cookie happily from the tray. {{FRIEND_NAME}} closed both eyes and sighed. \"That is the best thing I have ever tasted,\" said {{FRIEND_NAME}}. Outside, birds began to sing the morning in. You munch together, warm and cozy and giggling, three good friends who finished every treat before the sun. Yum, and goodnight, and good morning too.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "The Prettiest Window in Town",
+      "endingType": "silly-safe",
+      "text": "You line the treats up in the front window, and oh, what a wobbly, wonderful parade it is. The cupcakes strike silly poses, the gingerbread do a tiny bow, and a proud cake nearly topples over trying to look grand. \"Ta-da! Are we not the fanciest treats in all the land?\" announced a cupcake, tipping an imaginary hat. {{MOUSE_NAME}} giggled its soft squeaky giggle. \"Squeak — you helped me make the prettiest window in town,\" whispered {{MOUSE_NAME}}. {{FRIEND_NAME}} pressed a nose to the glass from inside this time. \"Everyone is going to smile when they see this, {{CHILD_NAME}},\" said {{FRIEND_NAME}}. And as the sun peeked in, every single treat waved good morning.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "Where does the story begin?",
+      "choices": [
+        "🍞 a bakery",
+        "a school",
+        "a farm"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What little animal lives in the bakery?",
+      "choices": [
+        "a mouse",
+        "a cat",
+        "a bird"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What do the treats do at midnight?",
+      "choices": [
+        "talk",
+        "fly away",
+        "fall asleep"
+      ],
+      "correct": 0
+    }
+  ]
+}

@@ -1,0 +1,485 @@
+{
+  "ok": true,
+  "books": [
+    {
+      "slug": "sleepover",
+      "title": "The Sleepover That Wouldn't End",
+      "ageRange": "6+",
+      "startPage": 1,
+      "totalPages": 15,
+      "endingCount": 4,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "reader / main character",
+          "default": "Alex",
+          "note": "The child reading or being read to. The story is second-person ('you'), so this token is only used for a few direct call-outs, not to replace 'you'."
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "best friend, whose house it is",
+          "default": "Max"
+        },
+        {
+          "token": "{{SIBLING_NAME}}",
+          "role": "friend's little sibling",
+          "default": "Lily"
+        },
+        {
+          "token": "{{PARENT_NAME}}",
+          "role": "the grown-up reading along (optional)",
+          "default": ""
+        }
+      ],
+      "defaultSetHash": "f96c8059c9887821",
+      "blurb": "A spooky-but-cozy choose-your-path sleepover adventure. Read along while it's read aloud."
+    },
+    {
+      "slug": "bunnies",
+      "title": "Domino and Honey and a Perfectly Sunny Day",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 8,
+      "endingCount": 1,
+      "characters": [
+        {
+          "token": "{{LOP}}",
+          "role": "the clever, cuddly black-and-white French Lop",
+          "default": "Domino"
+        },
+        {
+          "token": "{{REX}}",
+          "role": "the shy, sweetening white-and-golden Mini Rex (she)",
+          "default": "Honey"
+        },
+        {
+          "token": "{{PARTNER_A}}",
+          "role": "one of their humans",
+          "default": "Nick"
+        },
+        {
+          "token": "{{PARTNER_B}}",
+          "role": "one of their humans",
+          "default": "Sam"
+        }
+      ],
+      "defaultSetHash": "91eb90262656067e",
+      "blurb": "A warm, funny day in the life of Domino and Honey, two backyard bunnies. Sit back and listen."
+    },
+    {
+      "slug": "fairytale",
+      "title": "The Shy Little Dragon and the Lantern Festival",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend from the village who comes along to help",
+          "default": "Sam"
+        },
+        {
+          "token": "{{DRAGON_NAME}}",
+          "role": "the shy baby dragon who is afraid of its own glittery hiccups",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "1bf88ad3fa1dde13",
+      "blurb": "A shy baby dragon with glittery hiccups needs your help to find its courage. Pick your path."
+    },
+    {
+      "slug": "carrace",
+      "title": "The Great Cherry Hill Derby",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character and kart driver",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend and pit-crew partner who helped build the kart",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "your small dog who rides along as the team mascot",
+          "default": "Max"
+        }
+      ],
+      "defaultSetHash": "f34503af3a224948",
+      "blurb": "Build your kart and race down Cherry Hill in the big soap-box Derby. Choose your route!"
+    },
+    {
+      "slug": "space",
+      "title": "The Backyard Rocket to Marshmallow Planet",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character and rocket captain",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend and co-pilot on the trip",
+          "default": "Sam"
+        },
+        {
+          "token": "{{ALIEN_NAME}}",
+          "role": "the polite, friendly alien you meet who loves snacks and jokes",
+          "default": "Robin"
+        }
+      ],
+      "defaultSetHash": "2c9c2f532b20513d",
+      "blurb": "Fly your backyard rocket to a marshmallow planet of polite, joke-loving aliens."
+    },
+    {
+      "slug": "underwater",
+      "title": "The Coral Queen's Missing Pearl",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 4,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character who can breathe underwater today",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend who dove in with you to explore",
+          "default": "Sam"
+        },
+        {
+          "token": "{{DOLPHIN_NAME}}",
+          "role": "the curious, friendly dolphin who becomes your guide",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "3d7b74bede8570a8",
+      "blurb": "Breathe underwater and explore a glowing coral town to find the Coral Queen's missing pearl."
+    },
+    {
+      "slug": "dinosaurs",
+      "title": "The Lost Baby Triceratops",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best buddy who explores the valley with you",
+          "default": "Sam"
+        },
+        {
+          "token": "{{BABY_NAME}}",
+          "role": "the friendly lost baby Triceratops you help",
+          "default": "Robin"
+        }
+      ],
+      "defaultSetHash": "5284e6207aa5f894",
+      "blurb": "Help a lost baby Triceratops find its herd in a sunny, friendly dinosaur valley."
+    },
+    {
+      "slug": "detective",
+      "title": "The Case of the Missing Birthday Cake",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 4,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character, a clever kid detective",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your trusty detective sidekick",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "the family dog who loves sniffing out clues",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "0c8b9785438665a1",
+      "blurb": "The birthday cake has vanished! Follow the clues and crack the silly case."
+    },
+    {
+      "slug": "pirates",
+      "title": "The Friendly Pirate Treasure Hunt",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character, a brave young treasure hunter",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your fellow treasure hunter and best mate",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PARROT_NAME}}",
+          "role": "the chatty, friendly parrot who gives clues",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "403a76ab9e91db01",
+      "blurb": "A friendly treasure hunt on a sunny cove with a chatty parrot. X marks the heart."
+    },
+    {
+      "slug": "magicschool",
+      "title": "The Little School of Small Magic",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your friendly bench-mate at the school of small magic",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "a tiny sleepy classroom owl who sits on your wand",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "0c8b9785438665a1",
+      "blurb": "Your first day at a tiny school for small, cozy magic \u2014 if your wand behaves!"
+    },
+    {
+      "slug": "jungle",
+      "title": "The Kindly Jungle Helpers",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 4,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your cheerful jungle guide and friend",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "a chatty little parrot who rides on your backpack",
+          "default": "Robin"
+        }
+      ],
+      "defaultSetHash": "3ea56fcc8789819e",
+      "blurb": "Team up with your guide to help the animals of a kind, sunny jungle."
+    },
+    {
+      "slug": "superhero",
+      "title": "My One Silly Superpower",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 12,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend and super-sidekick",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "a talking houseplant on your windowsill",
+          "default": "Max"
+        }
+      ],
+      "defaultSetHash": "f34503af3a224948",
+      "blurb": "You woke up with one silly superpower. Time to stop the giggly Sock Goblin!"
+    },
+    {
+      "slug": "robot",
+      "title": "The Little Backyard Robot",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend who tinkers with you",
+          "default": "Sam"
+        },
+        {
+          "token": "{{ROBOT_NAME}}",
+          "role": "a cheerful little helper robot who beeps and boops",
+          "default": "Bolt"
+        }
+      ],
+      "defaultSetHash": "cc693c19d745a038",
+      "blurb": "You and a friendly little backyard robot who just wants to help. A gentle choose-your-path adventure."
+    },
+    {
+      "slug": "bakery",
+      "title": "The Midnight Bakery of Talking Treats",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend who loves to bake with you",
+          "default": "Sam"
+        },
+        {
+          "token": "{{MOUSE_NAME}}",
+          "role": "a shy, kind little baker mouse in an apron",
+          "default": "Crumb"
+        }
+      ],
+      "defaultSetHash": "52462212295cf612",
+      "blurb": "A cozy midnight bakery where the treats talk and a shy baker mouse needs your help. Pick your path."
+    },
+    {
+      "slug": "snowpup",
+      "title": "Frost and the Big Snowy Hill",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "your best friend on the snowy hill",
+          "default": "Sam"
+        },
+        {
+          "token": "{{PUP_NAME}}",
+          "role": "a bouncy, excitable husky puppy learning to be brave",
+          "default": "Frost"
+        }
+      ],
+      "defaultSetHash": "6d7e6e1191e1cacc",
+      "blurb": "A snowy hill, a red sled, and a bouncy husky puppy learning to be brave. Choose your path."
+    },
+    {
+      "slug": "band",
+      "title": "The Backyard Band Show",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character, the band leader",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "the bossy-but-lovable drummer",
+          "default": "Sam"
+        },
+        {
+          "token": "{{SECOND_NAME}}",
+          "role": "the shy singer",
+          "default": "Robin"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "a chirpy parrot who sings along",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "868d6b25a6517820",
+      "blurb": "Get the backyard band ready for the big show \u2014 a bossy drummer, a shy singer, and a parrot who sings along. Pick your path."
+    },
+    {
+      "slug": "campfire",
+      "title": "Silly Stories by the Campfire",
+      "ageRange": "All ages",
+      "startPage": 1,
+      "totalPages": 13,
+      "endingCount": 3,
+      "characters": [
+        {
+          "token": "{{CHILD_NAME}}",
+          "role": "the reader / main character, the story starter",
+          "default": "Alex"
+        },
+        {
+          "token": "{{FRIEND_NAME}}",
+          "role": "the wise-cracking older sibling",
+          "default": "Sam"
+        },
+        {
+          "token": "{{SECOND_NAME}}",
+          "role": "the tiny brave sibling",
+          "default": "Robin"
+        },
+        {
+          "token": "{{PET_NAME}}",
+          "role": "a hooting owl who keeps joining in",
+          "default": "Pip"
+        }
+      ],
+      "defaultSetHash": "868d6b25a6517820",
+      "blurb": "A cozy camping night of silly (never scary) campfire stories, with two siblings and a hooting owl. Choose your path."
+    }
+  ]
+}

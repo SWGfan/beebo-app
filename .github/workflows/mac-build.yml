@@ -1,0 +1,153 @@
+name: macOS desktop build
+
+# Builds the macOS app (dmg + zip) for Apple Silicon and Intel on real macOS runners and
+# smoke-checks the result. There is no Mac on the dev side, so this is the only place the Mac
+# build is exercised. Manual only. Unsigned: signing and notarization need the owner's Apple
+# Developer account (docs/MACOS.md). Download the "beebo-mac-arm64" / "beebo-mac-x64" artifacts.
+on:
+  workflow_dispatch:
+
+# Least privilege: read-only token, nothing is published.
+permissions:
+  contents: read
+
+concurrency:
+  group: mac-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  mac:
+    name: macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            ffarch: arm64
+            runner: macos-14
+          - arch: x64
+            ffarch: x86_64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: desktop/apps/desktop
+    env:
+      # No Developer ID on this build: never go looking for a signing identity or notarize.
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      FFDIR: resources/ffmpeg-mac-${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: desktop/apps/desktop/package-lock.json
+
+      - run: npm ci --workspaces=false
+
+      # The away-from-home host ships with its own node_modules (werift) inside the app.
+      - name: Install the WebRTC host's dependencies
+        working-directory: desktop/apps/desktop/resources/beebo-rtc-host
+        run: npm ci --omit=dev
+
+      # --- ffmpeg: LGPL, built from pinned sources (installer/mac/build-ffmpeg-mac.sh) ---------
+      # Built on every run (about 5-10 minutes per architecture). To cache it, add an
+      # actions/cache step pinned to a full commit SHA (see docs/SUPPLY-CHAIN-SECURITY.md).
+      - name: Build LGPL ffmpeg/ffprobe (VideoToolbox + OpenH264 + Opus)
+        run: |
+          brew install pkgconf nasm
+          time bash installer/mac/build-ffmpeg-mac.sh ${{ matrix.ffarch }} "$FFDIR"
+
+      - name: ffmpeg licence evidence (configure line, no GPL/nonfree)
+        run: |
+          "$FFDIR/ffmpeg" -hide_banner -version | grep -E '^(ffmpeg version|configuration:)'
+          "$FFDIR/ffmpeg" -L | head -3
+          if "$FFDIR/ffmpeg" -hide_banner -version | grep -E -- '--enable-(gpl|nonfree|version3)'; then echo "GPL/nonfree flag found"; exit 1; fi
+          "$FFDIR/ffmpeg" -hide_banner -encoders | grep -E 'videotoolbox|libopenh264|libopus'
+          for b in ffmpeg ffprobe; do echo "$b: $(lipo -archs "$FFDIR/$b")"; done
+          shasum -a 256 "$FFDIR/ffmpeg" "$FFDIR/ffprobe"
+
+      - name: App icon (.icns from the 256 px PNG)
+        run: bash installer/mac/make-icns.sh
+
+      - run: npx vite build
+
+      # With no certificate electron-builder skips signing; installer/mac/afterPack.js then signs the
+      # bundle ad hoc, which Apple Silicon needs to launch at all. It is NOT a Developer ID
+      # signature (Gatekeeper still warns, see docs/MACOS.md).
+      - name: electron-builder (dmg + zip, ${{ matrix.arch }})
+        run: npx electron-builder --mac dmg zip --${{ matrix.arch }} --publish never
+
+      - name: The packages exist
+        run: |
+          ls -la dist/*.dmg dist/*.zip
+          test -f "dist/BeeboEntertainment-$(node -p "require('./package.json').version")-mac-${{ matrix.arch }}.dmg"
+          test -f "dist/BeeboEntertainment-$(node -p "require('./package.json').version")-mac-${{ matrix.arch }}.zip"
+
+      - name: The zip carries ffmpeg, the licences and the right architecture
+        run: |
+          rm -rf /tmp/unzipped && mkdir /tmp/unzipped
+          ditto -x -k dist/*-mac-${{ matrix.arch }}.zip /tmp/unzipped
+          APP="$(ls -d /tmp/unzipped/*.app | head -1)"
+          echo "app: $APP"
+          test -x "$APP/Contents/Resources/ffmpeg/ffmpeg"
+          test -x "$APP/Contents/Resources/ffmpeg/ffprobe"
+          test -f "$APP/Contents/Resources/THIRD_PARTY_LICENSES/ffmpeg/LICENSE-mac.txt"
+          "$APP/Contents/Resources/ffmpeg/ffmpeg" -hide_banner -version | sed -n 1,2p
+          MAIN="$APP/Contents/MacOS/$(defaults read "$APP/Contents/Info" CFBundleExecutable)"
+          lipo -archs "$MAIN"
+          plutil -p "$APP/Contents/Info.plist" | grep -E 'CFBundleIdentifier|CFBundleShortVersionString|LSApplicationCategoryType|NSLocalNetworkUsageDescription|LSMinimumSystemVersion'
+          codesign -dv --verbose=2 "$APP" 2>&1 | grep -E 'Identifier|Signature|flags|TeamIdentifier' || true
+          codesign --verify --deep --strict "$APP" && echo "signature verifies (ad hoc)"
+          echo "$APP" > /tmp/app-path.txt
+
+      - name: The dmg mounts and holds the app
+        run: |
+          MNT="$(mktemp -d)"
+          hdiutil attach -nobrowse -readonly -mountpoint "$MNT" dist/*-mac-${{ matrix.arch }}.dmg
+          ls -la "$MNT"
+          test -d "$MNT"/*.app
+          test -x "$MNT"/*.app/Contents/Resources/ffmpeg/ffmpeg
+          hdiutil detach "$MNT"
+
+      # Informational: proves the packaged app starts and its media server listens. It does not fail
+      # the build (a headless runner without a logged-in GUI session can trip on things a real
+      # desktop would not), but the result is printed and uploaded.
+      - name: Smoke launch (20 s)
+        continue-on-error: true
+        run: |
+          APP="$(cat /tmp/app-path.txt)"
+          EXE="$APP/Contents/MacOS/$(defaults read "$APP/Contents/Info" CFBundleExecutable)"
+          echo "launching $EXE"
+          ( "$EXE" --no-sandbox > /tmp/smoke.log 2>&1 & echo $! > /tmp/smoke.pid )
+          for i in $(seq 1 20); do
+            grep -q "Stream server listening" /tmp/smoke.log && break
+            sleep 1
+          done
+          tail -30 /tmp/smoke.log || true
+          FOUND=0; grep -q "Stream server listening" /tmp/smoke.log && FOUND=1
+          kill "$(cat /tmp/smoke.pid)" 2>/dev/null || true
+          pkill -f "Beebo Entertainment" 2>/dev/null || true
+          if [ "$FOUND" = 1 ]; then echo "SMOKE OK: the stream server is listening"; else echo "SMOKE: no 'listening' line within 20 s"; exit 1; fi
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: beebo-mac-${{ matrix.arch }}
+          path: |
+            desktop/apps/desktop/dist/*.dmg
+            desktop/apps/desktop/dist/*.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: beebo-mac-ffmpeg-${{ matrix.arch }}
+          path: |
+            desktop/apps/desktop/${{ env.FFDIR }}/ffmpeg-configure.txt
+          if-no-files-found: warn

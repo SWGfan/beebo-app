@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metainfo for Flathub. Items marked TODO need real values before submission. -->
+<component type="desktop-application">
+  <id>com.beeboentertainment.Beebo</id>
+  <name>Beebo Entertainment</name>
+  <summary>Your home media server and player</summary>
+  <developer id="com.beeboentertainment">
+    <name>Beebo Entertainment</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary=https://beeboentertainment.com/terms.html</project_license>
+  <!-- TODO: replace with the real brand colours (any hex; one per colour scheme). -->
+  <branding>
+    <color type="primary" scheme_preference="light">#f5d7ff</color>
+    <color type="primary" scheme_preference="dark">#3d1a5c</color>
+  </branding>
+  <description>
+    <p>
+      Beebo Entertainment turns your computer into a home media server. Point it at your folders of movies,
+      TV shows, music and photos and it builds a library with posters and details. Watch in the app or the web
+      viewer, or stream to the Beebo phone and TV apps on your home network. Video that a device cannot play
+      as it is gets converted on the fly.
+    </p>
+    <p>About this Flatpak:</p>
+    <ul>
+      <li>It can read your Videos, Music and Pictures folders. To use another folder (a NAS mount, another disk), choose it in the app or grant it once with: flatpak override --user --filesystem=/path/to/folder com.beeboentertainment.Beebo</li>
+      <li>The server listens on TCP port 47811 on your network. Your files stay on your own computer.</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">com.beeboentertainment.Beebo.desktop</launchable>
+  <url type="homepage">https://beeboentertainment.com</url>
+  <url type="help">https://beeboentertainment.com/help.html</url>
+  <url type="bugtracker">https://github.com/SWGfan/beebotv/issues</url>
+  <url type="contact">https://beeboentertainment.com</url>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Video</category>
+    <category>Audio</category>
+  </categories>
+  <keywords>
+    <keyword>media</keyword>
+    <keyword>server</keyword>
+    <keyword>movies</keyword>
+    <keyword>streaming</keyword>
+  </keywords>
+  <!-- TODO: at least one real screenshot, at a stable URL (a tagged path, not a branch). 16:9, PNG, no window
+       decorations needed. The URLs are placeholders. -->
+  <screenshots>
+    <screenshot type="default">
+      <caption>Your movie library</caption>
+      <image type="source" width="1920" height="1080">https://beeboentertainment.com/assets/screenshots/flathub-library.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <provides>
+    <binary>beebo</binary>
+  </provides>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+  <!-- TODO: put the version and date of the first published Linux release here (newest first; the date must not be in the future). -->
+  <releases>
+    <release version="0.1.57" date="2026-09-21">
+      <description>
+        <p>First release on Flathub.</p>
+      </description>
+    </release>
+  </releases>
+</component>

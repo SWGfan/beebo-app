@@ -1,0 +1,43 @@
+# Beebo Entertainment media server (headless), host network.
+# The container shares the machine's network, so:
+#   - the router port mapping (UPnP / NAT-PMP) can work, as it does for the desktop app
+#   - the server sees your LAN addresses (they are printed in the setup message)
+# Linux hosts (Synology, QNAP, Unraid, TrueNAS SCALE) only: Docker Desktop on Windows/Mac
+# does not support host networking. The ports are then the machine's own: 47811/tcp for
+# the server, 47820-47829/udp for away-from-home video. Nothing else on the machine may use them.
+#   docker compose -f docker-compose.host.yml up -d --build
+services:
+  beebo:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: beebo-server:local
+    container_name: beebo
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      TZ: "America/New_York"
+      BEEBO_PORT: "47811"
+      # Set to "0" if you do not want the server to open a port on your router.
+      BEEBO_UPNP: "1"
+      # BEEBO_TMDB_API_KEY: "your-tmdb-key"
+      BEEBO_SECRET_KEY_FILE: /run/secrets/beebo_secret_key
+      BEEBO_TRANSCODE_DIR: /transcode
+    volumes:
+      - ./config:/config
+      - /path/to/movies:/media/movies
+      - /path/to/tv:/media/tv
+      - /path/to/music:/media/music
+      - /path/to/audiobooks:/media/audiobooks
+      - /path/to/photos:/media/photos
+    tmpfs:
+      - /transcode:size=4g
+    secrets:
+      - beebo_secret_key
+    # user: "1026:100"
+    # devices:
+    #   - /dev/dri:/dev/dri
+
+secrets:
+  beebo_secret_key:
+    file: ./beebo_secret_key.txt

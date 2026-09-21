@@ -1,0 +1,241 @@
+{
+  "title": "The Sleepover That Wouldn't End",
+  "ageRange": "6+",
+  "startPage": 1,
+  "totalPages": 15,
+  "endingCount": 4,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "reader / main character",
+      "default": "Alex",
+      "note": "The child reading or being read to. The story is second-person ('you'), so this token is only used for a few direct call-outs, not to replace 'you'."
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "best friend, whose house it is",
+      "default": "Max"
+    },
+    {
+      "token": "{{SIBLING_NAME}}",
+      "role": "friend's little sibling",
+      "default": "Lily"
+    },
+    {
+      "token": "{{PARENT_NAME}}",
+      "role": "the grown-up reading along (optional)",
+      "default": ""
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "A Spooky Story for Alex",
+    "dedication": "Read together with "
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Friday night. Sleeping bags on the floor, a bowl of popcorn between you and your best friend Max, and a movie paused on the TV. It's the first sleepover of the school year, and Max's house has always been your favorite — cozy, a little creaky, and full of good hiding spots for hide-and-seek.\n\nAt exactly midnight, the lights flicker. Once. Twice.\n\nThen, from the hallway ceiling, you hear a soft creak — and the attic ladder folds down all by itself, unrolling like a tongue into the dark.\n\nA voice drifts down from the attic. It's raspy, a little bit sing-songy, like someone humming through a kazoo.\n\n\"Come play... one more game...\"\n\nMax grabs your arm. \"That's never happened before,\" they whisper. \"Do we go look? Or do we just... pretend we didn't hear that, Alex?\"",
+      "choices": [
+        {
+          "text": "Climb up the attic ladder to see who's talking",
+          "target": 2
+        },
+        {
+          "text": "Tiptoe past it to check on Max's little sibling Lily's room instead",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "The attic is stuffed with dusty boxes, old lamps, and a rocking horse that's rocking gently — all by itself, with nobody near it.\n\nIn the far corner, something is sitting under a white sheet. It's about your size. And you're almost sure you just saw it twitch.\n\nMax swallows hard. \"Okay,\" they whisper. \"That is definitely not supposed to be moving.\"",
+      "choices": [
+        {
+          "text": "Pull the sheet off to see what's underneath",
+          "target": 4
+        },
+        {
+          "text": "Climb back down the ladder as fast as you can",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "You crack open Lily's door. The bed is empty, sheets still warm. The window is open, curtains billowing even though there's no wind outside.\n\nOn the floor, a trail of glowing marbles leads out the door and down the hallway, each one blinking on and off like a tiny firefly.\n\n\"They wouldn't just leave,\" Max says, staring at the marbles. \"Would they?\"",
+      "choices": [
+        {
+          "text": "Follow the trail of glowing marbles",
+          "target": 5
+        },
+        {
+          "text": "Go wake up Max's parents right now",
+          "target": 6
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You yank the sheet away — and instead of a monster, you find an old dollhouse. Every tiny window glows with warm light, and it's humming a lullaby you almost recognize.\n\nThen you notice the dollhouse's front door isn't tiny at all. It's exactly the right size for a kid to crawl through, and warm golden light spills out from inside.\n\n\"That,\" Max whispers, \"was not there five seconds ago.\"",
+      "choices": [
+        {
+          "text": "Climb through the dollhouse door",
+          "target": 7
+        },
+        {
+          "text": "Drop the sheet back over it and back away slowly",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "Somehow, whether you're scrambling down the attic ladder or chasing marbles down the hall, you end up in the exact same place: a stretch of hallway you don't remember being this long.\n\nThe glowing marbles (or is it attic dust?) swirl along the floor in lazy circles. Ahead, a shadow slips under a closed door — shaped like a mouse, but the size of a golden retriever.\n\nSomewhere far off, that raspy voice giggles: \"Alex... this way...\"",
+      "choices": [
+        {
+          "text": "Follow the giant mouse-shadow through the door",
+          "target": 8
+        },
+        {
+          "text": "Nope — sprint back to your sleeping bag and hide under the covers",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You burst into Max's parents' room, ready to shout for help — but the bed is empty too. Neatly folded on the pillow is a note written in glowing green ink:\n\n\"GONE TO PLAY HIDE AND SEEK. JOIN US IF YOU DARE! — LOVE, THE HOUSE\"\n\nMax stares at the note like it just grew teeth. \"The HOUSE signed a note,\" they say. \"The HOUSE.\"",
+      "choices": [
+        {
+          "text": "Decide this game isn't for you — tiptoe back toward your sleeping bag",
+          "target": 9
+        },
+        {
+          "text": "Follow the note's glowing green trail deeper into the house",
+          "target": 10
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You duck through the dollhouse door — and somehow, impossibly, you fit. On the other side is a tiny attic-within-the-attic, lit by a jam-jar lantern.\n\nA whole colony of dust bunnies (actual small fuzzy creatures made of dust and old yarn) blink up at you with button eyes.\n\n\"Oh good, a guest!\" squeaks the biggest one. \"We haven't had one in AGES. Are you looking for your friend? We might know a shortcut...\"",
+      "choices": [
+        {
+          "text": "Ask the dust bunnies to help you find Lily",
+          "target": 10
+        },
+        {
+          "text": "Follow the little jam-jar lantern deeper into their tiny world",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You find yourself squeezing through a narrow passage hidden behind the walls — cool, dusty, and lined with old photographs that seem to wink as you pass.\n\nAhead, that lullaby hum grows louder and warmer, like it's coming from somewhere cozy rather than scary.",
+      "choices": [
+        {
+          "text": "Keep following the hum toward the warm light",
+          "target": 11
+        },
+        {
+          "text": "Push open a small door and see what's on the other side",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": true,
+      "endingTitle": "The Great Pancake Escape",
+      "endingType": "silly-safe",
+      "text": "You decide, very firmly, that whatever this game is, it is NOT for you tonight. You sprint back to your sleeping bag, zip yourself in like a burrito, and refuse to come out.\n\nIn the morning, everything is completely normal. Max's family is making pancakes downstairs, Lily is watching cartoons in pajamas, and nobody mentions glowing marbles or singing dollhouses at all.\n\nExcept — when you look closely at your sleeping bag zipper, there's one tiny glowing marble stuck in the teeth. You'll never know what you missed, Alex. Some mysteries are better left as pancakes.",
+      "choices": []
+    },
+    {
+      "id": 10,
+      "isEnding": false,
+      "text": "The trail leads you into a round room you're SURE wasn't in this house before. Clocks float lazily near the ceiling, ticking in different directions. Fuzzy mirrors line the walls, and in the middle of it all, kids from your school are playing a game of hide-and-seek — counting, giggling, ducking behind floating furniture.\n\nRunning the game is a large ghostly cat in a bow tie, holding a stopwatch. \"Ah, a new player!\" he purrs. \"Welcome, Alex. I'm Mr. Whiskers. Ready... or not!\"\n\nYou spot Lily, grinning, hiding behind a floating armchair.",
+      "choices": [
+        {
+          "text": "Join the game — it actually looks kind of fun",
+          "target": 12
+        },
+        {
+          "text": "Grab Lily's hand and look for a real way out",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "isEnding": false,
+      "text": "The hum leads you to a small, snug room where a kind-looking ghost — round glasses, knitted shawl, the works — sits winding an old music box on her lap.\n\n\"Oh, hello dear,\" she says warmly, not even surprised to see you. \"I'm Granny Hollow. I've lived in the walls of this house for eighty years. Would you like to hear how it all started?\"\n\nHer stories sound wonderful. But you also notice — with a small jolt — that you can't quite remember which way you came in.",
+      "choices": [
+        {
+          "text": "Ask her, politely, how to get everyone back home",
+          "target": 13
+        },
+        {
+          "text": "Settle in and let her tell you just one story",
+          "target": 14
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Secret Playroom",
+      "endingType": "good",
+      "text": "You push open the little door — and gasp. It's a whole secret playroom, built just for kids, tucked inside the walls: bean bags, a mini arcade machine, shelves of comic books, and a bowl of candy that never seems to run out.\n\nTurns out, this house has quietly welcomed every kid who's ever slept over, giving each one a single midnight visit to its favorite hidden room. You spend an hour playing games with a friendly ghost kid your own age before yawning your way back to your sleeping bag.\n\nIn the morning, you and Max compare notes — and realize you both got invited to the exact same room, years apart. You've got a secret now, Alex, and it's the best kind.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": false,
+      "text": "Whether it's Mr. Whiskers or Granny Hollow you ask, the answer is the same: a warm, twinkly smile.\n\n\"Oh, easy,\" they say. \"The game ends the moment someone truly wants it to. Just say so, out loud, and mean it. Or... you could take a keepsake marble and come back and play again, same time, next sleepover.\"\n\nThey hold out one glowing marble in an open palm, waiting.",
+      "choices": [
+        {
+          "text": "Say clearly, \"I want to go home now\" — and mean it",
+          "target": 15
+        },
+        {
+          "text": "Take the glowing marble as a keepsake, just in case",
+          "target": 14
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "isEnding": true,
+      "endingTitle": "One More Story (and One More, and One More...)",
+      "endingType": "silly-trapped",
+      "text": "You settle in, or you take the marble, and either way — you just want ONE more minute in this cozy, magical little corner of the house.\n\nGranny Hollow's stories, it turns out, do not have endings. They loop gently into new stories, which loop into new stories, which loop into new stories. You're not scared, not even a little — you're just extremely, cozily stuck.\n\nMax finds you the next afternoon, fast asleep in the hallway, hugging a glowing marble and mumbling the middle of a very long story. They have to shake you awake three times. You're totally fine, Alex — just VERY behind on your beauty sleep, and strangely certain you now know eighty years of house gossip.",
+      "choices": []
+    },
+    {
+      "id": 15,
+      "isEnding": true,
+      "endingTitle": "Best Sleepover Ever",
+      "endingType": "good",
+      "text": "\"I want to go home now,\" you say, loud and clear, and you really mean it.\n\nThe floating clocks stop ticking sideways. The mirrors go still. And in one soft blink, you're back in your sleeping bag next to Max, popcorn bowl still warm between you, movie still paused on the exact same frame.\n\nDid it even happen? You reach into your pocket — and there it is. One tiny glowing marble, warm as a nightlight.\n\nYou and Max look at each other and grin. Best. Sleepover. Ever, Alex.",
+      "choices": []
+    }
+  ],
+  "setHash": "f96c8059c9887821",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Max",
+    "{{SIBLING_NAME}}": "Lily",
+    "{{PARENT_NAME}}": ""
+  }
+}

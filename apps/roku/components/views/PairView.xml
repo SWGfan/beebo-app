@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  PairView - device-code sign-in ("show a code, approve it on your phone"), driven by the pure
+  state machine in lib/PairingMachine.brs against the contract in lib/PairingContract.brs
+  (worker/tvPair.js). See the README for what a successful pairing gives a Roku today.
+-->
+<component name="PairView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/PairView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/PairingContract.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/PairingMachine.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="brand" />
+    <Label id="title" />
+    <Label id="step1" />
+    <Label id="uri" />
+    <Label id="step2" />
+    <Label id="code" />
+    <Label id="status" wrap="true" />
+    <BusySpinner id="spinner" visible="false" />
+    <ButtonRow id="buttons" />
+    <Timer id="pollTimer" repeat="false" />
+    <Timer id="tickTimer" repeat="true" duration="1" />
+  </children>
+</component>

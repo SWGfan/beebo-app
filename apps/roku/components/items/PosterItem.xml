@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  PosterItem - one cell for MarkupGrid / RowList: poster, a small "NEW" flag, a resume progress
+  bar and a one-line title. The focus ring is drawn by the grid itself (focusBitmapUri from Theme).
+  Content node fields used: title, HDPosterUrl, PlayStart + Length (progress), ShortDescriptionLine1
+  ("NEW" flag text).
+-->
+<component name="PosterItem" extends="Group">
+  <interface>
+    <field id="itemContent" type="node" onChange="onContent" />
+    <field id="width" type="float" onChange="onSize" />
+    <field id="height" type="float" onChange="onSize" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/items/PosterItem.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
+  <children>
+    <Poster id="poster" loadDisplayMode="scaleToZoom" />
+    <Rectangle id="newBadge" visible="false" />
+    <Label id="newText" visible="false" />
+    <Rectangle id="barTrack" visible="false" />
+    <Rectangle id="barFill" visible="false" />
+    <Label id="title" />
+  </children>
+</component>

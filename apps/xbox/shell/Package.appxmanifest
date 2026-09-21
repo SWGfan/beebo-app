@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Beebo for Xbox: package manifest.
+
+  Identity Name / Publisher / PublisherDisplayName below are PLACEHOLDERS for local test builds. Before the
+  Store submission, replace them with the three values Partner Center shows on
+  Product management > Product identity. README.md, "Store submission", step 3 has the exact command
+  (it is `node build.mjs` with the three values as options; do not hand-edit if you can avoid it).
+  Version is kept in step with package.json by `npm run build` (x.y.z.0: the Store reserves the last number).
+
+  Capabilities (only these two; tools/manifest.mjs and test/xbox.test.mjs fail the build if another appears):
+    internetClient               outbound internet: beebo.tv pairing and <name>.home.beebo.tv home servers
+    privateNetworkClientServer   the home network: a Beebo server at http://192.168.x.x:47811 or 10.x / 172.16-31.x
+  Deliberately NOT declared: hevcPlayback (4K/HEVC; would raise the memory limit but stop the app running
+  beside games, and the Beebo server streams H.264 anyway), PlayReady, any restricted capability.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  IgnorableNamespaces="uap mp">
+
+  <Identity
+    Name="BeeboEntertainment.BeeboXbox"
+    Publisher="CN=Beebo Entertainment"
+    Version="0.1.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="b3ee0b0c-5f0a-4c11-9d6e-2f9a1e7b5c31" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+
+  <Properties>
+    <DisplayName>Beebo</DisplayName>
+    <PublisherDisplayName>Beebo Entertainment</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <!-- Windows.Universal so the same package also installs on a Windows 10/11 PC for a quick look.
+         In Partner Center (Packages page) tick ONLY Xbox for the Store listing. -->
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.19041.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="Beebo.Xbox.App">
+      <uap:VisualElements
+        DisplayName="Beebo"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        Description="Beebo Entertainment: watch the movies and shows on your own Beebo home server."
+        BackgroundColor="#0B0D12">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#0B0D12" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer" />
+  </Capabilities>
+</Package>

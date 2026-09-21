@@ -1,0 +1,29 @@
+{
+  "format": "beebo-pack",
+  "v": 1,
+  "kind": "layout",
+  "id": "beebo.cinematic-shelves",
+  "name": "Cinematic shelves",
+  "version": "1.0.0",
+  "description": "Roomy and immersive: floating poster cards, rounded corners, trailers up front and a slide-out sidebar.",
+  "author": { "name": "Beebo Entertainment" },
+  "license": "CC0-1.0",
+  "content": {
+    "density": "spacious",
+    "cardStyle": "floating",
+    "radius": 18,
+    "posterAspect": "2:3",
+    "fontScale": 1.05,
+    "sidebar": { "mode": "hover", "order": [], "hidden": ["getapp", "suggest"] },
+    "home": {
+      "shelves": [
+        { "id": "continue", "on": true },
+        { "id": "trailers", "on": true },
+        { "id": "recent", "on": true },
+        { "id": "recommended", "on": true },
+        { "id": "collections", "on": true },
+        { "id": "watchlist", "on": true }
+      ]
+    }
+  }
+}

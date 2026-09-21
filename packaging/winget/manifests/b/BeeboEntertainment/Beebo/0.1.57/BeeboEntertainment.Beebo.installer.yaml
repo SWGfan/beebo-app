@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+
+PackageIdentifier: BeeboEntertainment.Beebo
+PackageVersion: 0.1.57
+# winget calls electron-builder / NSIS installers "nullsoft" (there is no "nsis" value in the schema).
+InstallerType: nullsoft
+Scope: machine
+InstallModes:
+- interactive
+- silent
+- silentWithProgress
+InstallerSwitches:
+  Silent: /S
+  SilentWithProgress: /S
+UpgradeBehavior: install
+# The installer is one-click and per-machine; it asks Windows for administrator rights itself.
+ElevationRequirement: elevatesSelf
+# Uninstall registry key written by the installer (HKLM\...\Uninstall\<ProductCode>): the
+# electron-builder GUID derived from appId com.beeboentertainment.desktop. Read from a real
+# 0.1.57 install. It does not change between versions, so winget can match upgrades.
+ProductCode: 215db651-0b3f-50a9-a537-866a7c562233
+ReleaseDate: 2026-09-21
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/SWGfan/beebotv/releases/download/Beebo-0.1.57/BeeboEntertainmentSetup.exe
+  InstallerSha256: 51F6A295A172EED3EEDC6F43E25590FF6EBFE3FCBC5461BD247732315918D596
+ManifestType: installer
+ManifestVersion: 1.12.0

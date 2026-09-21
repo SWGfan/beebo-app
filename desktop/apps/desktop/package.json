@@ -1,0 +1,193 @@
+{
+  "name": "beeboentertainment-desktop",
+  "private": true,
+  "version": "0.1.57",
+  "description": "Beebo Entertainment desktop: local movie library/player + TMDB metadata",
+  "main": "electron/main.js",
+  "author": {
+    "name": "Beebo Entertainment",
+    "email": "support@beeboentertainment.com"
+  },
+  "homepage": "https://www.beeboentertainment.com",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"electron .\"",
+    "build:renderer": "vite build",
+    "build": "vite build && electron-builder",
+    "preview": "vite preview",
+    "headless": "node headless/main.js",
+    "i18n:report": "node scripts/i18n-report.js"
+  },
+  "dependencies": {
+    "acme-client": "^5.4.0",
+    "busboy": "^1.6.0",
+    "electron-store": "^8.2.0",
+    "leaflet": "^1.9.4",
+    "music-metadata": "^11.15.0",
+    "nodemailer": "^6.9.14",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.4.0"
+  },
+  "build": {
+    "appId": "com.beeboentertainment.desktop",
+    "productName": "Beebo Entertainment",
+    "electronLanguages": [
+      "en-US"
+    ],
+    "afterPack": "installer/mac/afterPack.js",
+    "files": [
+      "dist/**",
+      "!dist/*-unpacked{,/**}",
+      "!dist/*.{exe,blockmap,yml,yaml,7z,zip,msi,appx}",
+      "!dist/.icon-ico{,/**}",
+      "!dist/mac{,/**}",
+      "!dist/mac-*{,/**}",
+      "!dist/*.dmg",
+      "!dist/__uninstaller*",
+      "!dist/nsis-web{,/**}",
+      "electron/**",
+      "tools/**",
+      "!tools/duckdns-token.txt",
+      "!tools/make-voice-samples.*",
+      "!**/*.bak",
+      "!**/*.bak.*",
+      "!**/*.bak-*",
+      "!**/__pycache__/**",
+      "!**/*.pyc",
+      "!**/*.map"
+    ],
+    "win": {
+      "icon": "electron/beebo-desktop.ico",
+      "target": "nsis",
+      "extraResources": [
+        {
+          "from": "resources/ffmpeg",
+          "to": "ffmpeg",
+          "filter": [
+            "*.exe"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "icon": "resources/icons",
+      "category": "AudioVideo",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "extraResources": [
+        {
+          "from": "resources/ffmpeg-linux",
+          "to": "ffmpeg",
+          "filter": [
+            "ffmpeg",
+            "ffprobe"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "icon": "installer/mac/icon.icns",
+      "category": "public.app-category.video",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "BeeboEntertainment-${version}-mac-${arch}.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "installer/mac/entitlements.mac.plist",
+      "entitlementsInherit": "installer/mac/entitlements.mac.inherit.plist",
+      "extendInfo": {
+        "NSLocalNetworkUsageDescription": "Beebo finds your router on the home network to open a port, so phones and TVs can reach your library."
+      },
+      "extraResources": [
+        {
+          "from": "resources/ffmpeg-mac-${arch}",
+          "to": "ffmpeg",
+          "filter": [
+            "ffmpeg",
+            "ffprobe"
+          ]
+        }
+      ]
+    },
+    "extraResources": [
+      {
+        "from": "THIRD_PARTY_LICENSES",
+        "to": "THIRD_PARTY_LICENSES",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/voice-samples",
+        "to": "voice-samples",
+        "filter": [
+          "*.mp3",
+          "manifest.json"
+        ]
+      },
+      {
+        "from": "resources/welcome-to-beebo.mp4",
+        "to": "welcome-to-beebo.mp4"
+      },
+      {
+        "from": "resources/beebo-rtc-host",
+        "to": "beebo-rtc-host",
+        "filter": [
+          "**/*",
+          "!**/*.bak",
+          "!**/*.bak.*",
+          "!**/*.bak-*",
+          "!_diag.log",
+          "!**/*.log",
+          "!_retired{,/**}"
+        ]
+      },
+      {
+        "from": "storybooks",
+        "to": "storybooks",
+        "filter": [
+          "index.json",
+          "*/template.json",
+          "fairytale/scenes/*.png"
+        ]
+      },
+      {
+        "from": "electron/beebobook",
+        "to": "beebobook",
+        "filter": [
+          "*.py",
+          "*.md",
+          "requirements.txt"
+        ]
+      }
+    ],
+    "nsis": {
+      "oneClick": true,
+      "perMachine": true,
+      "allowElevation": true,
+      "include": "installer/beebo-installer.nsh"
+    }
+  }
+}

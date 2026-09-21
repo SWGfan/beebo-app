@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<videodb>
+  <version>2</version>
+  <movie>
+    <title>Alien</title>
+    <year>1979</year>
+    <uniqueid type="imdb">tt0078748</uniqueid>
+    <playcount>1</playcount>
+    <lastplayed>2021-10-31 23:00:00</lastplayed>
+  </movie>
+  <tvshow>
+    <title>Chernobyl</title>
+    <year>2019</year>
+    <uniqueid type="tvdb">360893</uniqueid>
+    <episodedetails>
+      <title>1:23:45</title>
+      <season>1</season>
+      <episode>1</episode>
+      <playcount>1</playcount>
+      <lastplayed>2019-06-01 20:00:00</lastplayed>
+    </episodedetails>
+  </tvshow>
+</videodb>

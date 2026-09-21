@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:pc="https://podcastindex.org/namespace/1.0"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Example Show</title>
+    <link>https://example.test/show</link>
+    <language>en-us</language>
+    <description><![CDATA[<p>A show &amp; tell about <b>examples</b>.</p><script>alert(1)</script>]]></description>
+    <itunes:author>Example Media</itunes:author>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:type>episodic</itunes:type>
+    <itunes:image href="https://example.test/art.jpg"/>
+    <itunes:category text="Technology"><itunes:category text="Podcasting"/></itunes:category>
+    <atom:link href="https://example.test/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Episode 3: Chapters</title>
+      <guid isPermaLink="false">ep-3</guid>
+      <pubDate>Wed, 10 Jan 2024 08:00:00 GMT</pubDate>
+      <itunes:duration>1:02:03</itunes:duration>
+      <itunes:season>2</itunes:season>
+      <itunes:episode>3</itunes:episode>
+      <enclosure url="https://cdn.example.test/ep3.mp3" length="1234567" type="audio/mpeg"/>
+      <content:encoded><![CDATA[<p>Notes with a <a href="https://example.test/x?a=1&amp;b=2" onclick="evil()">link</a> and <a href="javascript:alert(1)">bad link</a>.</p><img src="x" onerror="alert(1)"><iframe src="https://evil.test"></iframe>]]></content:encoded>
+      <pc:chapters url="https://example.test/ep3.chapters.json" type="application/json+chapters"/>
+      <pc:transcript url="https://example.test/ep3.vtt" type="text/vtt"/>
+    </item>
+    <item>
+      <title>Episode 2</title>
+      <guid>ep-2</guid>
+      <pubDate>Wed, 03 Jan 2024 08:00:00 +0000</pubDate>
+      <itunes:duration>1800</itunes:duration>
+      <enclosure url="https://cdn.example.test/ep2.m4a" length="0" type="audio/x-m4a"/>
+      <description>Plain text notes.
+
+Second paragraph &amp; more.</description>
+    </item>
+    <item>
+      <title>Episode 1 (bonus)</title>
+      <guid>ep-1</guid>
+      <pubDate>Wed, 27 Dec 2023 08:00:00 +0000</pubDate>
+      <itunes:episodeType>bonus</itunes:episodeType>
+      <itunes:explicit>yes</itunes:explicit>
+      <enclosure url="https://cdn.example.test/ep1.mp3" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>No audio here</title>
+      <guid>no-audio</guid>
+      <description>An item with no enclosure is not an episode.</description>
+    </item>
+    <item>
+      <title>Sneaky enclosure</title>
+      <guid>bad-scheme</guid>
+      <enclosure url="file:///C:/Windows/win.ini" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Duplicate of episode 2</title>
+      <guid>ep-2</guid>
+      <enclosure url="https://cdn.example.test/ep2b.mp3" type="audio/mpeg"/>
+    </item>
+  </channel>
+</rss>

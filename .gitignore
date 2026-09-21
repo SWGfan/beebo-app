@@ -1,0 +1,71 @@
+# Build outputs
+build/
+.gradle/
+*.apk
+*.aab
+dist/
+out/
+
+# Dependencies
+node_modules/
+
+# Secrets - NEVER commit these.
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+secrets-NOT-committed/
+google-services.json
+play-service-account*.json
+keystore.properties
+*token*.txt
+
+# Machine-specific
+local.properties
+*.iml
+.idea/
+.DS_Store
+desktop.ini
+
+# Runtime data
+*.db
+*.db-*
+logs/
+desktop/logs/
+
+# LGPL FFmpeg binaries are dropped in per-build, never committed
+desktop/apps/desktop/resources/ffmpeg/*.exe
+desktop/apps/desktop/resources/ffmpeg/ffmpeg
+desktop/apps/desktop/resources/ffmpeg/ffprobe
+desktop/apps/desktop/resources/ffmpeg-linux/ffmpeg
+desktop/apps/desktop/resources/ffmpeg-linux/ffprobe
+desktop/apps/desktop/resources/ffmpeg-mac-*/
+desktop/apps/desktop/installer/mac/icon.icns
+
+# Editing-session backup copies and old copies of files - never commit
+*.bak
+*.bak.*
+*.bak-*
+*.stale-*
+*.old
+*.orig
+
+# Kotlin incremental-compile cache and JVM crash logs
+.kotlin/
+hs_err_pid*.log
+
+# Scratch / test artifacts (not part of the product)
+.wtest
+_mounttest.txt
+
+# Bundled P2P host agent: SOURCE is committed, dependencies are not
+# (a clone runs npm install)
+desktop/apps/desktop/resources/beebo-rtc-host/node_modules/
+
+# Local Cloudflare/wrangler state
+.wrangler/

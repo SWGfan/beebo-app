@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE rss [
+  <!ENTITY xxe SYSTEM "file:///C:/Windows/win.ini">
+  <!ENTITY a "aaaaaaaaaa">
+  <!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;">
+]>
+<rss version="2.0"><channel><title>&xxe;&b;</title>
+<item><title>x</title><enclosure url="https://cdn.example.test/x.mp3" type="audio/mpeg"/></item>
+</channel></rss>

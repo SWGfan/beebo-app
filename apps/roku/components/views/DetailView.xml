@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  DetailView - a film or a show: backdrop, poster, synopsis, Play/Resume, audio and subtitle
+  choice, and for shows the seasons and episodes.
+  params: { kind: "movie"|"tv", item: <trimmed record from lib/Models.brs> }
+-->
+<component name="DetailView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/DetailView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Nodes.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Poster id="backdrop" loadDisplayMode="scaleToZoom" />
+    <Rectangle id="veil" />
+    <Poster id="poster" loadDisplayMode="scaleToZoom" />
+    <Label id="title" wrap="true" maxLines="2" />
+    <Label id="meta" />
+    <Label id="overview" wrap="true" maxLines="6" lineSpacing="4" />
+    <ButtonRow id="buttons" />
+    <Label id="seasonsHeader" visible="false" />
+    <LabelList id="seasons" visible="false" />
+    <LabelList id="episodes" visible="false" />
+    <StatusPanel id="status" visible="false" />
+    <Label id="busyNote" visible="false" />
+  </children>
+</component>

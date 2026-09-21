@@ -1,0 +1,5 @@
+
+# signing secrets
+keystore.properties
+*.jks
+*.keystore

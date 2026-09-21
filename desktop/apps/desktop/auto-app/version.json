@@ -1,0 +1,5 @@
+{
+  "versionCode": 8,
+  "versionName": "1.7",
+  "notes": "Uses your own Beebo relay server for connection help (no Cloudflare), plus fixes."
+}

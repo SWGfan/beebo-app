@@ -1,0 +1,196 @@
+{
+  "title": "The Friendly Pirate Treasure Hunt",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character, a brave young treasure hunter",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your fellow treasure hunter and best mate",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PARROT_NAME}}",
+      "role": "the chatty, friendly parrot who gives clues",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Captain Alex and the Friendly Treasure Hunt",
+    "dedication": "For Alex"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "The sun sparkles on the cozy cove as the kind old Captain unrolls a crinkly treasure map. \"Ahoy, mateys,\" says the Captain with a wink. \"A grand treasure waits for brave hearts like yours.\"\n\nOn the Captain's shoulder, the chatty parrot Pip flaps and squawks, \"Two paths, two paths!\" You and Sam study the map with wide eyes.",
+      "choices": [
+        {
+          "text": "Take the sandy beach path",
+          "target": 2
+        },
+        {
+          "text": "Take the swaying palm tree path",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "The warm sand tickles your toes as you follow the beach past little tide pools full of tickly crabs. Pip zips overhead, calling out cheery directions.\n\nOne curious crab scuttles along a shell path, while a soft patch of sand nearby has a big X drawn right on top.",
+      "choices": [
+        {
+          "text": "Follow the friendly crab",
+          "target": 4
+        },
+        {
+          "text": "Dig where the X is drawn",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "Tall palm trees sway and drop bouncy coconuts as you walk the leafy path. Sam juggles a coconut and laughs when it rolls away.\n\nPip lands on a branch and points a wing two ways: up the tallest tree for a grand view, or along the path where the parrot flutters ahead.",
+      "choices": [
+        {
+          "text": "Climb the tall palm for a view",
+          "target": 4
+        },
+        {
+          "text": "Follow Pip down the path",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "The path leads you to a huge friendly rock shaped like a sleeping whale, with a bright red X painted on its side. \"This must be the spot,\" you cheer.\n\nYou notice a cool shady cave just behind the rock, and a curious gap beneath the rock where something glints in the sun.",
+      "choices": [
+        {
+          "text": "Peek beneath the whale rock",
+          "target": 6
+        },
+        {
+          "text": "Explore the cool cave",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You come upon a little wooden rowboat resting on the sand, painted with cheerful stripes. Pip perches on the tiny mast and preens a feather.\n\nThe boat could carry you to a sunny sandbar just offshore, or you could search the cozy boat itself for hidden clues.",
+      "choices": [
+        {
+          "text": "Row out to the sunny sandbar",
+          "target": 6
+        },
+        {
+          "text": "Search the striped rowboat",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "There it is: a small wooden treasure chest with a shiny golden latch, nestled in the sand. Sam gasps with delight, and Pip does a happy loop in the air.\n\nA tiny golden key hangs from a ribbon nearby, and the lid also looks loose enough to lift with gentle hands.",
+      "choices": [
+        {
+          "text": "Open it with the golden key",
+          "target": 8
+        },
+        {
+          "text": "Gently lift the loose lid",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "Instead of a chest, you find a green glass bottle with a rolled up note inside. You uncork it and read a riddle written in swirly pirate letters.\n\n\"The finest treasure,\" it says, \"is closer than you think.\" Pip bobs its head as if it knew all along.",
+      "choices": [
+        {
+          "text": "Follow the riddle to the lagoon",
+          "target": 8
+        },
+        {
+          "text": "Bring the note back to the Captain",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "With a gentle turn and a soft creak, everything opens up to reveal the treasure. Inside are cozy blankets, a basket of fruit, and a stack of drawings of the whole crew smiling together.\n\n\"This is not gold,\" you say slowly, \"but it feels even better.\" The Captain chuckles warmly from behind you.",
+      "choices": [
+        {
+          "text": "Spread out a treasure picnic",
+          "target": 10
+        },
+        {
+          "text": "Read the note tucked on top",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "The Captain gathers the whole crew on the sunny shore, and everyone shares a warm laugh. \"The true treasure,\" the Captain says, \"was never gold or jewels at all.\"\n\nPip squawks happily, \"Friends, friends!\" and lands right on your shoulder. You and Sam beam with joy.",
+      "choices": [
+        {
+          "text": "Sing a happy sailing song",
+          "target": 11
+        },
+        {
+          "text": "Share a great big group hug",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "A Feast for Friends",
+      "endingType": "good",
+      "text": "You spread the cozy blankets on the golden sand and share the basket of sweet fruit with the whole crew. The Captain tells funny tales of gentle waves and silly seagulls.\n\nAs the sun dips low, you all watch the sky turn pink and orange. The best treasure is a day shared with friends. The end.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Real Treasure",
+      "endingType": "good",
+      "text": "The note reads, \"True treasure is the crew who sails beside you.\" You look around at Sam, the kind Captain, and cheerful Pip, and your heart feels full.\n\nYou pin the drawings up in the ship's cabin so you can see your treasure every day. The end.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "Captain for a Day",
+      "endingType": "silly-safe",
+      "text": "The old Captain plops a fine feathered hat on your head and names you Captain for a Day. Pip salutes with a wing and calls you the bravest sailor on the cove.\n\nYou steer the little boat in happy circles while everyone cheers. What a sunny, silly, wonderful adventure. The end.",
+      "choices": []
+    }
+  ],
+  "setHash": "403a76ab9e91db01",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Sam",
+    "{{PARROT_NAME}}": "Pip"
+  }
+}

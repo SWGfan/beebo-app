@@ -1,0 +1,196 @@
+{
+  "title": "The Lost Baby Triceratops",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best buddy who explores the valley with you",
+      "default": "Sam"
+    },
+    {
+      "token": "{{BABY_NAME}}",
+      "role": "the friendly lost baby Triceratops you help",
+      "default": "Robin"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Alex and the Lost Baby Triceratops",
+    "dedication": "For Alex"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "The sun is warm and the ferns are soft as you and Sam walk through Gentle Valley. Every dinosaur here loves plants, even the very polite T-rex who only munches giant watermelons.\n\nBy a mossy log you hear a tiny sniffle. It is a lost baby Triceratops named Robin, who cannot find the herd. \"Do not worry,\" you say. \"We will help you get home.\"",
+      "choices": [
+        {
+          "text": "Follow the big round footprints",
+          "target": 2
+        },
+        {
+          "text": "Ask the polite T-rex for help",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "The footprints are as wide as dinner plates and lead toward a sparkling river. Robin trots beside you, sniffing every flower along the way.\n\nAt the water you see smooth stepping stones on one side and a gentle path along the bank on the other.",
+      "choices": [
+        {
+          "text": "Hop across the stepping stones",
+          "target": 4
+        },
+        {
+          "text": "Walk along the grassy bank",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "The polite T-rex is having a picnic of watermelons and offers you a big juicy slice. \"A lost baby? Let me help,\" the T-rex rumbles kindly.\n\nThe T-rex points a tiny arm toward a tall hill, then toward a shady path by the river. \"You can see far from up high, or walk soft and slow down low.\"",
+      "choices": [
+        {
+          "text": "Climb the tall hill to look around",
+          "target": 4
+        },
+        {
+          "text": "Take the soft path by the river",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "From the high spot you can see the whole valley spread out like a green blanket. Far away, near a patch of purple berry bushes, a group of Triceratops is munching happily.\n\n\"That is your herd!\" you cheer. Robin bounces up and down with joy.",
+      "choices": [
+        {
+          "text": "Call out a big friendly hello",
+          "target": 6
+        },
+        {
+          "text": "Gather sweet berries to bring along",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "The gentle path leads you to a giant Brachiosaurus nibbling leaves from the treetops. \"Hello down there,\" she says with a warm smile.\n\nShe is so tall she can see for miles. \"I spot a herd of Triceratops by the berry bushes,\" she says. \"Would you like a boost to look, or shall the little one hop up to sniff the way home?\"",
+      "choices": [
+        {
+          "text": "Climb her long neck for a peek",
+          "target": 6
+        },
+        {
+          "text": "Let Robin ride up to sniff",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You take a deep breath and call out a happy hello across the valley. Your voice floats over the ferns like a song.\n\nThe herd lifts their frilly heads and answers with gentle honks. Robin honks right back, wiggling with excitement.",
+      "choices": [
+        {
+          "text": "Skip toward the herd together",
+          "target": 8
+        },
+        {
+          "text": "Wave for the herd to come to you",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You gather a basket of the sweetest purple berries, and Sam carries a hat full too. Robin sniffs the air and follows the yummy smell.\n\nThe scent drifts all the way to the herd, and the big Triceratops raise their heads, sniffing back with delight.",
+      "choices": [
+        {
+          "text": "Lead Robin toward the herd",
+          "target": 8
+        },
+        {
+          "text": "Set the berries down as a treat",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You and Sam walk beside Robin through the tall grass, humming a happy tune. The herd trots closer, and a big mama Triceratops gives a soft, joyful honk.\n\nRobin races into the middle of the herd for the biggest snuggle. Everyone is home at last.",
+      "choices": [
+        {
+          "text": "Join the happy herd for a while",
+          "target": 10
+        },
+        {
+          "text": "Wave and head back to the T-rex",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "The whole herd comes strolling over, their frills bobbing in the sunshine. They circle around Robin and nuzzle the little one with gentle bumps.\n\nThe mama Triceratops looks at you with grateful eyes. \"Thank you,\" she honks softly. \"You are true friends of the valley.\"",
+      "choices": [
+        {
+          "text": "Have a picnic with the herd",
+          "target": 11
+        },
+        {
+          "text": "Cuddle up for a cozy rest",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "Best Friends of the Valley",
+      "endingType": "good",
+      "text": "The herd makes you and Sam honorary Triceratops for the day, decking your heads with little flower frills. You spend the afternoon rolling in soft ferns and splashing in the cool river.\n\nAs the sun sets, Robin gives you the biggest, gentlest nuzzle of all. In Gentle Valley, you will always have a home. The end.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Great Watermelon Party",
+      "endingType": "silly-safe",
+      "text": "The polite T-rex hears the good news and rolls out a mountain of giant watermelons for a valley party. Dinosaurs of every size share juicy slices under the twinkling stars.\n\nYou, Sam, and Robin laugh with sticky, happy faces. It is the sweetest party the valley has ever seen. The end.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "A Cozy Fern Nap",
+      "endingType": "good",
+      "text": "The whole herd settles into a soft nest of ferns, and you and Sam snuggle right in the middle. Robin rests a sleepy head on your lap.\n\nThe warm breeze hums a lullaby, and everyone drifts into a happy dream. Helping a friend get home is the best feeling of all. The end.",
+      "choices": []
+    }
+  ],
+  "setHash": "5284e6207aa5f894",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Sam",
+    "{{BABY_NAME}}": "Robin"
+  }
+}

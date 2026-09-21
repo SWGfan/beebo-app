@@ -1,0 +1,13 @@
+{
+  "name": "beeboentertainment-viewer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Beebo Entertainment Viewer: a lightweight desktop app that opens your Beebo Entertainment server in its own window and remembers your login",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}

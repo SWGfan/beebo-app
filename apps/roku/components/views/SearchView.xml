@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  SearchView - on-screen keyboard (voice entry is switched on where the remote supports it)
+  and live results for movies and shows.
+-->
+<component name="SearchView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/SearchView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="title" />
+    <Label id="hint" wrap="true" />
+    <MiniKeyboard id="keyboard" />
+    <LibraryGrid id="results" mode="static" columns="4" />
+    <Timer id="debounce" repeat="false" duration="0.6" />
+  </children>
+</component>

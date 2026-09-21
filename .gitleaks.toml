@@ -1,0 +1,69 @@
+# gitleaks configuration for this repository (used by .github/workflows/secret-scan.yml).
+# Start from gitleaks' full default ruleset (AWS, Stripe, GitHub/Google/Slack tokens,
+# private keys, JWTs, generic high-entropy assignments, ...) and add ONLY narrow allowances.
+#
+# Policy: real-looking provider keys (sk_live_..., AKIA..., ghp_..., -----BEGIN PRIVATE KEY,
+# Cloudflare/Stripe/Google tokens) are NEVER allowlisted, not even in tests. If a test
+# needs a fake key, use an obvious placeholder (see the placeholder regexes below) or a
+# value that does not match a provider pattern.
+#
+# Test locally:  gitleaks dir . --config .gitleaks.toml --redact
+#                gitleaks git . --config .gitleaks.toml --redact --log-opts="main..HEAD"
+
+title = "Beebo gitleaks config"
+
+[extend]
+useDefault = true
+
+# ---- Global allowlist: things that are never a secret ---------------------------------
+[allowlist]
+description = "Vendored/generated trees and obvious placeholders"
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)\.gradle/''',
+  '''(^|/)build/''',
+  '''(^|/)dist/''',
+  '''(^|/)THIRD_PARTY_LICENSES''',
+  '''^\.gitleaks\.toml$''',
+]
+# Matched against the detected secret value itself. Anchored, so a real key that merely
+# CONTAINS a word like "test" is still reported.
+regexes = [
+  '''(?i)^(your|my)[-_ ]?(api[-_ ]?)?(key|token|secret|password)([-_ ]?here)?$''',
+  '''(?i)^(changeme|change-me|placeholder|example|dummy|fake|redacted|replace[-_ ]?me|todo)[\w-]*$''',
+  '''^[xX*]{6,}$''',
+  '''^<[^>]{1,60}>$''',
+  '''^\$\{[A-Za-z_][A-Za-z0-9_]*\}$''',
+  '''^\{\{.*\}\}$''',
+]
+
+# ---- generic-api-key only: fixtures and key NAMES ------------------------------------
+# The generic rule fires on any high-entropy string assigned to something called key /
+# secret / token / password. Two harmless patterns account for every current hit:
+#  1. unit-test fixtures (test dirs / *.test.* / *Test.kt),
+#  2. constants that are the NAME of a preference key (KEY_PREFS = "beebo_prefs_v1").
+# Provider-specific rules (aws, stripe, github, private-key, jwt, ...) still scan tests.
+[[rules]]
+id = "generic-api-key"
+
+  [[rules.allowlists]]
+  description = "Unit-test fixtures (generic high-entropy rule only)"
+  condition = "OR"
+  paths = [
+    '''(^|/)test/''',
+    '''(^|/)tests/''',
+    '''(^|/)__tests__/''',
+    '''src/test/''',
+    '''src/androidTest/''',
+    '''\.test\.(js|mjs|cjs|ts|tsx)$''',
+    '''Test\.kt$''',
+  ]
+
+  [[rules.allowlists]]
+  description = "Constants that name a preference/storage key, and comments"
+  regexTarget = "line"
+  regexes = [
+    '''\bKEY(_[A-Z0-9]+)*\s*=\s*"[a-z][a-z0-9]*([_.:-][a-z0-9]+)+"''',
+    '''^\s*(//|#|\*|/\*)''',
+  ]

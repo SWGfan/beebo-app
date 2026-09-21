@@ -1,0 +1,88 @@
+# Flatpak manifest for Flathub: Beebo Entertainment (Electron, x86_64).
+#
+# DRAFT. It cannot build until the Linux release exists: replace the two TODO values in the
+# `beebo-deb` source (URL and SHA-256 of the published .deb). See README.md in this folder for
+# everything else that has to be settled before opening the Flathub pull request.
+#
+# The app is proprietary, so this repackages the vendor's own .deb (built by
+# .github/workflows/linux-build.yml) instead of building from source, the same way other
+# vendor-submitted proprietary Electron apps do on Flathub (e.g. com.discordapp.Discord).
+id: com.beeboentertainment.Beebo
+base: org.electronjs.Electron2.BaseApp
+base-version: '26.08'
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+command: beebo
+separate-locales: false
+tags:
+  - proprietary
+
+finish-args:
+  # Windowing: Wayland where available, X11/XWayland otherwise (Electron).
+  - --share=ipc
+  - --socket=wayland
+  - --socket=x11
+  # It is a media server: it listens on TCP 47811 and streams to phones and TVs.
+  - --share=network
+  # Playback in the app window.
+  - --socket=pulseaudio
+  # Hardware video transcoding (VA-API) and GPU compositing.
+  - --device=dri
+  # Library folders: only the standard media folders, read-only. Anything else is chosen with
+  # the file chooser (portal) or granted by the user; see README.md.
+  - --filesystem=xdg-videos:ro
+  - --filesystem=xdg-music:ro
+  - --filesystem=xdg-pictures:ro
+  # Tray icon (Electron Tray -> StatusNotifierItem) and Electron trash handling.
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --env=ELECTRON_TRASH=gio
+
+modules:
+  - name: beebo
+    buildsystem: simple
+    build-options:
+      # Vendor binaries: leave them exactly as shipped.
+      no-debuginfo: true
+      strip: false
+    build-commands:
+      # A .deb is an `ar` archive holding data.tar.{xz,gz,zst}; the app lives under /opt/.
+      - ar x beebo.deb
+      - mkdir deb-root
+      - tar -xf data.tar.* -C deb-root
+      - mkdir -p /app/beebo
+      - cp -a "deb-root/opt/Beebo Entertainment/." /app/beebo/
+      # The deb's SUID sandbox helper is not used inside Flatpak (zypak provides the sandbox).
+      - rm -f /app/beebo/chrome-sandbox
+      - install -Dm755 beebo.sh /app/bin/beebo
+      - install -Dm644 com.beeboentertainment.Beebo.desktop /app/share/applications/com.beeboentertainment.Beebo.desktop
+      - install -Dm644 com.beeboentertainment.Beebo.metainfo.xml /app/share/metainfo/com.beeboentertainment.Beebo.metainfo.xml
+      - install -Dm644 com.beeboentertainment.Beebo.png /app/share/icons/hicolor/256x256/apps/com.beeboentertainment.Beebo.png
+      # Licences: the app's own notice plus the bundled LGPL FFmpeg texts.
+      - install -Dm644 -t /app/share/licenses/com.beeboentertainment.Beebo/ /app/beebo/resources/THIRD_PARTY_LICENSES/*.txt /app/beebo/resources/THIRD_PARTY_LICENSES/*.md
+    post-install:
+      # Make Electron use the Flatpak desktop file name for window/taskbar association
+      # (script from the Electron BaseApp; see https://docs.flatpak.org/en/latest/electron.html).
+      - patch-electron-desktop-filename /app/beebo/resources/app.asar
+    sources:
+      - type: file
+        dest-filename: beebo.deb
+        # TODO: URL of the published Linux .deb (release asset). The file name is chosen by electron-builder
+        # (default: beeboentertainment-desktop_<version>_amd64.deb); pin it with linux.artifactName first.
+        url: https://github.com/SWGfan/beebotv/releases/download/Beebo-VERSION/beebo-entertainment_VERSION_amd64.deb
+        # TODO: SHA-256 of that file. All zeros is a placeholder and will (correctly) fail the build.
+        sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+        only-arches: [x86_64]
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/SWGfan/beebotv/releases/latest
+          version-query: .tag_name | sub("^Beebo-"; "")
+          url-query: '.assets[] | select(.name | endswith("_amd64.deb")) | .browser_download_url'
+      - type: file
+        path: beebo.sh
+      - type: file
+        path: com.beeboentertainment.Beebo.desktop
+      - type: file
+        path: com.beeboentertainment.Beebo.metainfo.xml
+      - type: file
+        path: com.beeboentertainment.Beebo.png

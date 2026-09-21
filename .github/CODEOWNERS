@@ -1,0 +1,26 @@
+# Code owners. Later patterns override earlier ones, so the security-sensitive paths below
+# are listed explicitly after the catch-all. Today there is one maintainer; when a second
+# reviewer or a team exists, add them to the sensitive lines only (that is the "extra review"
+# set).
+#
+# Enforcement needs the branch rule "Require review from Code Owners" (Settings > Rules).
+# Until that is switched on this file only auto-requests review and documents what is
+# sensitive.
+
+# Everything
+*                                   @SWGfan
+
+# --- Security-sensitive: extra review ---------------------------------------------------
+# Desktop authentication, viewer sign-in exchange, API keys, update trust chain and updater
+/desktop/apps/desktop/electron/auth.js            @SWGfan
+/desktop/apps/desktop/electron/viewerExchange.js  @SWGfan
+/desktop/apps/desktop/electron/apiKeys.js         @SWGfan
+/desktop/apps/desktop/electron/updateTrust.js     @SWGfan
+/desktop/apps/desktop/electron/desktopUpdater.js  @SWGfan
+/desktop/apps/desktop/headless/stubs/desktopUpdater.js @SWGfan
+
+# CI/CD, release automation, dependency and secret-scanning policy
+/.github/                           @SWGfan
+/.gitleaks.toml                     @SWGfan
+.npmrc                              @SWGfan
+/SECURITY.md                        @SWGfan

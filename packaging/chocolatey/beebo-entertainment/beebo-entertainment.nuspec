@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chocolatey package for Beebo Entertainment (Windows installer from the GitHub release).
+     Fields marked TODO must be settled before submitting; see ../README.md. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>beebo-entertainment</id>
+    <version>0.1.57</version>
+    <title>Beebo Entertainment</title>
+    <authors>Beebo Entertainment</authors>
+    <owners>SWGfan</owners>
+    <projectUrl>https://beeboentertainment.com</projectUrl>
+    <!-- TODO: Chocolatey requires a public PNG/SVG icon URL (the validator checks it). Upload a 256x256
+         copy of desktop/apps/desktop/resources/icons/256x256.png to a public URL and put it here. -->
+    <iconUrl>https://beeboentertainment.com/assets/beebo-icon-256.png</iconUrl>
+    <copyright>Copyright (c) 2026 Beebo Entertainment</copyright>
+    <licenseUrl>https://beeboentertainment.com/terms.html</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <!-- TODO: must be a PUBLIC repository that holds this package's source (the validator checks it).
+         Copy packaging/chocolatey/ into the public SWGfan/beebotv repository (or a new public repo) and use its URL. -->
+    <packageSourceUrl>https://github.com/SWGfan/beebotv/tree/main/packaging/chocolatey/beebo-entertainment</packageSourceUrl>
+    <docsUrl>https://beeboentertainment.com/help.html</docsUrl>
+    <bugTrackerUrl>https://github.com/SWGfan/beebotv/issues</bugTrackerUrl>
+    <tags>beebo media-server home-media movies tv music photos streaming video admin</tags>
+    <summary>Home media server and player for your own movies, TV, music and photos, with phone and TV apps.</summary>
+    <description><![CDATA[Beebo Entertainment turns a Windows PC into a home media server. Point it at your folders of movies, TV shows, music and photos and it builds a library with posters and details, streams to a web viewer and to the Beebo phone and TV apps, and converts video on the fly for devices that cannot play a file as it is. It runs on your own computer; your files stay on your disks.
+
+## Package notes
+
+* Installs machine-wide with the vendor's own installer (silent, `/S`). Windows asks for administrator permission.
+* The installer adds a Windows Firewall rule for TCP port 47811, the port the server listens on.
+* The app can also update itself from inside its window. `choco upgrade beebo-entertainment` installs the newest release the same way.
+* This package downloads the installer from the vendor's GitHub release and checks its SHA-256 before running it.
+* The installer is not code-signed at the moment, so Windows SmartScreen may say "unknown publisher" if you run the installer by hand.
+]]></description>
+    <releaseNotes>https://github.com/SWGfan/beebotv/releases/tag/Beebo-0.1.57</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

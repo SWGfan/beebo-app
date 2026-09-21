@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  HomeView - top tab bar + content: Home (Continue Watching, Recently Added), Movies and
+  TV Shows (lazy paged grids). Playlists, Search and Settings open as their own screens.
+  Focus: tab bar <-> content with Up/Down; Back from content returns to the tab bar; Back
+  on the tab bar exits the channel (handled by the OS).
+-->
+<component name="HomeView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/HomeView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Nodes.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="brand" />
+    <Label id="user" />
+    <ButtonRow id="tabs" style="tab" />
+    <RowList id="rows" itemComponentName="PosterItem" visible="false" />
+    <LibraryGrid id="movies" mode="movie" visible="false" />
+    <LibraryGrid id="shows" mode="tv" visible="false" />
+    <StatusPanel id="status" visible="false" />
+    <Timer id="tabTimer" repeat="false" duration="0.35" />
+  </children>
+</component>

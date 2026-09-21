@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  PlayerView - plays one film/episode (or walks a playlist queue) with the Roku Video node
+  from the server's HLS transcode (H.264 + AAC), reports progress, resumes, and offers a
+  lower-quality retry on error.
+  params: { kind, id, title, resumeSeconds, audio?, subtitle?: {url,title,language},
+            queue?: [ {kind,id,title,resumeSeconds} ], index? }
+  The Video node itself provides OK/Play/Pause, FF/RW and instant replay.
+-->
+<component name="PlayerView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/PlayerView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Rectangle id="black" translation="[0,0]" width="1920" height="1080" color="0x000000FF" />
+    <Video id="video" translation="[0,0]" width="1920" height="1080" visible="false" />
+    <BusySpinner id="spinner" visible="false" />
+    <Label id="note" horizAlign="center" wrap="true" />
+    <StatusPanel id="status" visible="false" />
+    <Timer id="reportTimer" repeat="true" duration="15" />
+    <Timer id="closeTimer" repeat="false" duration="3" />
+  </children>
+</component>

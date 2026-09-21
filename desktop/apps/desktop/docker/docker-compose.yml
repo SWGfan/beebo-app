@@ -1,0 +1,57 @@
+# Beebo Entertainment media server (headless), bridge network. Run from this folder:
+#   docker compose up -d --build
+#   docker compose logs beebo        # the first-run setup URL and code are printed here
+# Host-network variant (router port mapping, LAN discovery): docker-compose.host.yml
+services:
+  beebo:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: beebo-server:local
+    container_name: beebo
+    restart: unless-stopped
+    ports:
+      - "47811:47811"
+    environment:
+      TZ: "America/New_York"
+      # Bridged containers cannot ask the router to open ports.
+      BEEBO_UPNP: "0"
+      # Optional: metadata and artwork come from TMDB (free key at themoviedb.org).
+      # BEEBO_TMDB_API_KEY: "your-tmdb-key"
+      # Keep the encryption key for saved passwords OFF the data volume (see README):
+      BEEBO_SECRET_KEY_FILE: /run/secrets/beebo_secret_key
+      # Transcoded video is written here; the tmpfs below keeps it off your disks.
+      BEEBO_TRANSCODE_DIR: /transcode
+    volumes:
+      - ./config:/config
+      - /path/to/movies:/media/movies
+      - /path/to/tv:/media/tv
+      - /path/to/music:/media/music
+      - /path/to/audiobooks:/media/audiobooks
+      - /path/to/photos:/media/photos
+      # Read-only media works for watching; uploads, the Inbox and file organising need write access.
+      # - /path/to/movies:/media/movies:ro
+    tmpfs:
+      - /transcode:size=4g
+    secrets:
+      - beebo_secret_key
+    # Run as the owner of your media instead of uid 1000 (see README, PUID/PGID):
+    # user: "1026:100"
+    # Intel / AMD hardware transcoding (see README):
+    # devices:
+    #   - /dev/dri:/dev/dri
+    # group_add:
+    #   - "105"        # the group id of /dev/dri/renderD128 on the host: stat -c %g /dev/dri/renderD128
+    # NVIDIA hardware transcoding (NVIDIA Container Toolkit installed on the host):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [video, compute, utility]
+
+secrets:
+  beebo_secret_key:
+    # Create once:  openssl rand -hex 32 > beebo_secret_key.txt && chmod 600 beebo_secret_key.txt
+    file: ./beebo_secret_key.txt

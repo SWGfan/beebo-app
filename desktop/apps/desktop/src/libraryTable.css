@@ -1,0 +1,169 @@
+/* Movies / TV Shows "Table" view (src/components/LibraryTable.jsx). Uses the app's own colour
+   variables, so it follows whatever theme styles.css sets.
+
+   styles.css restyles every <button> (`button:not(.nav-btn):not(.subtab):not(.primary)`), and it is
+   loaded after this file, so the buttons here carry `:not(#lt)` purely to outrank it. */
+
+.lt-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border, #2c3e5d);
+  border-radius: 9px;
+  overflow: hidden;
+}
+button.lt-seg:not(#lt) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted, #acb6cf);
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+button.lt-seg:not(#lt) + button.lt-seg { border-left: 1px solid var(--border, #2c3e5d); }
+button.lt-seg:not(#lt):hover { color: var(--text, #f2f3ff); }
+button.lt-seg.is-on:not(#lt) { background: var(--accent, #7950cf); color: #fff; }
+
+.lt { margin-top: 4px; }
+
+.lt-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+  min-height: 34px;
+}
+.lt-count { color: var(--muted, #acb6cf); font-size: 13px; white-space: nowrap; }
+.lt-status { flex: 1; min-width: 0; color: var(--muted, #acb6cf); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.lt-btn:not(#lt) {
+  background: var(--surface-raised, #152540);
+  color: var(--text, #f2f3ff);
+  border: 1px solid var(--border, #2c3e5d);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button.lt-btn:not(#lt):hover:not(:disabled) { border-color: var(--link, #bca5ff); }
+
+.lt-menu-wrap { position: relative; }
+.lt-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: 280px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  background: var(--panel, #101c32);
+  border: 1px solid var(--border, #2c3e5d);
+  border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+.lt-menu-group { border: 0; margin: 0 0 8px; padding: 0; }
+.lt-menu-group legend { padding: 0; margin: 0 0 4px; color: var(--link, #bca5ff); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.lt-menu-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px; cursor: pointer; }
+.lt-menu-item input { padding: 0; width: 15px; height: 15px; }
+.lt-menu-reset { width: 100%; margin-top: 4px; }
+
+.lt-grid {
+  position: relative;
+  overflow: auto;
+  border: 1px solid var(--border, #2c3e5d);
+  border-radius: 10px;
+  background: #0b1528;
+  overscroll-behavior: contain;
+}
+.lt-grid:focus-visible { outline: 2px solid var(--focus, #d4af37); outline-offset: -2px; }
+
+.lt-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  background: #14243f;
+  border-bottom: 1px solid var(--border, #2c3e5d);
+}
+.lt-th {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+.lt-th.is-title, .lt-td.is-title { position: sticky; left: 0; z-index: 2; }
+.lt-th.is-title { background: #14243f; z-index: 4; box-shadow: 1px 0 0 var(--border, #2c3e5d); }
+
+button.lt-sort:not(#lt) {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #c2b0ef;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: left;
+  cursor: pointer;
+}
+.lt-th.is-right button.lt-sort { flex-direction: row-reverse; }
+button.lt-sort:not(#lt):hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+button.lt-sort:not(#lt):focus-visible { outline: 2px solid var(--focus, #d4af37); outline-offset: -2px; }
+.lt-th-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lt-arrow { font-size: 9px; color: var(--focus, #d4af37); }
+
+.lt-resize {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+}
+.lt-resize:hover { background: rgba(188, 165, 255, 0.35); }
+
+.lt-body { position: relative; }
+.lt-window { position: absolute; top: 0; left: 0; }
+
+.lt-row {
+  display: flex;
+  align-items: stretch;
+  background: #0d1a31;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+.lt-row.is-odd { background: #0f1e37; }
+.lt-row:hover { background: #1a2c4d; }
+.lt-row.is-active { background: #21365c; }
+.lt-grid:focus .lt-row.is-active { box-shadow: inset 0 0 0 2px var(--focus, #d4af37); }
+
+.lt-td {
+  flex: 0 0 auto;
+  display: block;
+  height: 100%;
+  line-height: 33px;
+  padding: 0 12px;
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.lt-td.is-right { text-align: right; }
+.lt-td.is-title { background: inherit; font-weight: 600; box-shadow: 1px 0 0 rgba(255, 255, 255, 0.06); }
+.lt-td.is-pending, .lt-td.is-none { color: var(--muted, #acb6cf); opacity: 0.55; }
+.lt-td.is-pending > span { animation: lt-pulse 1.4s ease-in-out infinite; }
+@keyframes lt-pulse { 50% { opacity: 0.25; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lt-td.is-pending > span { animation: none; }
+}

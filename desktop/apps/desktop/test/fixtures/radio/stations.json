@@ -1,0 +1,9 @@
+[
+  { "stationuuid": "960e57c5-0601-11e8-ae97-52543be04c81", "name": "Example FM", "url": "http://stream.example.test/fm.mp3", "url_resolved": "https://stream.example.test:8443/fm.mp3", "homepage": "https://example.test/fm", "favicon": "https://example.test/fm.png", "tags": "pop,rock,80s", "country": "Canada", "countrycode": "ca", "language": "english", "codec": "MP3", "bitrate": 128, "hls": 0, "lastcheckok": 1, "votes": 1234, "clickcount": 999 },
+  { "stationuuid": "aaaaaaaa-0601-11e8-ae97-52543be04c81", "name": "HLS Only Radio", "url": "https://hls.example.test/live.m3u8", "url_resolved": "https://hls.example.test/live.m3u8", "hls": 1, "lastcheckok": 1 },
+  { "stationuuid": "bbbbbbbb-0601-11e8-ae97-52543be04c81", "name": "Bad Address FM", "url": "javascript:alert(1)", "url_resolved": "", "hls": 0, "lastcheckok": 1 },
+  { "stationuuid": "not-a-uuid", "name": "Bad id", "url": "https://ok.example.test/x", "hls": 0 },
+  { "stationuuid": "cccccccc-0601-11e8-ae97-52543be04c81", "name": "  Jazz\t Night \n ", "url": "http://jazz.example.test/stream", "url_resolved": "", "homepage": "ftp://nope.example.test", "favicon": "data:image/png;base64,AAAA", "tags": "jazz, smooth jazz ,,", "country": "France", "countrycode": "FRA", "language": "french", "codec": "AAC+", "bitrate": "64", "hls": 0, "lastcheckok": 1, "votes": "7" },
+  null,
+  "junk"
+]

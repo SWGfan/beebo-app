@@ -1,0 +1,67 @@
+{
+  "1": {
+    "hash": "e3e0a06ac53ee3ed",
+    "file": "page_1.mp3",
+    "durationSec": 26.2
+  },
+  "2": {
+    "hash": "32a2f85d43b1761f",
+    "file": "page_2.mp3",
+    "durationSec": 22.05
+  },
+  "3": {
+    "hash": "14c374a5b13f8084",
+    "file": "page_3.mp3",
+    "durationSec": 24.73
+  },
+  "4": {
+    "hash": "3a8e8899d7ec351e",
+    "file": "page_4.mp3",
+    "durationSec": 23.1
+  },
+  "5": {
+    "hash": "8787cc41c603591c",
+    "file": "page_5.mp3",
+    "durationSec": 21.88
+  },
+  "6": {
+    "hash": "8c4b59c36d97fa11",
+    "file": "page_6.mp3",
+    "durationSec": 24.02
+  },
+  "7": {
+    "hash": "c35d3be699dde756",
+    "file": "page_7.mp3",
+    "durationSec": 24.82
+  },
+  "8": {
+    "hash": "68b6fa7ec8c1e67e",
+    "file": "page_8.mp3",
+    "durationSec": 22.48
+  },
+  "9": {
+    "hash": "a72ff06d0505078c",
+    "file": "page_9.mp3",
+    "durationSec": 22.5
+  },
+  "10": {
+    "hash": "1dc29b94246efb83",
+    "file": "page_10.mp3",
+    "durationSec": 17.48
+  },
+  "11": {
+    "hash": "a6728abd4dcccf62",
+    "file": "page_11.mp3",
+    "durationSec": 19.6
+  },
+  "12": {
+    "hash": "5ccabef622628d98",
+    "file": "page_12.mp3",
+    "durationSec": 20.8
+  },
+  "13": {
+    "hash": "9ae25aeac943ddfb",
+    "file": "page_13.mp3",
+    "durationSec": 21.85
+  }
+}

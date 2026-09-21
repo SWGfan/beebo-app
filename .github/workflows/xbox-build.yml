@@ -1,0 +1,123 @@
+# Beebo for Xbox (apps/xbox): tests, stage the shared web app, build the UWP shell into MSIX packages.
+#
+# MANUAL ONLY (workflow_dispatch). It builds on a Windows runner because the shell is a UWP project
+# (Visual Studio + Windows SDK). It needs NO secrets and signs nothing that matters:
+#   * "beebo-xbox-store-upload"  unsigned .msixupload for Partner Center (the Store signs it itself)
+#   * "beebo-xbox-sideload"      .msix signed with a THROWAWAY certificate generated inside this run, plus the
+#                                public .cer, for Xbox Developer Mode testing (apps/xbox/README.md)
+# Nothing is published or submitted: someone downloads the artifacts and does that by hand.
+#
+# It has NOT been executed; expect to fix small things on the first real run (see docs/XBOX.md,
+# "Verified vs not verified"). runs-on is windows-2022 on purpose: windows-latest / windows-2025 moved to
+# Visual Studio 2026 in June 2026, and this project is written and pinned for Visual Studio 2022 (17.14).
+name: xbox-build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xbox-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xbox:
+    name: Test, stage, build MSIX
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            apps/smarttv/package-lock.json
+            apps/xbox/package-lock.json
+
+      # ---- the shared web app (also used by the Samsung / LG builds) ----
+      - name: TV app - install
+        working-directory: apps/smarttv
+        run: npm ci
+      - name: TV app - unit tests (includes the shared gamepad + Xbox platform tests)
+        working-directory: apps/smarttv
+        run: npm test
+      - name: TV app - old-Chromium compatibility lint
+        working-directory: apps/smarttv
+        run: npm run lint
+
+      # ---- the Xbox app ----
+      - name: Xbox app - install
+        working-directory: apps/xbox
+        run: npm ci
+      - name: Xbox app - tests
+        working-directory: apps/xbox
+        run: npm test
+      - name: Xbox app - stage the web app into shell/WebCode
+        working-directory: apps/xbox
+        run: npm run build
+
+      - name: Find MSBuild (Visual Studio 2022)
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) { throw 'MSBuild not found on this runner image' }
+          "MSBUILD=$msbuild" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          & $msbuild -version
+
+      # Microsoft Store upload package: unsigned on purpose, Partner Center signs it.
+      - name: Build the Store upload package (.msixupload)
+        working-directory: apps/xbox
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'store\'
+          & $env:MSBUILD shell\Beebo.Xbox.csproj /restore /m /verbosity:minimal `
+            /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Never `
+            /p:UapAppxPackageBuildMode=StoreUpload /p:AppxPackageSigningEnabled=false `
+            "/p:AppxPackageDir=$out"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem $out -Recurse -File | Select-Object FullName, Length
+
+      # Developer Mode test package: signed with a certificate created here and thrown away with the runner.
+      - name: Create a throwaway test certificate
+        working-directory: apps/xbox
+        run: |
+          $manifest = Get-Content shell\Package.appxmanifest -Raw
+          $subject = [regex]::Match($manifest, '<Identity[^>]*Publisher="([^"]+)"').Groups[1].Value
+          if (-not $subject) { throw 'could not read the Publisher from the manifest' }
+          $pw = [guid]::NewGuid().ToString('N')
+          Write-Output "::add-mask::$pw"
+          "TEST_CERT_PW=$pw" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          ./tools/make-test-cert.ps1 -Subject $subject -OutDir (Join-Path $env:RUNNER_TEMP 'cert') -Password $pw
+      - name: Build the test-signed sideload package (.msix)
+        working-directory: apps/xbox
+        run: |
+          $certDir = Join-Path $env:RUNNER_TEMP 'cert'
+          $thumb = (Get-Content (Join-Path $certDir 'thumbprint.txt') -Raw).Trim()
+          $out = Join-Path $env:RUNNER_TEMP 'sideload\'
+          & $env:MSBUILD shell\Beebo.Xbox.csproj /restore /m /verbosity:minimal `
+            /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Never `
+            /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxPackageSigningEnabled=true `
+            "/p:PackageCertificateKeyFile=$(Join-Path $certDir 'BeeboXboxTest.pfx')" `
+            "/p:PackageCertificatePassword=$env:TEST_CERT_PW" "/p:PackageCertificateThumbprint=$thumb" `
+            "/p:AppxPackageDir=$out"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item (Join-Path $certDir 'BeeboXboxTest.cer') $out
+          Get-ChildItem $out -Recurse -File | Select-Object FullName, Length
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: beebo-xbox-store-upload
+          path: ${{ runner.temp }}/store
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: beebo-xbox-sideload
+          path: ${{ runner.temp }}/sideload
+          if-no-files-found: error

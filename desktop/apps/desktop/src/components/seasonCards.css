@@ -1,0 +1,81 @@
+/*
+ * Season poster cards on a show's page. Tune the look with the --season-* properties on
+ * .season-cards; the banner text always carries the meaning, colour is only reinforcement.
+ */
+.season-cards {
+  --season-card-width: 132px;
+  --season-card-radius: 8px;
+  --season-banner-complete: #1b6e34;
+  --season-banner-complete-text: #ffffff;
+  --season-banner-partial: #f5b301;
+  --season-banner-partial-text: #1a1200;
+  --season-banner-empty: #6b2b30;
+  --season-banner-empty-text: #ffffff;
+  --season-banner-unknown: #3a4150;
+  --season-banner-unknown-text: #ffffff;
+  --season-empty-filter: grayscale(1) brightness(0.65);
+  --season-empty-opacity: 0.8;
+  --season-selected-outline: var(--accent, #4f9dff);
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 6px 4px 12px;
+  margin: 0 0 16px;
+  list-style: none;
+}
+
+.season-card {
+  flex: 0 0 auto;
+  width: var(--season-card-width);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+.season-card:focus-visible { outline: none; }
+.season-card:focus-visible .season-card-poster { outline: 3px solid var(--season-selected-outline); outline-offset: 2px; }
+
+.season-card-poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--season-card-radius);
+  overflow: hidden;
+  background: #222733;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted, #8a8f98);
+  font-size: 13px;
+  border: 2px solid transparent;
+}
+.season-card-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.season-card--selected .season-card-poster { border-color: var(--season-selected-outline); box-shadow: 0 0 0 2px var(--season-selected-outline); }
+.season-card--empty .season-card-poster img,
+.season-card--empty .season-card-placeholder { filter: var(--season-empty-filter); opacity: var(--season-empty-opacity); }
+
+.season-card-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 8px; font-weight: 700; }
+
+.season-banner {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 5px 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+.season-banner--complete { background: var(--season-banner-complete); color: var(--season-banner-complete-text); }
+.season-banner--partial { background: var(--season-banner-partial); color: var(--season-banner-partial-text); }
+.season-banner--empty { background: var(--season-banner-empty); color: var(--season-banner-empty-text); }
+.season-banner--unknown { background: var(--season-banner-unknown); color: var(--season-banner-unknown-text); }
+
+.season-card-label { font-size: 13px; font-weight: 600; }
+.season-card--selected .season-card-label { color: var(--season-selected-outline); }
+
+.season-empty-note { margin: 0 0 10px; font-size: 13px; color: var(--muted, #8a8f98); }

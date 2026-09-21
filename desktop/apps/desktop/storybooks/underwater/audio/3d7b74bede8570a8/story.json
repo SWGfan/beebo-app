@@ -1,0 +1,204 @@
+{
+  "title": "The Coral Queen's Missing Pearl",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 4,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character who can breathe underwater today",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend who dove in with you to explore",
+      "default": "Sam"
+    },
+    {
+      "token": "{{DOLPHIN_NAME}}",
+      "role": "the curious, friendly dolphin who becomes your guide",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Alex and the Coral Queen's Pearl",
+    "dedication": "For Alex"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Something magical happens the moment you and Sam splash into the warm blue sea: you can breathe underwater, just for today. You take a big, bubbly breath and laugh, and the laugh comes out as a stream of shiny bubbles. A curious dolphin named Pip swims a happy circle around you both.\n\n\"Follow me!\" clicks Pip, nodding toward a town in the distance that glows like a handful of jewels.",
+      "choices": [
+        {
+          "text": "Swim straight for the glowing coral town",
+          "target": 2
+        },
+        {
+          "text": "Follow the trail of silver bubbles first",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You kick your feet and swim right for the coral town, and it is even more beautiful up close. Little fish zip between towers of pink and orange coral, and doorways glow with soft, friendly light. Everyone waves a fin as you pass.\n\nPip leads you toward the grandest building of all, where a crowd of worried fish has gathered.",
+      "choices": [
+        {
+          "text": "Go see why all the fish look worried",
+          "target": 4
+        },
+        {
+          "text": "Ask a passing seahorse what's going on",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "You follow the trail of silver bubbles, and it leads you on a swirling, giggling tour past waving sea grass and a garden of dancing anemones. Sam does a somersault in the water and Pip copies it perfectly.\n\nThe bubbles pop one by one right at the edge of the coral town, where a crowd of worried fish has gathered outside the grandest building.",
+      "choices": [
+        {
+          "text": "Go see why all the fish look worried",
+          "target": 4
+        },
+        {
+          "text": "Ask a passing seahorse what's going on",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "Inside the grandest coral hall you meet the Coral Queen herself, a gentle old sea turtle wearing a crown of tiny shells. \"Oh, travelers,\" she sighs, \"my precious pearl has gone missing. It isn't stolen, I'm sure of that. I've simply misplaced it somewhere silly, and I cannot for the life of me remember where.\"\n\nPip clicks eagerly. \"We can help you look!\"",
+      "choices": [
+        {
+          "text": "Search the swaying kelp forest",
+          "target": 6
+        },
+        {
+          "text": "Search the old sunken ship playground",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "A polite seahorse bobs over and explains in a tiny voice: the Coral Queen has lost her favorite pearl. \"Not stolen,\" the seahorse insists. \"She just set it down somewhere and forgot. She is a bit forgetful, our Queen, bless her shell.\"\n\nThe Queen, a kindly old sea turtle, peeks out and smiles hopefully at you. \"Would you help me find it?\"",
+      "choices": [
+        {
+          "text": "Search the swaying kelp forest",
+          "target": 6
+        },
+        {
+          "text": "Search the old sunken ship playground",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You swim into the swaying kelp forest, where tall green ribbons brush against you like friendly curtains. Fish peek out from every fold, and it would be a perfect place to lose a small round pearl. You and Sam search high and low.\n\nPip noses through the kelp and suddenly freezes, ears perked. \"I heard a giggle,\" it whispers.",
+      "choices": [
+        {
+          "text": "Check inside the big yawning clam nearby",
+          "target": 8
+        },
+        {
+          "text": "Follow the giggle deeper into the reef",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You explore the old sunken ship, which the town has turned into the best playground ever, with coral slides and portholes to peek through. Baby fish play tag around the mast. It is exactly the kind of fun spot where a forgetful queen might have set her pearl down and wandered off.\n\nPip pokes its nose into a porthole and hears a soft, muffled giggle from somewhere nearby.",
+      "choices": [
+        {
+          "text": "Check inside the big yawning clam nearby",
+          "target": 8
+        },
+        {
+          "text": "Follow the giggle deeper into the reef",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You gently peek inside the big yawning clam, and it opens its shell with a sleepy smile. There, sitting right on the clam's soft pillow, is a glowing white pearl. \"Oh, this old thing?\" yawns the clam. \"The Queen asked me to keep it safe and then we both forgot. Whoops!\"\n\nSam cheers, and a burst of happy bubbles floats up.",
+      "choices": [
+        {
+          "text": "Carry the pearl proudly back to the Coral Queen",
+          "target": 10
+        },
+        {
+          "text": "Let the giggling clam tell one more sleepy joke first",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You follow the giggle deeper into the reef and find a young octopus hiding behind a rock, wiggling with the giggles. In two of its eight arms it is holding the Coral Queen's pearl, using it as a bouncy ball. \"I found it on the sand,\" the octopus admits, turning a shy shade of pink. \"I only wanted to play. I was going to give it back!\"\n\nPip clicks kindly. \"Let's all bring it back together.\"",
+      "choices": [
+        {
+          "text": "Invite the octopus to return the pearl with you",
+          "target": 12
+        },
+        {
+          "text": "Play one quick game of pearl-catch first",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "The Pearl Comes Home",
+      "endingType": "good",
+      "text": "You carry the glowing pearl back through the coral town, and every fish you pass cheers and does a happy spin. The Coral Queen gasps with joy and settles the pearl back into its little shell nest. \"You found it! And you were right, it was somewhere silly all along.\"\n\nShe makes you and Sam honorary Guardians of the Reef, and Pip gets a shiny medal of seaweed. As the sun sets on the water above, you promise to visit again any day the sea decides to let you breathe.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Clam's Best Joke",
+      "endingType": "silly-safe",
+      "text": "You wait while the sleepy clam clears its throat for one more joke. \"What do you call a fish with no eyes?\" it asks, then giggles so hard it can barely finish: \"A fsh!\" You, Sam, and Pip groan and laugh at the same time.\n\nBy the time you all stop giggling and bring the pearl back, the Coral Queen has made a whole feast of sea-berry cake to celebrate. It turns out finding the pearl was fun, but laughing with new friends was the best part of the whole day.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "A New Friend and a Found Pearl",
+      "endingType": "good",
+      "text": "You, Sam, Pip, and the shy little octopus all swim back to the coral hall together, cradling the pearl between you. The Coral Queen is overjoyed, and she isn't the least bit cross with the octopus. \"No harm done,\" she smiles. \"A pearl is meant to be enjoyed.\"\n\nShe invites the octopus to be the royal Keeper of the Pearl, so it can play near it whenever it likes. Everyone made a mistake, everyone forgave, and everyone made a new friend, which is the very best way for a search to end.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "The Great Reef Pearl-Catch",
+      "endingType": "silly-safe",
+      "text": "You just can't resist one quick game, and soon the whole reef joins in a giant, gentle game of pearl-catch. The pearl arcs from your hands to Sam's to a starfish to Pip's nose, everyone laughing and cheering. Even the Coral Queen swims out to see the fun.\n\nShe watches the happy game and decides the pearl should stay out where everyone can enjoy it, not hidden away in a shell. From that day on, the reef holds a pearl-catch every afternoon, and you are always the guest of honor.",
+      "choices": []
+    }
+  ],
+  "setHash": "3d7b74bede8570a8",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Sam",
+    "{{DOLPHIN_NAME}}": "Pip"
+  }
+}

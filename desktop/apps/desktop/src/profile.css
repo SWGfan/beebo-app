@@ -1,0 +1,67 @@
+/* The desktop app's side of the per-user preferences profile (electron/prefsRender.js is the contract).
+   The main process computes attributes on <html> and CSS variables; these rules turn them into layout.
+   Only NON-default choices set an attribute, so with nothing saved none of these rules match and the app
+   looks exactly as before. Restyle by changing the values, not the selectors. */
+
+/* Density */
+:root[data-density='compact'] .main { padding: 16px; }
+:root[data-density='compact'] .grid { gap: 8px; }
+:root[data-density='compact'] .card .meta { padding: 5px 6px; }
+:root[data-density='compact'] .nav-btn { padding: 6px 8px; }
+:root[data-density='spacious'] .main { padding: 36px; }
+:root[data-density='spacious'] .grid { gap: 26px; }
+:root[data-density='spacious'] .card .meta { padding: 12px; }
+:root[data-density='spacious'] .nav-btn { padding: 13px 10px; }
+
+/* Card style */
+:root[data-card-style='flat'] .card { background: transparent; border-color: transparent; box-shadow: none; }
+:root[data-card-style='outlined'] .card { background: transparent; border: 1px solid #293a56; box-shadow: none; }
+:root[data-card-style='floating'] .card { border-color: transparent; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+:root[data-card-style='floating'] .card:hover { transform: translateY(-4px); }
+
+/* Poster shape */
+:root[data-poster-aspect] .card img,
+:root[data-poster-aspect] .poster-card img { aspect-ratio: var(--poster-aspect); }
+
+/* Corner radius (variables come from the profile) */
+:root[data-radius] .card { border-radius: var(--radius-card); }
+:root[data-radius] .nav-btn, :root[data-radius] button { border-radius: var(--radius-button); }
+:root[data-radius] input, :root[data-radius] select, :root[data-radius] textarea { border-radius: var(--radius-control); }
+
+/* Text size (also what Large text sets) */
+:root[data-font-scale] .main, :root[data-font-scale] .sidebar { font-size: calc(16px * var(--ui-font-scale)); }
+:root[data-font-scale] .nav-btn { font-size: calc(14px * var(--ui-font-scale)); }
+:root[data-font-scale] .card .title { font-size: calc(13px * var(--ui-font-scale)); }
+:root[data-font-scale] .card .sub { font-size: calc(11px * var(--ui-font-scale)); }
+:root[data-font-scale] input, :root[data-font-scale] select, :root[data-font-scale] textarea, :root[data-font-scale] button {
+  font-size: calc(13px * var(--ui-font-scale));
+}
+
+/* Reduce motion */
+:root[data-reduce-motion='1'] *, :root[data-reduce-motion='1'] *::before, :root[data-reduce-motion='1'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+:root[data-reduce-motion='1'] .card:hover { transform: none !important; }
+
+/* Settings > Appearance: the small live preview of a home screen. It inherits the same attributes as the app. */
+.prefs-preview {
+  display: flex; gap: 10px; padding: 8px; overflow: hidden;
+  background: var(--bg); border: 1px solid #2a2f3a; border-radius: var(--radius-card, 10px);
+  font-size: calc(11px * var(--ui-font-scale, 1));
+}
+.prefs-preview-nav { display: flex; flex-direction: column; gap: 4px; min-width: 84px; padding: 4px; background: var(--panel); border-radius: var(--radius-control, 8px); }
+.prefs-preview-nav span { padding: 3px 6px; border-radius: var(--radius-button, 6px); color: var(--muted); }
+.prefs-preview-nav span:first-child { background: var(--accent); color: #fff; }
+.prefs-preview-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.prefs-preview-title { font-weight: 600; margin-bottom: 4px; }
+.prefs-preview-row { display: flex; gap: 6px; }
+.prefs-preview-tile { width: 52px; flex: 0 0 auto; background: var(--panel); border-radius: var(--radius-card, 8px); overflow: hidden; }
+.prefs-preview-tile span { display: block; padding: 2px 4px; color: var(--muted); }
+.prefs-preview-poster { aspect-ratio: var(--poster-aspect, 2 / 3); background: #22262f; border-radius: var(--radius-card, 6px); }
+:root[data-density='compact'] .prefs-preview-row { gap: 3px; }
+:root[data-density='spacious'] .prefs-preview-row { gap: 12px; }
+:root[data-card-style='flat'] .prefs-preview-tile { background: transparent; }
+:root[data-card-style='outlined'] .prefs-preview-tile { background: transparent; border: 1px solid #293a56; }
+:root[data-card-style='floating'] .prefs-preview-tile { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }

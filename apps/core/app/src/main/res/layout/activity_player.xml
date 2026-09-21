@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bottom overlays keep clear of exo_progress. Media3's default control view puts the time bar
+  48dp tall with a 52dp bottom margin, so the scrub band is 52dp-100dp up from the bottom edge;
+  anything sitting over it swallows the drag. 104dp clears it with a little room to spare.
+
+  Views (not Compose) for the player screen on purpose: Media3's PlayerView already ships a
+  complete, well-tested control surface, and the Cast button is a plain View. Wrapping either
+  in Compose adds interop friction for zero gain.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:show_buffering="when_playing"
+        app:use_controller="true"
+        app:resize_mode="fit"
+        app:played_color="@color/brand"
+        app:scrubber_color="@color/brand"
+        app:buffered_color="#66E5B94E"
+        app:unplayed_color="#33FFFFFF"
+        app:ad_marker_color="#FFFFFFFF"
+        app:ad_marker_width="3dp"
+        app:auto_show="true" />
+
+    <!-- Overlay shown while casting: the PlayerView surface is empty in that mode. -->
+    <LinearLayout
+        android:id="@+id/castOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:background="#CC000000">
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_stat_download"
+            android:contentDescription="@string/cast_button"
+            android:alpha="0.7" />
+        <TextView
+            android:id="@+id/castOverlayText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:text="Casting" />
+    </LinearLayout>
+
+    <!-- Seek preview shown above the time bar while scrubbing. Not clickable, so it never takes a
+         touch from the bar; ScrubPreviewController positions it. -->
+    <LinearLayout
+        android:id="@+id/scrubPreview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="#E6101623"
+        android:padding="4dp"
+        android:visibility="gone">
+        <ImageView
+            android:id="@+id/scrubThumb"
+            android:layout_width="176dp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/scrubTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/scrubChapter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:maxWidth="240dp"
+            android:textColor="#CCE5B94E"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Top bar: title, cast button, flag-quality -->
+    <!-- Everything along the top hides together with the player controls. -->
+    <LinearLayout
+        android:id="@+id/topChrome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@color/scrim"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/titleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:text="" />
+
+                <!-- Active surf filters (kind / genre / year); hidden outside surf mode. -->
+                <TextView
+                    android:id="@+id/subtitleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#CCE5B94E"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:text="" />
+            </LinearLayout>
+
+            <androidx.mediarouter.app.MediaRouteButton
+                android:id="@+id/castButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Watch Together stays visible even on narrow phones. Other tools scroll. -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical" android:background="@color/scrim">
+            <!-- Watch party: opens the sync sheet (roster, host/join, audio delay,
+                 movable video window). Only useful when signed in to the hub, but the
+                 button is always present; the sheet disables joining without a token. -->
+            <Button
+                android:id="@+id/partyButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:contentDescription="Watch together"
+                android:text="👥 Watch together" />
+
+            <HorizontalScrollView android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:fillViewport="false" android:scrollbars="horizontal">
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical">
+            <!-- "Keep playing with the screen off": off by default, remembered once turned on.
+                 Matches the website's toggle wording so the two feel like the same product. -->
+            <CheckBox
+                android:id="@+id/screenOffToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:text="🎧 Screen off: Off" />
+
+            <!-- "All episodes": jumps into the show this episode belongs to. TV only. -->
+            <Button
+                android:id="@+id/allEpisodesButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:text="📺 All episodes" />
+
+            <!-- Subtitles: sidecar .srt/.vtt tracks found next to the video. GONE unless this
+                 file actually has one, which is almost never - a library of a thousand-odd
+                 files must not grow a control that opens an empty list. -->
+            <Button
+                android:id="@+id/subtitlesButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Subtitles"
+                android:text="💬 Subtitles: Off" />
+
+            <!-- Quality, audio and subtitles (PlaybackChoicesController). Hidden until the server
+                 answers for this file; a download or an older server keeps the button above. -->
+            <Button
+                android:id="@+id/qualityButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Quality, audio and subtitles"
+                android:text="⚙️ Quality" />
+
+            <!-- Remote stream: brings up the WebRTC receiver rendering the user's PC. -->
+            <Button
+                android:id="@+id/remoteButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:contentDescription="Stream from my PC"
+                android:text="🖥 Stream from PC" />
+
+            <!-- Picture-in-Picture. Hidden entirely on devices/OS versions without the feature,
+                 and while a cast session owns playback. -->
+            <Button
+                android:id="@+id/pipButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Picture in picture"
+                android:text="⧉ PiP" />
+
+            <Button
+                android:id="@+id/flagButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFD3D3"
+                android:textSize="12sp"
+                android:text="⚠ Bad quality" />
+
+                </LinearLayout>
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- Transport + marker row. These are OUR buttons, not PlayerView's: the built-in
+             next control is gated on the player's playlist state, which is a single item, so
+             it could never be enabled. Ours are driven by the cached /api/upnext result. -->
+        <LinearLayout
+            android:id="@+id/transportBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@color/scrim"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="6dp">
+
+            <Button
+                android:id="@+id/prevButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:text="⏮ Prev" />
+
+            <Button
+                android:id="@+id/nextButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:text="⏭ Next" />
+
+            <!-- Chapters: GONE until the computer reports two or more for this file. -->
+            <Button
+                android:id="@+id/chapterPrevButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Previous chapter"
+                android:text="◀ Chapter" />
+
+            <Button
+                android:id="@+id/chapterNextButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Next chapter"
+                android:text="Chapter ▶" />
+
+            <Button
+                android:id="@+id/chaptersButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Chapter list"
+                android:text="☰ Chapters" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/introUndoButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:visibility="gone"
+                android:text="↩ Undo intro skip" />
+
+            <Button
+                android:id="@+id/introMarkerButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#CCE5B94E"
+                android:textSize="11sp"
+                android:text="⤴ Intro ends here" />
+
+            <Button
+                android:id="@+id/creditsMarkerButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#CCE5B94E"
+                android:textSize="11sp"
+                android:text="⏭ Credits start here" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Surf controls: only visible in surf mode -->
+    <LinearLayout
+        android:id="@+id/surfBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="104dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="@color/scrim"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/surfPrev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="◀ Previous" />
+
+            <TextView
+                android:id="@+id/surfCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:text="0 of 0" />
+
+            <Button
+                android:id="@+id/surfNext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Next ▶" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/surfFromStart"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:text="@string/surf_from_start" />
+    </LinearLayout>
+
+    <!-- "Up next" card: appears when an episode finishes, counts down, then rolls on. -->
+    <LinearLayout
+        android:id="@+id/upNextCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="104dp"
+        android:orientation="vertical"
+        android:background="#E6101623"
+        android:padding="14dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/upNextTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="320dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:text="Up next" />
+
+        <TextView
+            android:id="@+id/upNextCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#CCE5B94E"
+            android:textSize="13sp"
+            android:text="" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/upNextPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Play now" />
+
+            <Button
+                android:id="@+id/upNextCancel"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textColor="#FFFFFF"
+                android:text="Cancel" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Error / status message -->
+    <LinearLayout
+        android:id="@+id/statusBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:text="" />
+        <Button
+            android:id="@+id/statusAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            android:text="Try casting instead" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <!--
+      Two Compose overlays sit on top of the View-based player. They stay GONE until
+      the matching top-bar button is tapped, so nothing composes any network work on a
+      normal playback. Compose interop is used only here because the ported party /
+      webrtc UI is Compose; the player itself stays Views.
+    -->
+
+    <!-- WebRTC receiver: renders the PC's inbound video track full-screen. -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/webrtcOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Watch-party control sheet (roster, host/join, audio-delay, video window). -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/partyOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+</FrameLayout>

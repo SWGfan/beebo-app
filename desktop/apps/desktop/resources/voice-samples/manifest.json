@@ -1,0 +1,288 @@
+{
+  "version": 1,
+  "engine": "kokoro-0.9.4",
+  "sampleRate": 24000,
+  "format": "mp3",
+  "voices": [
+    {
+      "id": "af_heart",
+      "name": "Heart",
+      "accent": "American",
+      "text": "Hi, I'm Heart.",
+      "file": "af_heart.mp3",
+      "durationSec": 1.62,
+      "bytes": 10080,
+      "sha256": "dca6ba594650810a53f3faf2c29ef98d6c83419a9d1b4e29a4fc46d1fc676bd0"
+    },
+    {
+      "id": "af_alloy",
+      "name": "Alloy",
+      "accent": "American",
+      "text": "Hi, I'm Alloy.",
+      "file": "af_alloy.mp3",
+      "durationSec": 2.12,
+      "bytes": 13104,
+      "sha256": "2c0440e1d5550fc4063ca971739ff544585b3e4e8517823749515f97e9be41e3"
+    },
+    {
+      "id": "af_aoede",
+      "name": "Aoede",
+      "accent": "American",
+      "text": "Hi, I'm Aoede.",
+      "file": "af_aoede.mp3",
+      "durationSec": 1.6,
+      "bytes": 9936,
+      "sha256": "f7e2c7db135cedb63b1331183e02827107dd774d05415494e9b68a190a2c5968"
+    },
+    {
+      "id": "af_bella",
+      "name": "Bella",
+      "accent": "American",
+      "text": "Hi, I'm Bella.",
+      "file": "af_bella.mp3",
+      "durationSec": 1.68,
+      "bytes": 10368,
+      "sha256": "a8114dc482183f029d29af2a4de9fd625836745a4166a9a0bced4d3b6b12aa1e"
+    },
+    {
+      "id": "af_jessica",
+      "name": "Jessica",
+      "accent": "American",
+      "text": "Hi, I'm Jessica.",
+      "file": "af_jessica.mp3",
+      "durationSec": 1.85,
+      "bytes": 11520,
+      "sha256": "159355e8a5351956117d63cefe97d10c6de8aedee97085ea30636097789947ac"
+    },
+    {
+      "id": "af_kore",
+      "name": "Kore",
+      "accent": "American",
+      "text": "Hi, I'm Kore.",
+      "file": "af_kore.mp3",
+      "durationSec": 1.5,
+      "bytes": 9360,
+      "sha256": "3716298b9ffa76889145f3407d63dd58f856a21f76bbb80f75fa6b69d2b60a72"
+    },
+    {
+      "id": "af_nicole",
+      "name": "Nicole",
+      "accent": "American",
+      "text": "Hi, I'm Nicole.",
+      "file": "af_nicole.mp3",
+      "durationSec": 2.15,
+      "bytes": 13248,
+      "sha256": "3c9cf27472fc2b1420356abc99b739e68418a96079823811fc05fb379a1539c0"
+    },
+    {
+      "id": "af_nova",
+      "name": "Nova",
+      "accent": "American",
+      "text": "Hi, I'm Nova.",
+      "file": "af_nova.mp3",
+      "durationSec": 2.1,
+      "bytes": 12960,
+      "sha256": "5ed3de733f5eb15b82bb0945a474f6d3c947b74387e95cfdebc61301979d6f2a"
+    },
+    {
+      "id": "af_river",
+      "name": "River",
+      "accent": "American",
+      "text": "Hi, I'm River.",
+      "file": "af_river.mp3",
+      "durationSec": 1.75,
+      "bytes": 10800,
+      "sha256": "ac1dec195dd7c2b75413b999f974679ecfac5574ffec86cb1042cca1168e0ee4"
+    },
+    {
+      "id": "af_sarah",
+      "name": "Sarah",
+      "accent": "American",
+      "text": "Hi, I'm Sarah.",
+      "file": "af_sarah.mp3",
+      "durationSec": 2.0,
+      "bytes": 12384,
+      "sha256": "3e50722be1e0c93e3375d1092cb59c6daac0210e93557c8050a163de43ce9302"
+    },
+    {
+      "id": "af_sky",
+      "name": "Sky",
+      "accent": "American",
+      "text": "Hi, I'm Sky.",
+      "file": "af_sky.mp3",
+      "durationSec": 1.77,
+      "bytes": 10944,
+      "sha256": "433e0a8f56e850b48781f3cf03026bd926342471d3f9df04752182a3d0876d9b"
+    },
+    {
+      "id": "am_adam",
+      "name": "Adam",
+      "accent": "American",
+      "text": "Hi, I'm Adam.",
+      "file": "am_adam.mp3",
+      "durationSec": 1.68,
+      "bytes": 10368,
+      "sha256": "34e863e696051447cb3ef1016684c76986683b2dd4e6a2c786edd9ccacc9a0b3"
+    },
+    {
+      "id": "am_echo",
+      "name": "Echo",
+      "accent": "American",
+      "text": "Hi, I'm Echo.",
+      "file": "am_echo.mp3",
+      "durationSec": 1.88,
+      "bytes": 11664,
+      "sha256": "5b84633a2dd652dff002e8939a0debb271416998b5a049743d0ed070d5c55451"
+    },
+    {
+      "id": "am_eric",
+      "name": "Eric",
+      "accent": "American",
+      "text": "Hi, I'm Eric.",
+      "file": "am_eric.mp3",
+      "durationSec": 1.38,
+      "bytes": 8640,
+      "sha256": "ec2a7627d6d429212b4b071b267c61818f739b2c08102592fc674d2233a3784c"
+    },
+    {
+      "id": "am_fenrir",
+      "name": "Fenrir",
+      "accent": "American",
+      "text": "Hi, I'm Fenrir.",
+      "file": "am_fenrir.mp3",
+      "durationSec": 1.5,
+      "bytes": 9360,
+      "sha256": "384ac551eaabbb0346fb5da721f60e78ed66b3935fb8432d7d95763b1520c06f"
+    },
+    {
+      "id": "am_liam",
+      "name": "Liam",
+      "accent": "American",
+      "text": "Hi, I'm Liam.",
+      "file": "am_liam.mp3",
+      "durationSec": 1.75,
+      "bytes": 10800,
+      "sha256": "bf90c6129499f86189aabc2f093b1c5cbb6c0eda77e42d86e99172d8a01067c4"
+    },
+    {
+      "id": "am_michael",
+      "name": "Michael",
+      "accent": "American",
+      "text": "Hi, I'm Michael.",
+      "file": "am_michael.mp3",
+      "durationSec": 1.82,
+      "bytes": 11376,
+      "sha256": "e4d7665987d93ba59771e23dcb7da217ede88b9b6fc07d17d62df13fce2605df"
+    },
+    {
+      "id": "am_onyx",
+      "name": "Onyx",
+      "accent": "American",
+      "text": "Hi, I'm Onyx.",
+      "file": "am_onyx.mp3",
+      "durationSec": 1.5,
+      "bytes": 9360,
+      "sha256": "0f9a315ae3975b5a9a0c56cc9bc3e7228b6154b3e7349efc2e7d401eb477c6b5"
+    },
+    {
+      "id": "am_puck",
+      "name": "Puck",
+      "accent": "American",
+      "text": "Hi, I'm Puck.",
+      "file": "am_puck.mp3",
+      "durationSec": 1.38,
+      "bytes": 8640,
+      "sha256": "06f99470b042c8fe4925a0e3da47cccc07f3c3b2e474d99c6aaa568b963f76a1"
+    },
+    {
+      "id": "am_santa",
+      "name": "Santa",
+      "accent": "American",
+      "text": "Hi, I'm Santa.",
+      "file": "am_santa.mp3",
+      "durationSec": 1.68,
+      "bytes": 10368,
+      "sha256": "782d2196251a81f26346f8e827af2f270b947a6ed7c175b14a165978eef7dec8"
+    },
+    {
+      "id": "bf_alice",
+      "name": "Alice",
+      "accent": "British",
+      "text": "Hi, I'm Alice.",
+      "file": "bf_alice.mp3",
+      "durationSec": 1.82,
+      "bytes": 11376,
+      "sha256": "0ae90456a88f8b3ff9ba825635ca618736d3932a79f046d34c407f741fc1c322"
+    },
+    {
+      "id": "bf_emma",
+      "name": "Emma",
+      "accent": "British",
+      "text": "Hi, I'm Emma.",
+      "file": "bf_emma.mp3",
+      "durationSec": 1.8,
+      "bytes": 11088,
+      "sha256": "2e956f6bcfbb8d42bb0a181b84fc467fd1a6f73479dd2114f7ee7c3ebda35ec5"
+    },
+    {
+      "id": "bf_isabella",
+      "name": "Isabella",
+      "accent": "British",
+      "text": "Hi, I'm Isabella.",
+      "file": "bf_isabella.mp3",
+      "durationSec": 2.05,
+      "bytes": 12672,
+      "sha256": "b0a58d7a08a28a373a9d710f9c86ca2783b7f2ff242a05ee7254f1aef4f7c39d"
+    },
+    {
+      "id": "bf_lily",
+      "name": "Lily",
+      "accent": "British",
+      "text": "Hi, I'm Lily.",
+      "file": "bf_lily.mp3",
+      "durationSec": 1.82,
+      "bytes": 11376,
+      "sha256": "e6f3b559ece947cf290d8b2b583d70d2f9ccd1033568af866ebd274c38d79e06"
+    },
+    {
+      "id": "bm_daniel",
+      "name": "Daniel",
+      "accent": "British",
+      "text": "Hi, I'm Daniel.",
+      "file": "bm_daniel.mp3",
+      "durationSec": 1.82,
+      "bytes": 11376,
+      "sha256": "de8b0c29fd5a10167d696bc4a2424f659e26d80164d46ad5f125fa7d491003eb"
+    },
+    {
+      "id": "bm_fable",
+      "name": "Fable",
+      "accent": "British",
+      "text": "Hi, I'm Fable.",
+      "file": "bm_fable.mp3",
+      "durationSec": 1.95,
+      "bytes": 12096,
+      "sha256": "b5bd5256ce8a24995361adf764830a4116b4b7b5681055f38dcdff1fdbee1073"
+    },
+    {
+      "id": "bm_george",
+      "name": "George",
+      "accent": "British",
+      "text": "Hi, I'm George.",
+      "file": "bm_george.mp3",
+      "durationSec": 1.98,
+      "bytes": 12240,
+      "sha256": "69c2529da785f7501e0da67ac47060153a9fbee874d8bd3e625470024da148c0"
+    },
+    {
+      "id": "bm_lewis",
+      "name": "Lewis",
+      "accent": "British",
+      "text": "Hi, I'm Lewis.",
+      "file": "bm_lewis.mp3",
+      "durationSec": 1.9,
+      "bytes": 11808,
+      "sha256": "9e81e8bd9986b8cb07be81bbece4e67830297c1f022ddd754a03019c12ee3a40"
+    }
+  ]
+}

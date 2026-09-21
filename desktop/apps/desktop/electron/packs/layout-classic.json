@@ -1,0 +1,29 @@
+{
+  "format": "beebo-pack",
+  "v": 1,
+  "kind": "layout",
+  "id": "beebo.classic",
+  "name": "Classic",
+  "version": "1.0.0",
+  "description": "The layout Beebo has always had: comfortable spacing, gradient poster cards, every shelf on.",
+  "author": { "name": "Beebo Entertainment" },
+  "license": "CC0-1.0",
+  "content": {
+    "density": "comfortable",
+    "cardStyle": "classic",
+    "radius": null,
+    "posterAspect": "2:3",
+    "fontScale": 1,
+    "sidebar": { "mode": "pinned", "order": [], "hidden": [] },
+    "home": {
+      "shelves": [
+        { "id": "continue", "on": true },
+        { "id": "recent", "on": true },
+        { "id": "watchlist", "on": true },
+        { "id": "recommended", "on": true },
+        { "id": "collections", "on": true },
+        { "id": "trailers", "on": true }
+      ]
+    }
+  }
+}

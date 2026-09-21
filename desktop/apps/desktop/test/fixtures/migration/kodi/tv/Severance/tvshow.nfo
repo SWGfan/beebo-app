@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<tvshow>
+    <title>Severance</title>
+    <year>2022</year>
+    <premiered>2022-02-18</premiered>
+    <plot>Mark leads a team of office workers whose memories have been surgically divided.</plot>
+    <uniqueid type="tvdb" default="true">371980</uniqueid>
+    <uniqueid type="imdb">tt11280740</uniqueid>
+    <uniqueid type="tmdb">95396</uniqueid>
+    <actor><name>Adam Scott</name><role>Mark Scout</role><order>0</order></actor>
+</tvshow>

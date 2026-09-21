@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  ButtonRow - a themed row (or column) of buttons, also used as the top tab bar.
+  style "pill": filled buttons.  style "tab": text with an underline on the current tab.
+  Keys: left/right (up/down when vertical) move, OK selects; other keys bubble up.
+-->
+<component name="ButtonRow" extends="Group">
+  <interface>
+    <field id="buttons" type="array" onChange="rebuild" />
+    <field id="vertical" type="boolean" value="false" onChange="rebuild" />
+    <field id="style" type="string" value="pill" onChange="rebuild" />
+    <!-- index of the focused button (read/write) -->
+    <field id="index" type="integer" value="0" onChange="restyle" />
+    <!-- tab style: the tab whose content is showing -->
+    <field id="current" type="integer" value="0" onChange="restyle" />
+    <!-- fired when OK is pressed on a button: the button's index -->
+    <field id="selected" type="integer" alwaysNotify="true" />
+    <!-- fired when focus moves to another button: the new index -->
+    <field id="moved" type="integer" alwaysNotify="true" />
+    <field id="minWidth" type="integer" value="0" onChange="rebuild" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/widgets/ButtonRow.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
+</component>

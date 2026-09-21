@@ -1,0 +1,219 @@
+{
+  "title": "My One Silly Superpower",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend and super-sidekick",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "a talking houseplant on your windowsill",
+      "default": "Max"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}} and the One Silly Superpower",
+    "dedication": "For {{CHILD_NAME}}, our favorite hero"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "You wake up one ordinary morning feeling extremely un-ordinary. When you say good morning to the little plant on your windowsill, the plant, named {{PET_NAME}}, says good morning right back.\n\nYou can talk to houseplants. That is your brand new, very silly superpower. Just then your best friend {{FRIEND_NAME}} bangs on the door with big news.",
+      "choices": [
+        {
+          "text": "Ask {{PET_NAME}} the plant what is going on",
+          "target": 2
+        },
+        {
+          "text": "Open the door for {{FRIEND_NAME}}",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "{{PET_NAME}} rustles its leaves and whispers the neighborhood gossip. \"Something sneaky has been swiping socks off every clothesline in town,\" the plant says. \"One sock each. Never a pair.\"\n\nYou gasp. A single-sock thief. {{PET_NAME}} points a leaf toward the window, where you can just see a small shadow scampering by.",
+      "choices": [
+        {
+          "text": "Grab your cape and investigate",
+          "target": 4
+        },
+        {
+          "text": "Wait for {{FRIEND_NAME}} to team up",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "You fling the door open and {{FRIEND_NAME}} tumbles in, waving one lonely sock. \"Every house on our street is missing exactly one sock,\" they pant. \"It is a mystery.\"\n\nYou tell {{FRIEND_NAME}} your amazing plant-talking secret. Instead of laughing, your friend gasps. \"That is the perfect power to crack this case.\"",
+      "choices": [
+        {
+          "text": "Ask the garden plants for clues",
+          "target": 4
+        },
+        {
+          "text": "Follow the trail of lonely socks",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You lean close to the leafy plants in the garden and listen. They whisper that a small, giggly creature has been hopping fence to fence, stuffing single socks into a big fuzzy sack.\n\n\"They call it the Sock Goblin,\" rustles a fern. \"But do not worry, it is more silly than scary.\" {{FRIEND_NAME}} tightens their cape, ready to help.",
+      "choices": [
+        {
+          "text": "Set a friendly sock trap",
+          "target": 6
+        },
+        {
+          "text": "Chase the giggling all the way to its hideout",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You and {{FRIEND_NAME}} follow a trail of single socks down the sidewalk, each one dropped like a breadcrumb. A tiny giggle bounces off the fences ahead of you.\n\n{{PET_NAME}} calls helpful directions from an open window. \"Left at the rosebush,\" the plant hollers, \"then toward the giggling.\"",
+      "choices": [
+        {
+          "text": "Set a friendly sock trap",
+          "target": 6
+        },
+        {
+          "text": "Chase the giggling all the way to its hideout",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You lay out one irresistible, extra-fluffy sock as bait and hide behind a bush with {{FRIEND_NAME}}. Sure enough, a small, fuzzy creature tiptoes up, eyes wide with sock-joy.\n\nIt is the Sock Goblin, no bigger than a kitten, with a giggle it cannot hold in. When it grabs the sock, you both hop out with a friendly, \"Gotcha, buddy.\"",
+      "choices": [
+        {
+          "text": "Ask the Sock Goblin why it takes socks",
+          "target": 8
+        },
+        {
+          "text": "Invite the Sock Goblin to be friends",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You chase the giggling past three fences and into a cozy little burrow under an old oak tree. Inside is a mountain of single socks, sorted by color and neatly folded.\n\nA small, fuzzy Sock Goblin looks up, surprised, holding a striped sock like a teddy bear. It does not look sneaky at all. It looks lonely.",
+      "choices": [
+        {
+          "text": "Ask the Sock Goblin why it takes socks",
+          "target": 8
+        },
+        {
+          "text": "Invite the Sock Goblin to be friends",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "The Sock Goblin sniffles and explains. \"Single socks always get left behind and lonely, so I keep them company. I did not mean to cause trouble.\"\n\nYour heart melts. {{FRIEND_NAME}} kneels down. \"That is actually really kind,\" they say. {{PET_NAME}} the plant, riding in your pocket, agrees with a happy rustle.",
+      "choices": [
+        {
+          "text": "Help the Goblin match every sock to a pair",
+          "target": 10
+        },
+        {
+          "text": "Give the Goblin a job as the town's sock keeper",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You reach out a hand and offer the Sock Goblin a friendly wiggle of the fingers. The little creature blinks, then breaks into the biggest, happiest giggle you have ever heard.\n\n\"You want to be my friend?\" it squeaks. \"Nobody ever chased me to say hello.\" {{FRIEND_NAME}} laughs warmly and joins the hug pile.",
+      "choices": [
+        {
+          "text": "Throw a big sock-matching party",
+          "target": 10
+        },
+        {
+          "text": "Make the Goblin your new sidekick",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "The Great Sock Reunion",
+      "endingType": "good",
+      "text": "You, {{FRIEND_NAME}}, and the Sock Goblin spend the whole afternoon matching lonely socks into happy pairs. The whole town cheers as warm, matched socks find their way home.\n\n\"You used your silly power for something wonderful,\" says {{FRIEND_NAME}}. {{PET_NAME}} the plant beams from your pocket. The best heroes, you decide, are the kind ones. The end.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Official Sock Keeper",
+      "endingType": "good",
+      "text": "You give the Sock Goblin a shiny badge and a brand new job: Official Keeper of Lonely Socks. Now every single sock in town has a cozy home and a caring friend.\n\nThe Goblin salutes you with a striped sock puppet, giggling with pride. {{FRIEND_NAME}} high-fives you, and {{PET_NAME}} calls it the happiest ending a plant has ever seen. The end.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "Two Heroes and a Goblin",
+      "endingType": "silly-safe",
+      "text": "The Sock Goblin becomes your fuzzy new sidekick, with a cape made of, what else, mismatched socks. Together you patrol the town for lonely laundry and lost mittens.\n\nYou can talk to plants, your friend is the bravest around, and your sidekick is a giggly sock collector. It is the silliest super-team in the world, and you would not change a thing. The end.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "What is the silly superpower?",
+      "choices": [
+        "talking to plants",
+        "flying",
+        "super speed"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What can the little plant do?",
+      "choices": [
+        "talk",
+        "swim",
+        "dance"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "Where does the plant sit?",
+      "choices": [
+        "the windowsill",
+        "the fridge",
+        "the roof"
+      ],
+      "correct": 0
+    }
+  ]
+}

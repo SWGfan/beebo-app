@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+*.xcodeproj/
+xcuserdata/
+DerivedData/
+App/iOS/Info.plist
+App/tvOS/Info.plist
+*.xcresult

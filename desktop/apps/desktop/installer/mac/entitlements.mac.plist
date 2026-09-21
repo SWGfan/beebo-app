@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Hardened runtime exceptions the main Beebo process (Electron/V8) needs. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <!-- Beebo runs a media server (incoming connections from phones/TVs) and calls out to the
+       internet (TMDB, the Beebo site, the relay). These matter if the app is ever sandboxed
+       and document intent for the hardened-runtime build. -->
+  <key>com.apple.security.network.server</key>
+  <true/>
+  <key>com.apple.security.network.client</key>
+  <true/>
+  <!-- Deliberately NOT requested: camera, microphone, contacts, location, calendar, Apple Events.
+       Nothing in the desktop app uses them (karaoke and the web pages run in the viewer's own
+       browser, not in this app). -->
+</dict>
+</plist>

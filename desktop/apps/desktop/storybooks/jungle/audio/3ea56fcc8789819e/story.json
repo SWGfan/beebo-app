@@ -1,0 +1,204 @@
+{
+  "title": "The Kindly Jungle Helpers",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 4,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your cheerful jungle guide and friend",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "a chatty little parrot who rides on your backpack",
+      "default": "Robin"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Alex and the Kindly Jungle Helpers",
+    "dedication": "For Alex, the kindest explorer in the jungle"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Green leaves wave hello as you and your guide Sam step into the warm, friendly jungle. A small parrot named Robin rides on your backpack, chirping about all the animals who might need a hand today.\n\n\"In this jungle, we help with small problems and share big smiles,\" says Sam. Just then you hear a sniffly sound up the trail.",
+      "choices": [
+        {
+          "text": "Follow the sniffly sound",
+          "target": 2
+        },
+        {
+          "text": "Peek toward a splashy river sound",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You find a little monkey sitting on a branch, sniffling because the wind took its favorite red hat. Robin flutters up for a better look while Sam pats the monkey gently.\n\n\"We can help you find it,\" you say. The monkey points one way toward a tall tree and another way toward a bushy path.",
+      "choices": [
+        {
+          "text": "Search the tall tree",
+          "target": 4
+        },
+        {
+          "text": "Search the bushy path",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "By the river, a big friendly elephant is giggling and splashing, but every splash makes her sneeze. \"My trunk is so ticklish today,\" she says, wobbling with giggles.\n\nSam grins. \"A ticklish trunk is a very serious jungle problem.\" Robin nods wisely, or maybe just bobs for fun.",
+      "choices": [
+        {
+          "text": "Try a soft leaf to help the trunk",
+          "target": 4
+        },
+        {
+          "text": "Try a cool river rinse",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You climb toward the tall tree with Sam steadying the branches. Up in the leaves you spot a whole cozy nest full of lost and found treasures, all tidy and dry.\n\nRobin lands on your shoulder and points with a wing. There is a bright red hat and a soft folded leaf, right next to each other.",
+      "choices": [
+        {
+          "text": "Bring back the red hat",
+          "target": 6
+        },
+        {
+          "text": "Bring back the soft leaf",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You follow the bushy path where cool water trickles over smooth stones. Sam shows you how to step slow and gentle so no little bugs get a fright.\n\nRobin finds a shady spot where two helpful things wait: a shiny puddle for a cool rinse, and a red hat snagged on a twig.",
+      "choices": [
+        {
+          "text": "Grab the red hat",
+          "target": 6
+        },
+        {
+          "text": "Scoop some cool water",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You carry the red hat back and plop it gently on the little monkey's head. The monkey squeals with joy and does three happy flips around the branch.\n\n\"Thank you, thank you,\" chatters the monkey. Sam beams, and Robin does a proud loop in the air. But you can still hear the elephant giggling by the river.",
+      "choices": [
+        {
+          "text": "Go help the ticklish elephant",
+          "target": 8
+        },
+        {
+          "text": "Rest and share a snack first",
+          "target": 10
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You bring the soft leaf and the cool water to the ticklish elephant. Gently, you fan her trunk with the leaf and dab a little cool water on the tip.\n\nThe elephant takes a slow breath and, at last, no sneeze. \"Oh, that feels lovely,\" she sighs happily. Sam cheers and Robin claps its wings.",
+      "choices": [
+        {
+          "text": "Go find the monkey's lost hat",
+          "target": 9
+        },
+        {
+          "text": "Ask if any other animals need help",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You reach the river where the elephant is still giggling and sneezing. You wave the soft leaf near her trunk, slow and steady, and hum a calm little tune.\n\nHer trunk stops tickling, and she gives you the gentlest, happiest trunk-hug. Robin rides the hug like a fun ride.",
+      "choices": [
+        {
+          "text": "Celebrate with a jungle parade",
+          "target": 10
+        },
+        {
+          "text": "Quietly help one more animal",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You and Sam search until you spot the red hat snagged high on a vine. With a gentle boost and a careful reach, you set it free and bring it to the monkey.\n\nThe monkey hugs the hat, then hugs you. Robin sings a happy little jungle song that echoes through the trees.",
+      "choices": [
+        {
+          "text": "Head home as jungle heroes",
+          "target": 11
+        },
+        {
+          "text": "Look for one last friend to help",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "The Jungle Parade",
+      "endingType": "good",
+      "text": "The monkey, the elephant, and a dozen giggly critters throw a parade in your honor. You lead the way with Sam while Robin tosses flower petals from above.\n\n\"The best explorers are the kindest ones,\" says Sam. You march home with a happy heart and a hat full of petals. The end.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "Heroes of the Green",
+      "endingType": "good",
+      "text": "Word spreads fast that two gentle helpers fixed every small problem in the jungle today. Animals line the trail to wave as you and Sam head for home.\n\nRobin lands on your head and declares you an official Jungle Helper. You promise to come back tomorrow, because there is always a friend to help. The end.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Quiet Kindness",
+      "endingType": "good",
+      "text": "You slip off to help a shy turtle who cannot flip back onto her feet. With a soft, careful tip, you set her right, and she blinks a grateful, sleepy smile.\n\nNo parade, no cheers, just a warm feeling that fills you up. Sam squeezes your hand and Robin nuzzles your cheek. Sometimes the quietest help is the biggest. The end.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "The Never-Ending Trail",
+      "endingType": "silly-safe",
+      "text": "You go looking for one last friend, and find a whole family of ducklings who each need a boost over a log. One by one, boop, boop, boop, you help them all across.\n\nBy the time you finish, the sun is setting in gold and pink. \"Well,\" laughs Sam, \"the jungle always has one more friend.\" You and Robin laugh too, and head home happy. The end.",
+      "choices": []
+    }
+  ],
+  "setHash": "3ea56fcc8789819e",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Sam",
+    "{{PET_NAME}}": "Robin"
+  }
+}

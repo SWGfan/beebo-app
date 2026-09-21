@@ -1,0 +1,15 @@
+<movie>
+  <title>Heat</title>
+  <year>1995</year>
+  <id>tt0113277</id>
+  <resume>
+    <position>2712.5</position>
+    <total>10200</total>
+  </resume>
+  <lastplayed>2023-01-02 20:00:00</lastplayed>
+  <art>
+    <poster>file:///C:/Users/someone/Pictures/heat.jpg</poster>
+    <fanart>/etc/shadow</fanart>
+    <landscape>art/heat-landscape.jpg</landscape>
+  </art>
+</movie>

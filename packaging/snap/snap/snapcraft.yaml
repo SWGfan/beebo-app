@@ -1,0 +1,69 @@
+# DRAFT Snap for the Snap Store. Cannot build until the Linux .deb is published as a release asset:
+# fill in the URL and checksum of the `beebo` part (see README.md in the parent folder).
+# Confinement is `strict` on purpose; see README.md for why `classic` is not a realistic option.
+name: beebo-entertainment
+title: Beebo Entertainment
+base: core24
+version: '0.1.57'   # TODO: the release that first carries the Linux packages
+summary: Your home media server and player
+description: |
+  Beebo Entertainment turns your computer into a home media server. Point it at your
+  folders of movies, TV shows, music and photos and it builds a library with posters and
+  details. Watch in the app or the web viewer, or stream to the Beebo phone and TV apps on
+  your home network. Video that a device cannot play as it is gets converted on the fly.
+
+  Library folders: the snap can read your home folder and, after you connect the
+  "removable-media" interface, drives mounted under /media, /mnt and /run/media:
+
+    sudo snap connect beebo-entertainment:removable-media
+
+  The server listens on TCP port 47811 on your network.
+website: https://beeboentertainment.com
+contact: https://beeboentertainment.com/help.html
+issues: https://github.com/SWGfan/beebotv/issues
+license: Proprietary
+grade: stable
+confinement: strict
+architectures:
+  - build-on: amd64
+    build-for: amd64
+
+apps:
+  beebo-entertainment:
+    # Chromium's SUID sandbox cannot work inside a snap (the snap confinement is the sandbox).
+    command: opt/beebo/beeboentertainment-desktop --no-sandbox
+    extensions: [gnome]
+    # The desktop entry is snap/gui/beebo-entertainment.desktop (installed automatically as meta/gui/...).
+    plugs:
+      - browser-support
+      - home
+      - network
+      - network-bind
+      - audio-playback
+      - opengl
+      - removable-media
+
+parts:
+  beebo:
+    plugin: dump
+    source: https://github.com/SWGfan/beebotv/releases/download/Beebo-VERSION/beebo-entertainment_VERSION_amd64.deb   # TODO: real URL
+    source-type: deb
+    source-checksum: sha256/0000000000000000000000000000000000000000000000000000000000000000   # TODO: real SHA-256
+    organize:
+      "opt/Beebo Entertainment": opt/beebo
+    stage-packages:
+      - libnss3
+      - libnspr4
+      - libxss1
+      - libxtst6
+      - libasound2t64
+      - libatspi2.0-0t64
+      - libsecret-1-0
+      - libnotify4
+      - libva2
+      - libva-drm2
+      - mesa-va-drivers
+    prime:
+      - -opt/beebo/chrome-sandbox
+      - -usr/share/doc
+      - -usr/share/man

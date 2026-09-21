@@ -1,0 +1,29 @@
+{
+  "format": "beebo-pack",
+  "v": 1,
+  "kind": "layout",
+  "id": "beebo.compact-library",
+  "name": "Compact library",
+  "version": "1.0.0",
+  "description": "More titles on screen: tight spacing, flat cards, small corners and only the shelves you use daily.",
+  "author": { "name": "Beebo Entertainment" },
+  "license": "CC0-1.0",
+  "content": {
+    "density": "compact",
+    "cardStyle": "flat",
+    "radius": 6,
+    "posterAspect": "2:3",
+    "fontScale": 0.95,
+    "sidebar": { "mode": "pinned", "order": ["movies", "tvshows", "continue", "playlists"], "hidden": ["getapp", "suggest", "school", "apikeys"] },
+    "home": {
+      "shelves": [
+        { "id": "continue", "on": true },
+        { "id": "recent", "on": true },
+        { "id": "watchlist", "on": false },
+        { "id": "recommended", "on": false },
+        { "id": "collections", "on": false },
+        { "id": "trailers", "on": false }
+      ]
+    }
+  }
+}

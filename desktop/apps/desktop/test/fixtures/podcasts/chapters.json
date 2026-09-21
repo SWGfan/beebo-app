@@ -1,0 +1,12 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    { "startTime": 605.5, "title": "Second", "img": "https://example.test/c2.jpg", "url": "https://example.test/c2" },
+    { "startTime": 0, "title": "Intro", "endTime": 60 },
+    { "startTime": 300, "title": "Hidden ad break", "toc": false },
+    { "startTime": -5, "title": "Negative start is dropped" },
+    { "startTime": "abc", "title": "Not a number" },
+    { "startTime": 900, "title": "Bad urls", "img": "javascript:alert(1)", "url": "file:///etc/passwd" },
+    "not an object"
+  ]
+}

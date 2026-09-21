@@ -1,0 +1,239 @@
+{
+  "title": "The Backyard Band Show",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character, the band leader",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "the bossy-but-lovable drummer",
+      "default": "Sam"
+    },
+    {
+      "token": "{{SECOND_NAME}}",
+      "role": "the shy singer",
+      "default": "Robin"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "a chirpy parrot who sings along",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}}'s Backyard Band Show",
+    "dedication": "For everyone who ever hummed a little too loud."
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "The backyard was warm and buzzing, because tonight your band was playing its very first neighborhood show. You set up two folding chairs, a bucket of drumsticks, and a wobbly music stand. {{FRIEND_NAME}} marched in, tapping a drumstick on everything. \"Okay, team, listen up! We start with a giant drumroll, and it is going to be amazing,\" {{FRIEND_NAME}} announced. Behind the flowerpots, {{SECOND_NAME}} peeked out and whispered, \"Maybe... a quiet song first? Just to warm up?\" On your shoulder, {{PET_NAME}} bobbed up and down and squawked, \"Warm up! Tweet! Warm up!\" You grinned, because you were the band leader, and the first choice was yours.",
+      "choices": [
+        {
+          "text": "Start big with {{FRIEND_NAME}}'s drumroll.",
+          "target": 2
+        },
+        {
+          "text": "Start soft with {{SECOND_NAME}}'s quiet song.",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "\"Yes! Now you are thinking like a drummer!\" {{FRIEND_NAME}} cheered, spinning a drumstick in the air and almost dropping it. {{FRIEND_NAME}} counted loud and proud, \"One, two, three, and a boom, boom, BOOM!\" The buckets rumbled like happy thunder, and the fence rattled a friendly little rattle. {{SECOND_NAME}} covered both ears and giggled, \"That is very... loud. But kind of wonderful.\" {{PET_NAME}} flapped in a circle and shouted, \"Boom, boom! Pretty bird! Boom!\" You laughed so hard you had to sit down on the wobbly chair.",
+      "choices": [
+        {
+          "text": "Teach {{PET_NAME}} to end the drumroll with a squawk.",
+          "target": 4
+        },
+        {
+          "text": "Invite shy {{SECOND_NAME}} up to sing over the drums.",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "\"A quiet song. I can do a quiet song,\" {{SECOND_NAME}} said softly, holding the microphone with both hands. You hummed a gentle starting note, and {{SECOND_NAME}} began to sing, small at first, like a tiptoe. \"Fine, fine, we can be gentle for exactly one song,\" {{FRIEND_NAME}} said, tapping the buckets so lightly it sounded like rain. {{PET_NAME}} tilted its head, listened, and then cooed along, \"Coo... coo... la la la.\" It was so pretty that a neighbor leaned over the fence just to hear.",
+      "choices": [
+        {
+          "text": "Cheer {{SECOND_NAME}} on to sing a little louder.",
+          "target": 4
+        },
+        {
+          "text": "Let {{FRIEND_NAME}} sneak in a soft drum beat.",
+          "target": 6
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You clapped your hands and called out, \"{{CHILD_NAME}} says: everyone in for the big finish rehearsal!\" {{FRIEND_NAME}} pointed a drumstick like a wizard's wand and declared, \"Rule number one, I count us in. Rule number two, nobody argues with rule number one.\" {{SECOND_NAME}} raised a shy hand and whispered, \"Could rule number three be... we all smile?\" \"Approved!\" boomed {{FRIEND_NAME}}, grinning. {{PET_NAME}} landed on the music stand and announced, \"Smile! Tweet! Best band! Smile!\" and everyone cracked up.",
+      "choices": [
+        {
+          "text": "Practice the ending where the drums go quiet.",
+          "target": 7
+        },
+        {
+          "text": "Practice the ending where everybody sings together.",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "\"Come on up, you can do it,\" you said, and gently waved {{SECOND_NAME}} toward the microphone. {{SECOND_NAME}} took one big breath and squeaked, \"Okay. But if I turn pink, we all pretend it is the sunset.\" \"Deal! Now sing over my mega beat!\" {{FRIEND_NAME}} said, drumming a bouncy rhythm. {{SECOND_NAME}}'s voice wobbled, then grew, then floated right over the drums like a kite. {{PET_NAME}} bounced on your shoulder and cheered, \"Sing it! Sing it! Whee!\"",
+      "choices": [
+        {
+          "text": "Practice the big group ending.",
+          "target": 7
+        },
+        {
+          "text": "Let {{PET_NAME}} try a solo squawk.",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "{{FRIEND_NAME}} tiptoed to the buckets and whispered, which was very hard for {{FRIEND_NAME}}, \"I am being so quiet right now. This is the quietest I have ever been.\" A soft beat pattered under {{SECOND_NAME}}'s singing, and the two sounds fit together like a puzzle. \"Oh,\" {{SECOND_NAME}} breathed, \"it sounds nice when we take turns.\" You nodded, because taking turns was the secret all along. {{PET_NAME}} whispered too, a tiny \"coo... coo,\" and even the crickets seemed to hush and listen.",
+      "choices": [
+        {
+          "text": "Add a gentle drum ending.",
+          "target": 8
+        },
+        {
+          "text": "Add a soft owl-like coo ending.",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "\"Here comes the tricky part, so eyes on me,\" {{FRIEND_NAME}} said, lifting both drumsticks high. \"When I go like this, everybody stops at exactly the same time. Snap. Like magic.\" {{SECOND_NAME}} bit a lip and murmured, \"What if I sing one extra note by accident?\" You smiled and said, \"Then it will be the best accident ever.\" {{PET_NAME}} bobbed and promised, \"Stop! Tweet! I stop good!\" You practiced the snap-stop three times, and by the third time it really did feel like magic.",
+      "choices": [
+        {
+          "text": "Finish getting ready for the show.",
+          "target": 10
+        },
+        {
+          "text": "Take a wobbly-chair bow to celebrate the great rehearsal.",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "\"Everybody together on the last line, that is the whole trick,\" you said, standing tall. {{FRIEND_NAME}} grinned. \"Together? Fine, but I am still the loudest together-er.\" {{SECOND_NAME}} laughed, actually laughed out loud this time, and said, \"Then I will be the sweetest together-er.\" {{PET_NAME}} flapped and declared, \"I am the tweetest together-er! Tweet!\" You all sang the last line at once, and it sounded warm and round and just right.",
+      "choices": [
+        {
+          "text": "Do one last full run-through.",
+          "target": 10
+        },
+        {
+          "text": "Decide you are ready right now.",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You decided the ending should drift away soft, like a leaf landing. {{SECOND_NAME}} sang the last note so gently it was almost a secret. \"That is beautiful,\" {{FRIEND_NAME}} admitted, resting the drumsticks. \"Do not tell anyone I said beautiful.\" \"Too late,\" you teased, and everyone giggled. {{PET_NAME}} closed the whole thing with a slow, proud \"cooooo,\" then added, \"Encore! Tweet! Encore!\" You realized the band was truly ready.",
+      "choices": [
+        {
+          "text": "Head to the front yard for showtime.",
+          "target": 10
+        },
+        {
+          "text": "Celebrate the perfect soft ending.",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": false,
+      "text": "The neighbors were gathering now, setting out lawn chairs and sipping lemonade. {{FRIEND_NAME}} peeked around the gate and gasped, \"Whoa. That is a lot of ears out there.\" {{SECOND_NAME}} squeezed your hand and whispered, \"My tummy has butterflies. Big ones. With drums.\" You squeezed back and said, \"Butterflies mean you care. We have got this, together.\" {{PET_NAME}} puffed up its feathers and announced to everyone, \"Show time! Best band! Tweet tweet!\"",
+      "choices": [
+        {
+          "text": "Start the show with the loud, joyful version.",
+          "target": 12
+        },
+        {
+          "text": "Start the show with the sweet, gentle version.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Best Rehearsal Ever",
+      "endingType": "good",
+      "text": "You did not even wait for showtime, because right now felt too good to save. You all took a big silly bow off the wobbly chair, and the chair squeaked like it was clapping. \"That,\" said {{FRIEND_NAME}}, wiping a happy tear, \"was our best rehearsal in the history of best rehearsals.\" {{SECOND_NAME}} beamed and whispered, \"I was not even a little pink. Well, maybe a little.\" {{PET_NAME}} landed on your head and crowned the moment with a proud \"Tweet! We did it!\" The show could wait five more minutes, because a band this happy deserved a snack break first.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Loud and Joyful Show",
+      "endingType": "good",
+      "text": "\"One, two, three, and a boom, boom, BOOM!\" counted {{FRIEND_NAME}}, and your band burst into the loud, joyful version. The drums rumbled, {{SECOND_NAME}} sang out brave and bright, and {{PET_NAME}} squawked every silly chorus perfectly. The neighbors clapped along, and someone's grandpa did a little wiggle dance in his lawn chair. When the last note boomed, the whole yard cheered, \"More! More!\" {{SECOND_NAME}} looked at you, glowing, and said, \"I was not scared at all. Okay, I was, but then I was not.\" You all took a bow together, one loud, joyful, wonderful band.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "The Sweet and Gentle Show",
+      "endingType": "good",
+      "text": "You began soft, like the very first star coming out. {{SECOND_NAME}}'s voice floated over {{FRIEND_NAME}}'s gentle, careful beat, and {{PET_NAME}} cooed along so tenderly that even the babies in the crowd went quiet to listen. \"I am being gentle,\" {{FRIEND_NAME}} whispered proudly, \"and I love it, but do not tell the drums.\" When the song ended, the neighbors did not shout, they just sighed a warm, happy sigh and clapped soft and long. {{SECOND_NAME}} squeezed your hand and said, \"Let's do this again next week.\" And your whole backyard band agreed, because the sweetest sound of all was the four of you together.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "Where is the band playing?",
+      "choices": [
+        "the backyard",
+        "a beach",
+        "a castle"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "Which animal sings along?",
+      "choices": [
+        "a parrot",
+        "a dog",
+        "a fish"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What does the band do?",
+      "choices": [
+        "play music",
+        "bake bread",
+        "go swimming"
+      ],
+      "correct": 0
+    }
+  ]
+}

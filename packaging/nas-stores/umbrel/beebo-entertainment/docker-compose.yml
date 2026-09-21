@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: beebo-entertainment_server_1
+      APP_PORT: 47811
+      # Beebo has its own accounts and sign-in.
+      PROXY_AUTH_ADD: "false"
+
+  server:
+    # TODO: Umbrel requires the image to be pinned by digest: ghcr.io/swgfan/beebo-server:0.1.57@sha256:<digest>
+    image: ghcr.io/swgfan/beebo-server:0.1.57@sha256:REPLACE_WITH_IMAGE_DIGEST
+    restart: on-failure
+    # Start as root so PUID/PGID are applied, then the entrypoint drops to that user.
+    user: "0"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      BEEBO_UPNP: "0"
+      BEEBO_MOVIES_DIRS: /media/downloads
+    volumes:
+      - ${APP_DATA_DIR}/data/config:/config
+      - ${UMBREL_ROOT}/data/storage/downloads:/media/downloads:ro

@@ -1,0 +1,9 @@
+{
+  "resultCount": 4,
+  "results": [
+    { "wrapperType": "track", "kind": "podcast", "collectionName": "The Example Show", "artistName": "Example Media", "feedUrl": "https://example.test/feed.xml", "artworkUrl600": "https://is1.example.test/600.jpg", "primaryGenreName": "Technology", "trackCount": 120 },
+    { "collectionName": "No feed", "artistName": "Nobody" },
+    { "collectionName": "Bad feed scheme", "feedUrl": "ftp://example.test/feed.xml" },
+    { "trackName": "Track name fallback", "artistName": "A", "feedUrl": "http://example.test/other.rss", "artworkUrl100": "https://is1.example.test/100.jpg" }
+  ]
+}

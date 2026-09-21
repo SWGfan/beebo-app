@@ -1,0 +1,2 @@
+# Shell scripts run on Linux CI and under Git Bash: always LF, even on a Windows checkout.
+*.sh text eol=lf

@@ -1,0 +1,6 @@
+{
+  "versionCode": 106,
+  "versionName": "5.64",
+  "sha256": "1e40265765da49d62385dfd29f010a91de921c2c7c584c2a9861faa6a29fd4a5",
+  "notes": "Fixes connecting to your home server over Wi-Fi. The app now recognizes your Beebo home server on the local network and connects over plain http, clearing the TLS error some setups hit when tapping Connect."
+}

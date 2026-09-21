@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider roots. Only what the app deliberately shares is exposed.
+-->
+<paths>
+    <!-- The Trip Recap screen writes a shareable PNG here for the Android share sheet. -->
+    <cache-path name="recap" path="recap/" />
+    <!-- The trip video export writes its MP4 here for the Android share sheet. Nothing else in this folder is shared. -->
+    <cache-path name="trip_export" path="trip-export/" />
+</paths>

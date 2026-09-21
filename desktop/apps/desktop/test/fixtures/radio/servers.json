@@ -1,0 +1,8 @@
+[
+  { "ip": "185.18.214.43", "name": "de1.api.radio-browser.info" },
+  { "ip": "193.42.159.11", "name": "fi1.api.radio-browser.info" },
+  { "ip": "10.0.0.1", "name": "evil.example.test" },
+  { "ip": "127.0.0.1", "name": "localhost" },
+  { "ip": "1.2.3.4", "name": "de1.api.radio-browser.info.evil.test" },
+  { "ip": "1.2.3.4" }
+]

@@ -1,0 +1,219 @@
+{
+  "title": "The Great Cherry Hill Derby",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character and kart driver",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend and pit-crew partner who helped build the kart",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "your small dog who rides along as the team mascot",
+      "default": "Max"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}} and the Great Cherry Hill Derby",
+    "dedication": "For {{CHILD_NAME}}"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "It's Sunday morning, and the whole town has gathered at the top of Cherry Hill for the big soap-box Derby. You and {{FRIEND_NAME}} spent all week building your kart out of crates, wagon wheels, and one very squeaky steering rope. Your dog {{PET_NAME}} sits in the little sidecar wearing tiny goggles.\n\nThe starting flag is up. \"Which way do we take down the hill?\" asks {{FRIEND_NAME}}.",
+      "choices": [
+        {
+          "text": "Take the shady left path under the cherry trees",
+          "target": 2
+        },
+        {
+          "text": "Take the sunny right path past the cheering crowd",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You steer onto the shady left path, and cool air rushes past under the cherry trees. Petals swirl up behind your wheels like a pink parade. {{PET_NAME}} barks happily and lifts one ear into the breeze.\n\n\"Smooth and quiet back here,\" {{FRIEND_NAME}} calls from the pit-crew seat. \"Now what's the plan?\"",
+      "choices": [
+        {
+          "text": "Go fast and lean into every turn",
+          "target": 4
+        },
+        {
+          "text": "Roll steady and save your speed for the bottom",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "You swing onto the sunny right path, and the crowd along the fence goes wild. Kids wave homemade flags, and someone's grandpa rings a cowbell just for you. {{PET_NAME}} stands up in the sidecar and takes a little bow.\n\n\"Everybody's watching!\" grins {{FRIEND_NAME}}. \"How do you want to race it?\"",
+      "choices": [
+        {
+          "text": "Go fast and lean into every turn",
+          "target": 4
+        },
+        {
+          "text": "Roll steady and save your speed for the bottom",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You tuck your head down and let the kart fly, leaning into each turn like a real racer. The wheels hum, the wind whistles, and {{PET_NAME}}'s ears flap straight back like little flags. {{FRIEND_NAME}} whoops with joy.\n\nUp ahead you spot the halfway checkpoint, where the track splits again around old Mr. Pockett's giant hay bales.",
+      "choices": [
+        {
+          "text": "Check the wobbly front wheel before it gets worse",
+          "target": 6
+        },
+        {
+          "text": "Wave to the crowd and keep your speed up",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You roll along nice and steady, keeping the kart smooth while the fast racers rattle and bounce around you. \"Slow and clever wins races too,\" you tell {{FRIEND_NAME}}, who nods like a wise old pit boss.\n\n{{PET_NAME}} yawns and gets comfy. Ahead, the track splits around old Mr. Pockett's giant hay bales.",
+      "choices": [
+        {
+          "text": "Check the wobbly front wheel before it gets worse",
+          "target": 6
+        },
+        {
+          "text": "Wave to the crowd and keep your speed up",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You call a quick pit stop, and {{FRIEND_NAME}} hops out with the toy wrench you packed just in case. Two twists, and the wobbly wheel is snug and solid again. Being a good pit crew means taking care of your kart.\n\n{{PET_NAME}} supervises with a serious little face. \"Fixed!\" says {{FRIEND_NAME}}. \"Let's finish this.\"",
+      "choices": [
+        {
+          "text": "Take the straight, smooth lane to the finish",
+          "target": 8
+        },
+        {
+          "text": "Try the bumpy shortcut through the hay bales",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You wave to the crowd with one hand and keep the kart rolling with the other. The cowbell rings, the flags flap, and {{PET_NAME}} gives a proud little woof to the fans. Everyone loves your team.\n\nThe finish line waits at the bottom of the hill, and there are two ways to reach it.",
+      "choices": [
+        {
+          "text": "Take the straight, smooth lane to the finish",
+          "target": 8
+        },
+        {
+          "text": "Try the bumpy shortcut through the hay bales",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You choose the straight, smooth lane and let the kart roll clean and true. The finish banner grows bigger and bigger, striped red and white in the sunshine. {{FRIEND_NAME}} counts down: \"Three, two, one!\"\n\n{{PET_NAME}} lifts both paws in the air like a tiny champion.",
+      "choices": [
+        {
+          "text": "Cross the line with a big triumphant cheer",
+          "target": 10
+        },
+        {
+          "text": "Slow down to roll across side by side with a new friend",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You aim for the bumpy shortcut and bounce right into the soft wall of hay bales with a gentle floomp. Straw goes everywhere, and the kart stops in the middle of a giant golden pile. Nobody is hurt one bit, just very, very tickled by hay.\n\n{{PET_NAME}} pops up wearing a hay hat, and {{FRIEND_NAME}} can't stop laughing.",
+      "choices": [
+        {
+          "text": "Dig the kart out and finish the race",
+          "target": 11
+        },
+        {
+          "text": "Decide the hay pile is too comfy to leave",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "Champions of Cherry Hill",
+      "endingType": "good",
+      "text": "Your kart zooms across the finish line first, and the whole hill erupts in cheers. The mayor hangs a shiny cardboard medal around your neck, and one around {{FRIEND_NAME}}'s too, because a driver is nothing without a great pit crew. {{PET_NAME}} gets a medal made entirely of dog biscuits.\n\nThat night you park the kart in the garage and already start dreaming up next year's design. \"Same team?\" asks {{FRIEND_NAME}}. \"Always,\" you say.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Best Kind of Winner",
+      "endingType": "good",
+      "text": "Near the finish you notice another kid whose wheel popped off, sitting sadly by the track. You slow down, help them push their kart, and the two of you roll across the line together. The crowd cheers even louder than for first place.\n\n\"You gave up the win,\" says {{FRIEND_NAME}}. \"Yeah,\" you shrug, grinning, \"but we got a new friend.\" {{PET_NAME}} licks everyone's faces to make it official.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Comfiest Finish Line",
+      "endingType": "silly-trapped",
+      "text": "The hay pile is warm from the sun and softer than any bed, and honestly you are in no hurry to move. You, {{FRIEND_NAME}}, and {{PET_NAME}} flop back into the straw and watch the clouds roll by. Other karts finish the race while you build a whole hay fort instead.\n\nMr. Pockett brings you lemonade and doesn't mind a bit. You never do cross the finish line, but you have the best afternoon of the whole summer, and you all take a very cozy nap.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "What did they build to race?",
+      "choices": [
+        "a kart",
+        "a boat",
+        "a plane"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What animal rides along?",
+      "choices": [
+        "a dog",
+        "a cat",
+        "a duck"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "Where is the big race?",
+      "choices": [
+        "Cherry Hill",
+        "the moon",
+        "a lake"
+      ],
+      "correct": 0
+    }
+  ]
+}

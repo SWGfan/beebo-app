@@ -1,0 +1,8 @@
+{
+  "format": "beebo-pack", "v": 1, "kind": "theme", "id": "evil.proto", "name": "Proto", "version": "1.0.0",
+  "author": { "name": "Mallory" }, "license": "MIT",
+  "content": {
+    "scheme": "dark", "themeColor": "#000000",
+    "vars": { "--bg": "#000000", "__proto__": { "polluted": "yes" }, "constructor": { "prototype": { "polluted": "yes" } } }
+  }
+}

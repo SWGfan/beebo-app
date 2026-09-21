@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Google Assistant App Actions (see docs/VOICE.md).
+  Playing a title by voice ("Hey Google, play Heat on Beebo") does not need anything here: it
+  uses Android's standard media voice search (MEDIA_PLAY_FROM_SEARCH and the media session).
+  These add two things on top:
+    GET_THING         "Hey Google, search for Friends on Beebo"
+    OPEN_APP_FEATURE  "Hey Google, open Continue watching in Beebo"
+  App Actions only switch on for a build installed from Google Play.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <capability android:name="actions.intent.GET_THING">
+        <intent
+            android:action="android.intent.action.SEARCH"
+            android:targetPackage="com.beeboentertainment.movie"
+            android:targetClass="com.beeboentertainment.movie.voice.VoiceSearchActivity">
+            <parameter
+                android:name="thing.name"
+                android:key="query" />
+        </intent>
+    </capability>
+
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.beeboentertainment.movie"
+            android:targetClass="com.beeboentertainment.movie.voice.VoiceSearchActivity">
+            <url-template android:value="beebo://feature{?feature}" />
+            <parameter
+                android:name="feature"
+                android:key="feature" />
+        </intent>
+    </capability>
+
+    <shortcut
+        android:shortcutId="continue_watching"
+        android:enabled="false"
+        android:shortcutShortLabel="@string/shortcut_continue_watching">
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/shortcut_continue_watching_synonyms" />
+        </capability-binding>
+    </shortcut>
+</shortcuts>

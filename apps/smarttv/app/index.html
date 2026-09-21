@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Beebo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Defence in depth: only our own scripts run; images/media/XHR may go to the user's own server
+       (any host: it is whatever address the person typed) and to the TMDB image CDN. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file: 'unsafe-inline'; img-src * data: blob:; media-src * blob:; connect-src http: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!-- The video lives outside the scaled stage so no transformed ancestor sits above it (some TV
+       media pipelines fall back to slow compositing when it does). -->
+  <div id="video-layer"></div>
+  <div id="stage">
+    <div id="screens"></div>
+    <div id="toast" class="toast" aria-live="polite"></div>
+  </div>
+  <div id="boot" class="boot">Loading&hellip;</div>
+  <script nomodule>document.getElementById('boot').textContent = 'This TV’s web engine is too old for the Beebo app (it needs a 2019 or newer Samsung or a 2020 or newer LG TV).';</script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

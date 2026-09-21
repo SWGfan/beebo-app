@@ -1,0 +1,98 @@
+name: Linux desktop build
+
+# Builds the Linux AppImage and .deb on a real Linux runner (electron-builder cannot make
+# them from Windows) and smoke-checks the result. Manual only, so pushes don't spend minutes.
+# Run it from the Actions tab, then download the "beebo-linux" artifact.
+on:
+  workflow_dispatch:
+
+# Least privilege: read-only token. Build provenance attestation would need extra
+# permissions on the linux job only; see the commented step at the end of the job.
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  linux:
+    name: AppImage + deb
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: desktop/apps/desktop
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: desktop/apps/desktop/package-lock.json
+
+      - run: npm ci --workspaces=false
+
+      # Same trusted source and LGPL+libopenh264 flavour as the Windows build
+      # (THIRD_PARTY_LICENSES/FFMPEG-SETUP.md).
+      # The archive is checked against the checksums.sha256 published in the same release.
+      # That catches a corrupt or truncated download, not a compromised release: for that,
+      # pin a dated BtbN tag and its known hash once one is chosen.
+      - name: Fetch LGPL ffmpeg/ffprobe (BtbN, linux64)
+        run: |
+          mkdir -p resources/ffmpeg-linux
+          base=https://github.com/BtbN/FFmpeg-Builds/releases/download/latest
+          f=ffmpeg-master-latest-linux64-lgpl.tar.xz
+          curl -fsSL -o "/tmp/$f" "$base/$f"
+          curl -fsSL -o /tmp/checksums.sha256 "$base/checksums.sha256"
+          (cd /tmp && grep "  $f\$" checksums.sha256 | sha256sum -c -)
+          tar -xJf "/tmp/$f" -C /tmp
+          cp /tmp/ffmpeg-master-latest-linux64-lgpl/bin/ffmpeg /tmp/ffmpeg-master-latest-linux64-lgpl/bin/ffprobe resources/ffmpeg-linux/
+          chmod +x resources/ffmpeg-linux/ffmpeg resources/ffmpeg-linux/ffprobe
+          resources/ffmpeg-linux/ffmpeg -hide_banner -version | head -1
+
+      - name: ffmpeg has the LGPL-safe H.264 encoder
+        run: resources/ffmpeg-linux/ffmpeg -hide_banner -encoders | grep -i openh264
+
+      - run: npx vite build
+      - run: npx electron-builder --linux AppImage deb
+
+      - name: List the packages
+        run: ls -la dist/*.AppImage dist/*.deb
+
+      - name: The deb carries ffmpeg and installs
+        run: |
+          dpkg-deb -c dist/*.deb | grep -E "resources/ffmpeg/(ffmpeg|ffprobe)$"
+          sudo apt-get install -y ./dist/*.deb
+
+      # Informational: proves the packaged app starts on Linux. It does not fail the build,
+      # because a headless runner can trip on things a real desktop would not.
+      - name: Smoke launch (headless, 20 s)
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y xvfb libgbm1 libasound2
+          EXE="$(find dist/linux-unpacked -maxdepth 1 -type f -perm -111 -size +50M | head -1)"
+          echo "launching $EXE"
+          xvfb-run -a timeout 20 "$EXE" --no-sandbox 2>&1 | tail -20 || true
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: beebo-linux
+          path: |
+            desktop/apps/desktop/dist/*.AppImage
+            desktop/apps/desktop/dist/*.deb
+          if-no-files-found: error
+
+      # Build provenance (SLSA) attestation is not enabled. To enable it on this public repository:
+      #   1. add to THIS job only:  permissions: { contents: read, id-token: write, attestations: write }
+      #   2. uncomment:
+      # - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      #   with:
+      #     subject-path: |
+      #       desktop/apps/desktop/dist/*.AppImage
+      #       desktop/apps/desktop/dist/*.deb

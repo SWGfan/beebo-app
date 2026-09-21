@@ -1,0 +1,36 @@
+FFmpeg attribution notice
+=========================
+
+This application uses FFmpeg (https://ffmpeg.org) to convert video files so that
+they play in the browser-based player.
+
+* FFmpeg is used UNMODIFIED and is invoked as a separate command-line program
+  (a child process). It is not linked into this application's own source code.
+* The FFmpeg build shipped with this application is an LGPL build (v2.1 or
+  later on Windows; the Linux build may be a later LGPL version depending on
+  which optional components that platform's build enables -- see the license
+  file for the exact version). It does NOT include GPL-only components (such
+  as libx264). H.264 encoding is provided by the LGPL-compatible OpenH264
+  encoder (libopenh264).
+* FFmpeg is licensed under the GNU Lesser General Public License (LGPL). A
+  copy of the exact license text that ships with each platform's FFmpeg
+  build, plus any per-component notices, is included in
+  THIRD_PARTY_LICENSES/ffmpeg/.
+* The macOS build of FFmpeg is compiled from the unmodified official source
+  (FFmpeg 8.1.3, https://ffmpeg.org/releases/ffmpeg-8.1.3.tar.xz) with
+  --disable-gpl --disable-nonfree, and statically includes the BSD-licensed
+  OpenH264 and Opus libraries; on a Mac it also uses Apple's own VideoToolbox
+  hardware encoder (part of macOS). Its exact configure line is printed by
+  "ffmpeg -version" and its licence texts are in
+  THIRD_PARTY_LICENSES/ffmpeg/LICENSE-mac.txt.
+* Source code for FFmpeg is available at https://ffmpeg.org/download.html and
+  from the provider of the specific build placed in resources/ffmpeg/
+  (Windows), resources/ffmpeg-linux/ (Linux) or resources/ffmpeg-mac-<arch>/
+  (macOS; built by installer/mac/build-ffmpeg-mac.sh).
+* FFmpeg is a trademark of Fabrice Bellard. This application is neither
+  affiliated with nor endorsed by the FFmpeg project.
+
+You may replace the FFmpeg binaries in this application's resources/ffmpeg/
+(Windows) or resources/ffmpeg-linux/ (Linux) folders with your own compatible
+LGPL build; the application uses whatever is present there. This satisfies
+the LGPL's requirement that the covered component be replaceable.

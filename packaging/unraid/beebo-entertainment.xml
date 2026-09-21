@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- DRAFT Unraid Community Applications template. It cannot work until the Docker image is published
+     to a registry (recommended: ghcr.io/swgfan/beebo-server, see ../README.md). TODO items are marked. -->
+<Container version="2">
+  <Name>Beebo-Entertainment</Name>
+  <Repository>ghcr.io/swgfan/beebo-server:latest</Repository>
+  <Registry>https://github.com/SWGfan/beebotv/pkgs/container/beebo-server</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <!-- TODO: the Unraid forum support thread you create for this template. -->
+  <Support>https://forums.unraid.net/topic/REPLACE-WITH-YOUR-SUPPORT-THREAD/</Support>
+  <Project>https://beeboentertainment.com</Project>
+  <Overview>Beebo Entertainment is a home media server: your movies, TV shows, music and photos, with a web viewer, phone and TV apps and an admin page. It converts video on the fly for devices that cannot play a file as it is (Intel and AMD GPUs can help through /dev/dri, NVIDIA through the NVIDIA driver plugin).&#xD;
+    [br][br]&#xD;
+    First run: open the container log. It prints a setup address (https, port 47811) and a one-time setup code; use them to create the owner account.&#xD;
+    [br][br]&#xD;
+    Beebo is proprietary software; the image bundles FFmpeg (LGPL). Docs: https://github.com/SWGfan/beebotv</Overview>
+  <Category>MediaServer:Video MediaServer:Music MediaServer:Photos</Category>
+  <WebUI>https://[IP]:[PORT:47811]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/SWGfan/unraid-templates/main/beebo-entertainment.xml</TemplateURL>
+  <!-- TODO: a public PNG of the Beebo icon (256x256 is in desktop/apps/desktop/resources/icons/256x256.png). -->
+  <Icon>https://raw.githubusercontent.com/SWGfan/unraid-templates/main/beebo-entertainment.png</Icon>
+  <!-- The image starts as root here so that PUID/PGID are applied, then drops to that user. -->
+  <ExtraParams>--user 0</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>Optional: Intel/AMD iGPU or GPU for hardware video conversion (add the /dev/dri device below), or NVIDIA driver plugin with the extra parameter --runtime=nvidia.</Requires>
+  <Config Name="Web UI / Server port" Target="47811" Default="47811" Mode="tcp" Description="Server, web viewer, admin pages and phone/TV apps." Type="Port" Display="always" Required="true" Mask="false">47811</Config>
+  <Config Name="App data (config)" Target="/config" Default="/mnt/user/appdata/beebo" Mode="rw" Description="Settings, accounts, watch history, artwork cache, certificates. Back this up." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/beebo</Config>
+  <Config Name="Movies" Target="/media/movies" Default="/mnt/user/media/movies" Mode="rw" Description="Movie files. Use read-only (ro) if you only watch; uploads, the Inbox and file organising need rw." Type="Path" Display="always" Required="false" Mask="false">/mnt/user/media/movies</Config>
+  <Config Name="TV shows" Target="/media/tv" Default="/mnt/user/media/tv" Mode="rw" Description="TV show files." Type="Path" Display="always" Required="false" Mask="false">/mnt/user/media/tv</Config>
+  <Config Name="Music" Target="/media/music" Default="/mnt/user/media/music" Mode="rw" Description="Music files." Type="Path" Display="always" Required="false" Mask="false">/mnt/user/media/music</Config>
+  <Config Name="Photos" Target="/media/photos" Default="/mnt/user/media/photos" Mode="rw" Description="Photos." Type="Path" Display="always" Required="false" Mask="false">/mnt/user/media/photos</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User id the server runs as (Unraid: 99 = nobody)." Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group id the server runs as (Unraid: 100 = users)." Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="Time zone" Target="TZ" Default="America/New_York" Mode="" Description="Container time zone, for example Europe/London." Type="Variable" Display="advanced" Required="false" Mask="false">America/New_York</Config>
+  <Config Name="Router port mapping (UPnP)" Target="BEEBO_UPNP" Default="0" Mode="" Description="Leave 0: a bridged container cannot ask the router to open ports. (1 only makes sense with host networking.)" Type="Variable" Display="advanced" Required="false" Mask="false">0</Config>
+  <Config Name="Secret key" Target="BEEBO_SECRET_KEY" Default="" Mode="" Description="Optional. Encrypts saved passwords and keys. Create one with: openssl rand -hex 32 . Keep a copy: without it the saved secrets cannot be read. Left empty, the server makes a key file in the app data folder." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="TMDB API key" Target="BEEBO_TMDB_API_KEY" Default="" Mode="" Description="Optional. Free key from themoviedb.org for posters, titles and cast." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="Intel/AMD GPU (/dev/dri)" Target="/dev/dri" Default="" Mode="" Description="Optional. Pass the GPU through for hardware video conversion. If the server cannot open it, also add the group of /dev/dri/renderD128 with the extra parameter --group-add=&lt;gid&gt;." Type="Device" Display="advanced" Required="false" Mask="false"/>
+</Container>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  SignInView - username + password against the home server (POST /api/login), typed with
+  the on-screen keyboard. This is the sign-in that works today. (Code-from-phone sign-in is
+  PairView; see PairingContract.brs for why it can't complete a sign-in yet.)
+-->
+<component name="SignInView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/SignInView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/PairingContract.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="brand" />
+    <Label id="title" />
+    <Label id="server" />
+    <Label id="message" wrap="true" />
+    <Label id="error" wrap="true" />
+    <ButtonRow id="buttons" vertical="true" minWidth="620" />
+    <BusySpinner id="spinner" visible="false" />
+  </children>
+</component>

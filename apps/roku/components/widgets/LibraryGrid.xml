@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  LibraryGrid - a lazily paged poster grid.
+    mode "movie" | "tv": loads itself from the server, 56 titles per request via the paged
+      public API (/api/v1/library/*), falling back to the unpaged app route on older servers.
+    mode "static": the owner supplies records with setItems().
+  Nodes are only built for what the viewer is near, so a 1300-show library stays cheap.
+-->
+<component name="LibraryGrid" extends="BeeboView">
+  <interface>
+    <field id="mode" type="string" value="movie" />
+    <field id="title" type="string" onChange="refreshHeader" />
+    <field id="hint" type="string" onChange="refreshHeader" />
+    <field id="sort" type="string" value="title" />
+    <field id="query" type="string" value="" />
+    <field id="emptyText" type="string" value="Nothing here yet." />
+    <!-- poster columns (7 for a full-width grid, 4 beside a keyboard or list) -->
+    <field id="columns" type="integer" value="7" onChange="applyColumns" />
+    <!-- the record (assocarray) the viewer picked -->
+    <field id="selected" type="assocarray" alwaysNotify="true" />
+    <!-- focus tried to leave through the top row -->
+    <field id="exitUp" type="boolean" alwaysNotify="true" />
+    <!-- the "*" (options) key was pressed -->
+    <field id="optionsKey" type="boolean" alwaysNotify="true" />
+    <function name="load" />
+    <function name="setItems" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/widgets/LibraryGrid.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Paging.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Nodes.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="header" />
+    <Label id="hint" />
+    <MarkupGrid id="grid" itemComponentName="PosterItem" vertFocusAnimationStyle="floatingFocus" />
+    <StatusPanel id="status" />
+  </children>
+</component>

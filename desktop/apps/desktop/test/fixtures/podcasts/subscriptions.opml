@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>My podcasts</title></head>
+  <body>
+    <outline text="Tech" title="Tech">
+      <outline type="rss" text="The Example Show" title="The Example Show" xmlUrl="https://example.test/feed.xml" htmlUrl="https://example.test/show"/>
+      <outline type="rss" text="Atom Cast" xmlurl="HTTPS://Example.TEST/atom.xml#frag"/>
+    </outline>
+    <outline type="rss" text="Duplicate" xmlUrl="https://example.test/feed.xml"/>
+    <outline type="rss" text="Bad scheme" xmlUrl="javascript:alert(1)"/>
+    <outline type="rss" text="Creds" xmlUrl="https://user:pass@example.test/private.xml"/>
+    <outline text="No url"/>
+  </body>
+</opml>

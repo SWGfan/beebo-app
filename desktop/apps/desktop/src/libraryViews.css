@@ -1,0 +1,290 @@
+/* Movies / TV Shows library views: the view switcher, the filter panel, saved views, and the Detailed
+   list / Shelves / Backdrops / Grouped / Folders views (src/components/Library*.jsx).
+
+   RESTYLING: every colour, radius and size below is read from the --lv-* variables in the first block, and
+   those default to the app's own theme variables (styles.css :root: --panel, --text, --muted, --accent,
+   --border, --link, --focus...). Change a look by changing a variable there, not a rule further down.
+   Layout numbers that the code needs (row heights, card gaps) live in the components, not here.
+
+   styles.css restyles every <button> (`button:not(.nav-btn):not(.subtab):not(.primary):not(.bare)`) and is
+   loaded after this file, so buttons here carry `:not(#lv)` purely to outrank it. */
+
+:root {
+  --lv-surface: var(--panel, #101c32);
+  --lv-surface-raised: var(--surface-raised, #152540);
+  --lv-pane-bg: #0b1528;
+  --lv-header-bg: #14243f;
+  --lv-border: var(--border, #2c3e5d);
+  --lv-text: var(--text, #f2f3ff);
+  --lv-muted: var(--muted, #acb6cf);
+  --lv-accent: var(--accent, #7950cf);
+  --lv-accent-text: #fff;
+  --lv-link: var(--link, #bca5ff);
+  --lv-focus: var(--focus, #d4af37);
+  --lv-danger: #ff9d9d;
+  --lv-row-odd: #0f1e37;
+  --lv-row-hover: #1a2c4d;
+  --lv-row-active: #21365c;
+  --lv-badge-bg: rgba(0, 0, 0, 0.72);
+  --lv-badge-text: #eee;
+  --lv-badge-strong-bg: #6540b1;
+  --lv-progress-track: rgba(255, 255, 255, 0.25);
+  --lv-progress-fill: var(--lv-focus);
+  --lv-radius: 10px;
+  --lv-radius-sm: 8px;
+  --lv-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+.lv-sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ------------------------------------------------------------ toolbar controls */
+
+.lv-controls { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lv-menu-wrap { display: inline-flex; }
+.lv-button { display: inline-flex; align-items: center; gap: 6px; }
+.lv-button.is-on { border-color: var(--lv-link); color: var(--lv-text); }
+.lv-icon { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+.lv-button-label { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.lv-popover {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 13px;
+  background: var(--lv-surface);
+  color: var(--lv-text);
+  border: 1px solid var(--lv-border);
+  border-radius: var(--lv-radius);
+  box-shadow: var(--lv-shadow);
+}
+
+/* view switcher menu */
+.lv-switch-menu { gap: 2px; padding: 6px; }
+button.lv-menu-item:not(#lv) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'name key' 'hint hint';
+  align-items: baseline;
+  gap: 0 12px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  color: var(--lv-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--lv-radius-sm);
+  cursor: pointer;
+}
+button.lv-menu-item:not(#lv):hover, button.lv-menu-item:not(#lv):focus-visible { background: var(--lv-row-hover); }
+button.lv-menu-item.is-on:not(#lv) { background: var(--lv-row-active); border-color: var(--lv-link); }
+.lv-menu-name { grid-area: name; font-weight: 600; }
+.lv-menu-hint { grid-area: hint; font-size: 11px; color: var(--lv-muted); }
+.lv-kbd { grid-area: key; font: inherit; font-size: 11px; color: var(--lv-muted); }
+
+/* filter panel */
+.lv-filter-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  align-content: start;
+}
+.lv-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.lv-field-wide { grid-column: 1 / -1; }
+.lv-field-label { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--lv-link); }
+.lv-field-hint { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--lv-muted); }
+.lv-field select, .lv-text, .lv-num { width: 100%; padding: 7px 10px; font-size: 13px; }
+.lv-range { display: flex; align-items: center; gap: 8px; color: var(--lv-muted); }
+.lv-range .lv-num { flex: 1 1 0; min-width: 0; }
+.lv-check { display: flex; align-items: center; gap: 8px; min-height: 34px; cursor: pointer; }
+.lv-check input { width: 16px; height: 16px; padding: 0; }
+.lv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lv-chips-scroll { max-height: 112px; overflow-y: auto; padding: 2px; }
+button.lv-chip-toggle:not(#lv) {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--lv-muted);
+  background: transparent;
+  border: 1px solid var(--lv-border);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button.lv-chip-toggle:not(#lv):hover { color: var(--lv-text); }
+button.lv-chip-toggle.is-on:not(#lv) { color: var(--lv-accent-text); background: var(--lv-accent); border-color: var(--lv-accent); }
+.lv-chip-count { opacity: 0.7; font-variant-numeric: tabular-nums; }
+.lv-note { margin: 0; color: var(--lv-muted); font-size: 12px; }
+.lv-filter-panel .lv-note { grid-column: 1 / -1; }
+.lv-panel-foot { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; }
+
+button.lv-btn:not(#lv) {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--lv-text);
+  background: var(--lv-surface-raised);
+  border: 1px solid var(--lv-border);
+  border-radius: var(--lv-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+button.lv-btn:not(#lv):hover:not(:disabled) { border-color: var(--lv-link); }
+button.lv-btn.is-primary:not(#lv) { background: var(--lv-accent); border-color: var(--lv-accent); color: var(--lv-accent-text); }
+button.lv-btn.is-danger:not(#lv) { color: var(--lv-danger); }
+button.lv-btn.lv-wide:not(#lv) { width: 100%; }
+
+/* saved views */
+.lv-saved-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.lv-saved-item { display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: var(--lv-radius-sm); }
+.lv-saved-item.is-active { background: var(--lv-row-active); }
+button.lv-saved-apply:not(#lv) {
+  flex: 1 1 auto; min-width: 0; padding: 6px 8px; text-align: left; font-size: 13px; font-weight: 600;
+  color: var(--lv-text); background: transparent; border: 0; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+button.lv-saved-apply:not(#lv):hover { text-decoration: underline; }
+.lv-inline-edit { display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.lv-save-row { display: flex; gap: 6px; }
+.lv-import summary { cursor: pointer; color: var(--lv-link); }
+.lv-import textarea { margin: 6px 0; }
+.lv-share-text { font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
+
+/* ------------------------------------------------------------ strip above a view */
+
+.lv { margin-top: 4px; }
+.lv-strip { display: flex; align-items: center; gap: 12px; min-height: 40px; margin: 0 0 8px; overflow: hidden; }
+.lv-count { flex: 0 0 auto; color: var(--lv-muted); font-size: 13px; white-space: nowrap; }
+.lv-status { flex: 1 1 0; min-width: 0; color: var(--lv-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.lv-sort { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.lv-inline-label { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; font-size: 12px; color: var(--lv-muted); }
+.lv-inline-label select { padding: 5px 8px; font-size: 13px; }
+.lv-active { display: flex; flex: 0 1 auto; gap: 6px; margin: 0; padding: 0; list-style: none; overflow-x: auto; min-width: 0; }
+button.lv-active-chip:not(#lv) {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; font-size: 12px; white-space: nowrap;
+  color: var(--lv-text); background: var(--lv-surface-raised); border: 1px solid var(--lv-link); border-radius: 999px; cursor: pointer;
+}
+button.lv-active-chip:not(#lv):hover { background: var(--lv-row-hover); }
+.lv-x { display: inline-grid; place-items: center; width: 16px; height: 16px; font-size: 11px; line-height: 1; border-radius: 50%; background: var(--lv-border); }
+
+.lv-empty { padding: 36px; text-align: center; color: var(--lv-muted); border: 1px dashed var(--lv-border); border-radius: var(--lv-radius); }
+.lv-empty .lv-btn { margin-left: 8px; }
+
+/* ------------------------------------------------------------ the scrolling pane (Detailed, Backdrops, Grouped, Folders) */
+
+.lv-pane {
+  position: relative;
+  overflow: auto;
+  background: var(--lv-pane-bg);
+  border: 1px solid var(--lv-border);
+  border-radius: var(--lv-radius);
+  overscroll-behavior: contain;
+}
+.lv-pane:focus-visible, .lv-shelves:focus-visible { outline: 2px solid var(--lv-focus); outline-offset: -2px; }
+.lv-body { position: relative; }
+.lv-window { position: absolute; top: 0; left: 0; right: 0; }
+.lv-line { position: absolute; left: 0; right: 0; display: grid; }
+
+/* group headers (Grouped): the real one in the flow, and a pinned copy that follows the scroll */
+.lv-group-head, .lv-sticky {
+  display: flex; align-items: baseline; gap: 10px; padding: 0 16px;
+  font-size: 15px; font-weight: 700; color: var(--lv-text);
+  background: var(--lv-header-bg); border-bottom: 1px solid var(--lv-border);
+}
+.lv-group-head { position: absolute; left: 0; right: 0; align-items: center; }
+.lv-sticky { position: sticky; top: 0; z-index: 3; align-items: center; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); }
+.lv-group-count { font-size: 12px; font-weight: 400; color: var(--lv-muted); font-variant-numeric: tabular-nums; }
+
+/* poster and backdrop tiles */
+.lv-tile { position: relative; cursor: pointer; }
+.lv-tile.is-active, .lv-pane:focus .lv-tile.is-active { outline: 2px solid var(--lv-focus); outline-offset: 1px; }
+.lv-art { position: relative; overflow: hidden; }
+.lv-art > img { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; }
+.lv-art-wide > img { aspect-ratio: 16 / 9; }
+.lv-art-wide > img.is-poster-fallback { object-position: center 25%; filter: saturate(0.85) brightness(0.9); }
+.lv-noart { display: grid; place-items: center; aspect-ratio: 2 / 3; padding: 8px; font-size: 12px; text-align: center; color: var(--lv-muted); background: var(--poster-bg, #080d18); overflow-wrap: anywhere; }
+.lv-art-wide .lv-noart { aspect-ratio: 16 / 9; }
+.lv-meta { height: 58px; overflow: hidden; }
+.lv-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lv-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lv-quality {
+  position: absolute; right: 4px; bottom: 4px; z-index: 1; padding: 2px 5px; font-size: 10px; font-weight: 800;
+  color: var(--lv-badge-text); background: var(--lv-badge-bg); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 4px;
+}
+.lv-fade {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 10px 8px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0));
+}
+.lv-fade .lv-title { font-size: 14px; font-weight: 700; color: #fff; }
+.lv-fade .lv-sub { font-size: 12px; color: #d3d9e6; }
+.lv-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--lv-progress-track); }
+.lv-progress-fill { display: block; height: 100%; background: var(--lv-progress-fill); }
+
+/* badges */
+.lv-badges { display: inline-flex; flex-wrap: wrap; gap: 5px; }
+.lv-badge { padding: 1px 7px; font-size: 11px; color: var(--lv-badge-text); background: var(--lv-surface-raised); border: 1px solid var(--lv-border); border-radius: 5px; white-space: nowrap; }
+.lv-badge.is-strong { background: var(--lv-badge-strong-bg); border-color: transparent; color: var(--lv-accent-text); font-weight: 700; }
+.lv-chip { padding: 0 6px; font-size: 11px; font-weight: 700; color: #111; background: #9e9e9e; border-radius: 4px; }
+
+/* ------------------------------------------------------------ detailed list */
+
+.lv-detail { display: flex; gap: 16px; padding: 12px 16px; background: var(--lv-pane-bg); border-bottom: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; overflow: hidden; }
+.lv-detail.is-odd { background: var(--lv-row-odd); }
+.lv-detail:hover { background: var(--lv-row-hover); }
+.lv-detail.is-active { background: var(--lv-row-active); box-shadow: inset 0 0 0 2px var(--lv-focus); }
+.lv-detail-art { position: relative; flex: 0 0 auto; width: 88px; height: 132px; overflow: hidden; border-radius: 6px; }
+.lv-detail-art > img, .lv-detail-art .lv-noart { display: block; width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
+.lv-detail-body { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.lv-detail-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.lv-detail-title { font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lv-detail-sub, .lv-detail-rating, .lv-detail-genres, .lv-detail-size { font-size: 12px; color: var(--lv-muted); white-space: nowrap; }
+.lv-detail-rating { color: var(--lv-focus); }
+.lv-detail-plot { margin: 0; font-size: 13px; line-height: 1.4; color: var(--lv-text); opacity: 0.88; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.lv-detail-tech { display: flex; align-items: center; gap: 10px; margin-top: auto; }
+
+/* ------------------------------------------------------------ shelves */
+
+.lv-shelves { display: flex; flex-direction: column; gap: 6px; }
+.lv-shelf { position: relative; }
+.lv-shelf-title { display: flex; align-items: baseline; gap: 10px; margin: 10px 0 8px; font-size: 16px; }
+.lv-shelf-count { font-size: 12px; font-weight: 400; color: var(--lv-muted); }
+.lv-shelf-frame { position: relative; }
+.lv-shelf-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; padding: 0 0 2px; }
+.lv-shelf-track { position: relative; }
+.lv-shelf-slot { position: absolute; top: 0; }
+button.lv-shelf-nav:not(#lv) {
+  position: absolute; top: 0; bottom: 0; z-index: 2; width: 36px; padding: 0; font-size: 26px; line-height: 1; color: #fff;
+  background: rgba(0, 0, 0, 0.55); border: 0; border-radius: 0; opacity: 0; cursor: pointer; transition: opacity 0.15s ease;
+}
+button.lv-shelf-nav.is-back:not(#lv) { left: 0; }
+button.lv-shelf-nav.is-forward:not(#lv) { right: 0; }
+.lv-shelf-frame:hover button.lv-shelf-nav:not(#lv):not(:disabled) { opacity: 1; }
+button.lv-shelf-nav:not(#lv):disabled { opacity: 0; cursor: default; }
+
+/* ------------------------------------------------------------ folders */
+
+.lv-crumbs { display: flex; align-items: center; gap: 12px; min-height: 40px; margin: 0 0 6px; }
+.lv-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; min-width: 0; flex: 1 1 auto; }
+.lv-crumbs li { display: inline-flex; align-items: center; }
+button.lv-crumb:not(#lv) { padding: 3px 8px; font-size: 13px; color: var(--lv-link); background: transparent; border: 0; border-radius: 6px; cursor: pointer; }
+button.lv-crumb:not(#lv):hover { background: var(--lv-row-hover); }
+.lv-crumb.is-current { padding: 3px 8px; font-size: 13px; font-weight: 700; }
+.lv-crumb-sep { color: var(--lv-muted); }
+.lv-crumbs-count { flex: 0 0 auto; font-size: 12px; color: var(--lv-muted); }
+.lv-folder-row { display: flex; align-items: center; gap: 10px; padding: 0 16px; cursor: pointer; background: var(--lv-pane-bg); border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+.lv-folder-row.is-odd { background: var(--lv-row-odd); }
+.lv-folder-row:hover { background: var(--lv-row-hover); }
+.lv-folder-row.is-active { background: var(--lv-row-active); box-shadow: inset 0 0 0 2px var(--lv-focus); }
+.lv-folder-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
+.lv-folder-meta { flex: 0 0 auto; font-size: 12px; color: var(--lv-muted); white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .lv-filter-panel { grid-template-columns: minmax(0, 1fr); }
+  .lv-detail-art { width: 66px; height: 99px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.lv-shelf-nav:not(#lv) { transition: none; }
+}

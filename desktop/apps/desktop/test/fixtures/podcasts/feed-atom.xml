@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Atom Cast</title>
+  <subtitle>Podcasts can be Atom too</subtitle>
+  <author><name>Atom Author</name></author>
+  <entry>
+    <id>tag:example.test,2024:1</id>
+    <title>Atom episode</title>
+    <published>2024-02-01T10:00:00Z</published>
+    <link rel="alternate" href="https://example.test/atom/1"/>
+    <link rel="enclosure" type="audio/mpeg" length="5000" href="https://cdn.example.test/atom1.mp3"/>
+    <summary>Summary &lt;b&gt;text&lt;/b&gt;</summary>
+  </entry>
+</feed>

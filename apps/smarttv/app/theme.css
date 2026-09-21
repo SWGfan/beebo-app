@@ -1,0 +1,69 @@
+/* ==========================================================================
+   Beebo TV - THEME. The one file a designer edits to restyle the app.
+   Everything visual (colours, fonts, sizes, spacing, focus look, motion) is a custom property here;
+   app.css only consumes them. All sizes are px on the 1920x1080 design canvas - the whole canvas is
+   scaled down uniformly to 1280x720 by main.js, so never use vw/vh/rem here.
+   Old-TV rules (Chromium 63): no gap on flexbox, no aspect-ratio, no min()/max()/clamp(), no inset.
+   ========================================================================== */
+:root {
+  /* --- colour ---------------------------------------------------------- */
+  --bg: #0b0d12;
+  --bg-elevated: #141824;
+  --bg-card: #1b2131;
+  --bg-input: #10141e;
+  --text: #f3f5f9;
+  --text-dim: #a7b0c4;
+  --text-faint: #6f7a92;
+  --accent: #f6b73c;
+  --accent-text: #1c1300;
+  --success: #5ad6a0;
+  --danger: #ff7a7a;
+  --scrim: rgba(6, 8, 12, 0.72);
+  --backdrop-tint: rgba(11, 13, 18, 0.55);
+
+  /* --- focus ring (must stay very visible from 3 m away) ------------------ */
+  --focus-ring: #ffffff;
+  --focus-ring-width: 6px;
+  --focus-glow: 0 10px 34px rgba(0, 0, 0, 0.65);
+  --focus-scale: 1.06;
+  --focus-bg: #ffffff;
+  --focus-text: #0b0d12;
+
+  /* --- type ---------------------------------------------------------------- */
+  --font: "Segoe UI", "Roboto", "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+  --fs-hero: 68px;
+  --fs-title: 46px;
+  --fs-heading: 36px;
+  --fs-body: 28px;
+  --fs-small: 23px;
+  --fs-code: 120px;
+  --fw-normal: 400;
+  --fw-bold: 700;
+  --lh: 1.35;
+
+  /* --- layout ---------------------------------------------------------------- */
+  --canvas-w: 1920px;
+  --canvas-h: 1080px;
+  --safe-x: 96px; /* 5% overscan-safe margins: keep every control and all text inside them */
+  --safe-y: 54px;
+  --radius: 12px;
+  --radius-small: 8px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 40px;
+  --space-5: 64px;
+
+  /* --- posters ------------------------------------------------------------------ */
+  --poster-w: 220px;
+  --poster-h: 330px;
+  --grid-poster-w: 190px;
+  --grid-poster-h: 285px;
+  --grid-cols: 8;
+  --tile-gap: 26px;
+
+  /* --- motion (keep light: TV CPUs are weak) ------------------------------------------ */
+  --anim-fast: 110ms;
+  --anim-normal: 180ms;
+  --ease: ease-out;
+}

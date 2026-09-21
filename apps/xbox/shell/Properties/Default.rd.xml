@@ -1,0 +1,10 @@
+<!--
+    Runtime directives for .NET Native (Release builds). The defaults are what the Visual Studio UWP
+    template ships and are enough for this app. Documented at https://go.microsoft.com/fwlink/?LinkID=391919
+-->
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <!-- An Assembly element named *Application* applies to all assemblies in the package. -->
+    <Assembly Name="*Application*" Dynamic="Required All" />
+  </Application>
+</Directives>

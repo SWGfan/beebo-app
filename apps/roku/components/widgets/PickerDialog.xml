@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  PickerDialog - a modal list ("Quality", "Audio", "Sort by"...). The owner adds it as a
+  child, sets title/options/selectedIndex, calls focusMe, and reads `chosen`
+  (the option index, or -1 when the person pressed Back). The owner then removes it.
+-->
+<component name="PickerDialog" extends="Group">
+  <interface>
+    <field id="title" type="string" onChange="refresh" />
+    <field id="options" type="array" onChange="refresh" />
+    <field id="selectedIndex" type="integer" value="0" onChange="refresh" />
+    <field id="chosen" type="integer" alwaysNotify="true" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/widgets/PickerDialog.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
+  <children>
+    <Rectangle id="scrim" translation="[0,0]" width="1920" height="1080" />
+    <Rectangle id="panel" />
+    <Label id="title" />
+    <LabelList id="list" />
+  </children>
+</component>

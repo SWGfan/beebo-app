@@ -1,0 +1,5 @@
+{
+  "format": "beebo-pack", "v": 1, "kind": "layout", "id": "Evil Pack!!", "name": "<script>alert(1)</script>", "version": "one",
+  "author": { "name": "Mallory", "url": "javascript:alert(1)" }, "license": "MIT",
+  "content": { "density": "compact" }
+}

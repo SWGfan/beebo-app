@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  SetupView - first run: find the Beebo server. Scans the home network, or takes a typed
+  address, a Beebo name (<name>.home.beebo.tv), or a code entered on a phone (PairView).
+-->
+<component name="SetupView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/SetupView.brs" />
+  <children>
+    <Label id="brand" />
+    <Label id="title" />
+    <Label id="message" wrap="true" />
+    <BusySpinner id="spinner" visible="false" />
+    <LabelList id="menu" visible="false" />
+  </children>
+</component>

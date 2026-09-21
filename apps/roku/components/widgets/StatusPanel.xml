@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  StatusPanel - loading / empty / error state: a title, a friendly message and 0-2 buttons.
+  Set `busy` for the loading look (spinner, no buttons).
+-->
+<component name="StatusPanel" extends="Group">
+  <interface>
+    <field id="title" type="string" onChange="refresh" />
+    <field id="message" type="string" onChange="refresh" />
+    <field id="buttons" type="array" onChange="refresh" />
+    <field id="busy" type="boolean" value="false" onChange="refresh" />
+    <field id="selected" type="integer" alwaysNotify="true" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/widgets/StatusPanel.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
+  <children>
+    <BusySpinner id="spinner" visible="false" />
+    <Label id="title" wrap="true" width="1300" />
+    <Label id="message" wrap="true" width="1300" lineSpacing="6" />
+    <ButtonRow id="buttons" />
+  </children>
+</component>

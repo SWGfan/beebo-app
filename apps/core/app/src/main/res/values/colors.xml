@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#FFEDEDED</color>
+    <color name="brand">#E5B94E</color>
+    <color name="black">#FF000000</color>
+    <color name="scrim">#99000000</color>
+    <!-- D-pad focus highlight on Android TV (values-television/themes.xml). -->
+    <color name="tv_focus_highlight">#73E5B94E</color>
+</resources>

@@ -1,0 +1,47 @@
+{
+  "info": { "ServerName": "Den Jellyfin", "ProductName": "Jellyfin Server", "Version": "10.9.11" },
+  "users": [
+    { "Id": "11111111-aaaa-bbbb-cccc-000000000001", "Name": "Nick" },
+    { "Id": "11111111-aaaa-bbbb-cccc-000000000002", "Name": "Sam" }
+  ],
+  "series": {
+    "11111111-aaaa-bbbb-cccc-000000000001": [
+      { "Id": "s-sev", "Name": "Severance", "ProductionYear": 2022, "ProviderIds": { "Tmdb": "95396", "Imdb": "tt11280740", "Tvdb": "371980" }, "UserData": { "IsFavorite": true, "Played": false, "PlayCount": 0 } },
+      { "Id": "s-chern", "Name": "Chernobyl", "ProductionYear": 2019, "ProviderIds": { "Tmdb": "87108", "Tvdb": "360893" }, "UserData": { "IsFavorite": false, "Rating": 9.5, "PlayCount": 0 } }
+    ],
+    "11111111-aaaa-bbbb-cccc-000000000002": [
+      { "Id": "s-sev", "Name": "Severance", "ProductionYear": 2022, "ProviderIds": { "Tmdb": "95396" }, "UserData": { "IsFavorite": false, "PlayCount": 0 } }
+    ]
+  },
+  "movies": {
+    "11111111-aaaa-bbbb-cccc-000000000001": [
+      { "Id": "m-matrix", "Name": "The Matrix", "ProductionYear": 1999, "Path": "/media/movies/The Matrix (1999)/The Matrix (1999).mkv", "RunTimeTicks": 81600000000, "ProviderIds": { "Tmdb": "603", "Imdb": "tt0133093" }, "UserData": { "Played": true, "PlayCount": 3, "LastPlayedDate": "2023-04-01T20:00:00.0000000Z", "IsFavorite": true, "PlaybackPositionTicks": 0 } },
+      { "Id": "m-heat", "Name": "Heat", "ProductionYear": 1995, "RunTimeTicks": 102000000000, "ProviderIds": { "Tmdb": "949", "Imdb": "tt0113277" }, "UserData": { "Played": false, "PlayCount": 0, "PlaybackPositionTicks": 27125000000, "LastPlayedDate": "2023-01-02T20:00:00Z" } },
+      { "Id": "m-unseen", "Name": "Never Touched", "ProductionYear": 2001, "ProviderIds": { "Tmdb": "424242" }, "UserData": { "Played": false, "PlayCount": 0, "PlaybackPositionTicks": 0 } },
+      { "Id": "m-alien", "Name": "Alien", "ProductionYear": 1979, "ProviderIds": { "Tmdb": "348" }, "UserData": { "Played": false, "PlayCount": 0, "Rating": 8 } }
+    ],
+    "11111111-aaaa-bbbb-cccc-000000000002": [
+      { "Id": "m-matrix", "Name": "The Matrix", "ProductionYear": 1999, "ProviderIds": { "Tmdb": "603" }, "UserData": { "Played": false, "PlayCount": 0, "IsFavorite": false } },
+      { "Id": "m-alien", "Name": "Alien", "ProductionYear": 1979, "ProviderIds": { "Tmdb": "348" }, "UserData": { "Played": true, "PlayCount": 1, "LastPlayedDate": "2022-10-31T23:00:00Z" } }
+    ]
+  },
+  "episodes": {
+    "11111111-aaaa-bbbb-cccc-000000000001": [
+      { "Id": "e-sev-1", "Name": "Good News About Hell", "SeriesId": "s-sev", "SeriesName": "Severance", "ParentIndexNumber": 1, "IndexNumber": 1, "Path": "/media/tv/Severance/Season 1/Severance S01E01.mkv", "ProviderIds": { "Tvdb": "8578851" }, "UserData": { "Played": true, "PlayCount": 1, "LastPlayedDate": "2022-03-01T22:10:00Z" } },
+      { "Id": "e-sev-2", "Name": "Half Loop", "SeriesId": "s-sev", "SeriesName": "Severance", "ParentIndexNumber": 1, "IndexNumber": 2, "RunTimeTicks": 30000000000, "UserData": { "Played": false, "PlayCount": 0, "PlaybackPositionTicks": 6010000000 } },
+      { "Id": "e-sev-3", "Name": "In Perpetuity", "SeriesId": "s-sev", "SeriesName": "Severance", "ParentIndexNumber": 1, "IndexNumber": 3, "UserData": { "Played": false, "PlayCount": 0 } }
+    ],
+    "11111111-aaaa-bbbb-cccc-000000000002": []
+  },
+  "playlists": {
+    "11111111-aaaa-bbbb-cccc-000000000001": [ { "Id": "pl-1", "Name": "Movie Night" } ],
+    "11111111-aaaa-bbbb-cccc-000000000002": []
+  },
+  "playlistItems": {
+    "pl-1": [
+      { "Id": "m-heat", "Type": "Movie", "Name": "Heat", "ProductionYear": 1995, "ProviderIds": { "Tmdb": "949" } },
+      { "Id": "m-matrix", "Type": "Movie", "Name": "The Matrix", "ProductionYear": 1999, "ProviderIds": { "Tmdb": "603" } },
+      { "Id": "m-newfilm", "Type": "Movie", "Name": "Untouched Playlist Film", "ProductionYear": 2015, "ProviderIds": { "Tmdb": "777" } }
+    ]
+  }
+}

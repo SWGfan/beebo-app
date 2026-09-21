@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Amazon Appstore build only (Fire TV, Fire tablets). Merged over src/main/AndroidManifest.xml.
+  See docs/FIRE-TV.md. Fire OS has no Google Play services, so anything that needs them is
+  taken out here, and nothing may make Amazon's device filter drop a Fire TV.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Fire TV has no camera. The camera is only used to scan a QR code to sign in (phones and
+      tablets), so it must never be a requirement: a CAMERA permission without these lines makes
+      the app "require" a camera and hides it from every Fire TV stick and Cube. Declared here
+      (not only where the permission is) so the amazon guard, checkAmazonDebugPolicy, can rely on it.
+    -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <application>
+        <!-- No Cast SDK in this build (no Google Play services on Fire OS): drop its entry point. -->
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            tools:node="remove" />
+    </application>
+</manifest>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Samsung Tizen TV web app manifest for Beebo TV.
+  The version attribute of the widget element is stamped from package.json by build.mjs.
+  PLACEHOLDERS to replace before store submission (Samsung Seller Office assigns/validates these):
+    widget id, tizen:application id / package (10 alphanumeric characters), icon.png artwork.
+  Hosted-package model: all HTML/CSS/JS is inside this package; the ONLY network access is to the
+  home server the person types in, which is why <access origin="*"> is needed.
+-->
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
+        id="https://beebo.tv/tizen/BeeboTV" version="0.1.0" viewmodes="maximized">
+  <tizen:application id="BeeboTV001.BeeboTV" package="BeeboTV001" required_version="5.0"/>
+  <content src="index.html"/>
+  <feature name="http://tizen.org/feature/screen.size.all"/>
+  <icon src="icon.png"/>
+  <name>Beebo</name>
+  <description>Watch the movies and shows on your own Beebo computer.</description>
+  <author>Beebo Entertainment</author>
+  <tizen:profile name="tv-samsung"/>
+  <!-- registerKey() for the media keys (play/pause/stop/rewind/fast-forward/colour keys) -->
+  <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+  <!-- XHR + video to the home server -->
+  <tizen:privilege name="http://tizen.org/privilege/internet"/>
+  <access origin="*" subdomains="true"/>
+  <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable"
+                 encryption="disable" install-location="auto" hwkey-event="enable"/>
+</widget>

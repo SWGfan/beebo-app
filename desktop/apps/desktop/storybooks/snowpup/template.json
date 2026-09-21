@@ -1,0 +1,234 @@
+{
+  "title": "Frost and the Big Snowy Hill",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend on the snowy hill",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PUP_NAME}}",
+      "role": "a bouncy, excitable husky puppy learning to be brave",
+      "default": "Frost"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{PUP_NAME}} and the Big Snowy Hill",
+    "dedication": "For every brave little pup who tries something new."
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "Snow had fallen all night, and the whole world looked like a fluffy white pillow. You pulled on your warmest mittens and stepped outside, where your best friend {{FRIEND_NAME}} was already waiting with a shiny red sled. \"Good morning, {{CHILD_NAME}}!\" {{FRIEND_NAME}} cheered. \"Today is the perfect day for the big snowy hill!\" A fluffy husky puppy named {{PUP_NAME}} bounced in circles around your boots, sending up little puffs of snow. \"Woof! Snow! So much snow!\" yipped {{PUP_NAME}}, tail wagging like a windshield wiper. \"But that hill is really, really tall.\" You gave the puppy a gentle pat. Which way should the three of you go first?",
+      "choices": [
+        {
+          "text": "March straight up the big hill",
+          "target": 2
+        },
+        {
+          "text": "Play in the soft snow at the bottom first",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You and {{FRIEND_NAME}} trudged up the snowy hill, boots going crunch, crunch, crunch. {{PUP_NAME}} scrambled behind you, ears twitching. \"Race you to the top!\" {{FRIEND_NAME}} called out, laughing into the frosty air. At the very top, the whole valley sparkled below like a bowl of sugar. \"Wow, we are up so high,\" whispered {{PUP_NAME}}, peeking over the edge with big round eyes. \"Is it really that far down?\" You knelt beside the puppy and smiled warmly. \"We can go as slow as you like,\" you said.",
+      "choices": [
+        {
+          "text": "Sit on the sled together right away",
+          "target": 4
+        },
+        {
+          "text": "Build a little snow ramp first for extra fun",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "Down at the bottom of the hill, the snow was soft and deep and perfect for flopping into. {{FRIEND_NAME}} fell backward with a happy plop. \"Look, {{CHILD_NAME}}, I am making a snow angel!\" {{FRIEND_NAME}} giggled, swishing both arms. {{PUP_NAME}} took one careful step into the deep snow and sank up to the ears. \"Yikes! The snow is eating my paws!\" the puppy squeaked, wiggling free. You laughed kindly and showed the pup how to hop like a bunny across the top. \"See? The deep snow is just soft and squishy, not scary at all,\" you said gently.",
+      "choices": [
+        {
+          "text": "Build a friendly snowman together",
+          "target": 5
+        },
+        {
+          "text": "Follow {{FRIEND_NAME}} up the hill to try sledding",
+          "target": 6
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You settled onto the red sled and patted the spot behind you. {{FRIEND_NAME}} hopped on and gripped the sides. \"Hold on tight, here we goooo!\" {{FRIEND_NAME}} sang out cheerfully. But {{PUP_NAME}} sat frozen in the snow, tail tucked. \"I want to come, but my paws feel wobbly,\" the puppy admitted in a small voice. You reached back and gave the pup a warm, steady look. \"Brave means trying, even when your tummy feels fluttery,\" you told {{PUP_NAME}} kindly. The puppy took a deep breath, ears perking up just a little.",
+      "choices": [
+        {
+          "text": "Let {{PUP_NAME}} sit safe in your lap for the first ride",
+          "target": 7
+        },
+        {
+          "text": "Take one slow, gentle practice glide first",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You and {{FRIEND_NAME}} patted the snow into a small, smooth ramp, giggling the whole time. \"This is going to be the bounciest, gentlest little hop ever!\" {{FRIEND_NAME}} announced proudly. {{PUP_NAME}} sniffed the ramp, then jumped back with a surprised yip. \"It looks like a snowy whale! Will it swallow the sled?\" the puppy worried, tail low. You giggled and gave the ramp a soft pat to show it was only friendly snow. \"It is just a tiny bump for a tiny whee,\" you said with a wink. {{PUP_NAME}} tilted its head and wagged, curious now instead of scared.",
+      "choices": [
+        {
+          "text": "Slide gently down over the little ramp",
+          "target": 8
+        },
+        {
+          "text": "First warm up with cocoa from {{FRIEND_NAME}}'s thermos",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "Up the hill you climbed, snow squeaking under your boots. {{FRIEND_NAME}} skipped ahead, cheeks pink as apples. \"Come on, slowpokes, the top is the best part!\" {{FRIEND_NAME}} called back happily. {{PUP_NAME}} climbed close beside you, glancing down every few steps. \"It is a long way up. Do you think I can really slide down that?\" the puppy asked, voice trembling like a leaf. You crouched and touched your nose to the pup's cold little nose. \"I believe in you, {{PUP_NAME}}, and I will be right there the whole time,\" you promised. The puppy's tail gave one hopeful wag.",
+      "choices": [
+        {
+          "text": "Try a slow first slide together",
+          "target": 8
+        },
+        {
+          "text": "Build a cheerful snowman at the top for courage",
+          "target": 10
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You scooped {{PUP_NAME}} gently into your lap, wrapping your arms around the warm, fuzzy puppy. \"Ready, set, and here we go, nice and easy!\" {{FRIEND_NAME}} cheered from the front. The sled began to slide, soft and smooth, snow whispering underneath. \"Oh! Oh! We are moving, we are really moving!\" {{PUP_NAME}} gasped, then started to giggle. \"This is not scary at all, this is wonderful!\" By the time you reached the bottom, the puppy was wagging so hard the whole sled wiggled. \"Again! Can we go again?\" {{PUP_NAME}} barked joyfully.",
+      "choices": [
+        {
+          "text": "Ride down one more happy time",
+          "target": 11
+        },
+        {
+          "text": "Warm up with cocoa and cheer for {{PUP_NAME}}",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You held the sled steady while {{PUP_NAME}} climbed aboard, paws shaking just a little. \"Slow and gentle, that is the secret,\" you said softly. \"I am ready. I think. Maybe. Okay, yes, I am ready!\" {{PUP_NAME}} announced, puffing out its fuzzy chest. {{FRIEND_NAME}} gave the smallest push, and the sled slid down as slow as a sleepy turtle. \"You are doing it, {{PUP_NAME}}, you are really doing it!\" {{FRIEND_NAME}} cheered, running alongside. The puppy's worried eyes turned into a huge sparkly smile. \"I am brave! Look at me, {{CHILD_NAME}}, I am being brave!\" it howled happily.",
+      "choices": [
+        {
+          "text": "Zoom down the whole hill on a bigger, still-gentle ride",
+          "target": 11
+        },
+        {
+          "text": "Celebrate with a snowman and warm cocoa",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "{{FRIEND_NAME}} unscrewed a thermos, and warm cocoa steam curled up into the cold air. \"One cozy cup for you, {{CHILD_NAME}}, and one tiny sip for the pup!\" {{FRIEND_NAME}} said, pouring carefully. {{PUP_NAME}} lapped a little cocoa from a spoon and wiggled all over. \"It is warm inside my tummy, like a little sunshine!\" the puppy beamed. You felt cozy and brave and ready for anything. \"Do you feel braver now?\" you asked the pup with a smile. \"I do! Cocoa makes my heart feel puffy and strong,\" {{PUP_NAME}} declared proudly.",
+      "choices": [
+        {
+          "text": "Slide down the hill with your new courage",
+          "target": 12
+        },
+        {
+          "text": "Build a silly snowman family first",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": false,
+      "text": "At the top of the hill you rolled three snowballs, one big, one middle, one small. \"Let us give him a carrot nose and a big goofy grin!\" {{FRIEND_NAME}} laughed, pressing in two pebble eyes. {{PUP_NAME}} bounced around the snowman, sniffing every part. \"He looks so friendly! He is like a snowy guard dog for the hill,\" the puppy decided happily. You popped an old hat on the snowman's round head. \"Now the snowman can watch us have our first slide,\" you said warmly. \"Then I want to make him proud!\" {{PUP_NAME}} announced, standing up tall and brave.",
+      "choices": [
+        {
+          "text": "Take your brave first slide past the snowman",
+          "target": 12
+        },
+        {
+          "text": "Add a whole silly snowman family",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Bravest Little Husky",
+      "endingType": "good",
+      "text": "Down the hill you flew, gentle and smooth, snow sparkling all around like tiny stars. \"Look at us go, we are a sledding team!\" {{FRIEND_NAME}} cheered, arms up high. {{PUP_NAME}} howled with pure joy, ears flapping in the soft wind. \"I was scared, but now I love it! Sledding is the best thing in the whole snowy world!\" the puppy sang out. At the bottom, all three of you tumbled into a happy, giggly pile of snow. \"You were so brave today, {{PUP_NAME}},\" you said, giving the puppy a big warm hug. The little husky wagged and wagged, the bravest pup on the whole snowy hill.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "Cozy Cocoa Champions",
+      "endingType": "good",
+      "text": "After your gentle slide, the three of you huddled together with warm cups of cocoa. \"To the bravest puppy and the best friends ever!\" {{FRIEND_NAME}} cheered, clinking cups. {{PUP_NAME}} snuggled into your lap, cheeks warm and eyes sleepy-happy. \"Today I learned that brave and cozy can be best friends too,\" the puppy said softly. You looked out at the snowy hill glowing pink in the evening light. \"We did it together, and that made it easy,\" you told {{PUP_NAME}} with a smile. The little husky gave a contented sigh and a tiny, happy wag. What a perfectly snowy, cocoa-warm day.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "The Silly Snowman Family",
+      "endingType": "silly-safe",
+      "text": "You built a whole family of snowmen, each one sillier than the last, with twig arms and lopsided grins. \"This one has a pinecone hat and this one has a leaf mustache!\" {{FRIEND_NAME}} laughed until it snorted. {{PUP_NAME}} pranced from snowman to snowman, giving each a friendly boop with its nose. \"Now the hill has a whole snowy family, and I am not scared of the deep snow anymore!\" the puppy cheered proudly. You flopped back into the soft snow, grinning up at the sky. \"Best snow day ever, {{CHILD_NAME}}!\" {{FRIEND_NAME}} sighed happily. And {{PUP_NAME}} snuggled close, warm and brave and ready for tomorrow's snowy fun.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "What is the weather like?",
+      "choices": [
+        "❄️ snowy",
+        "rainy",
+        "hot"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What animal is with them?",
+      "choices": [
+        "a puppy",
+        "a kitten",
+        "a bunny"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What did the friend bring?",
+      "choices": [
+        "a red sled",
+        "a kite",
+        "a boat"
+      ],
+      "correct": 0
+    }
+  ]
+}

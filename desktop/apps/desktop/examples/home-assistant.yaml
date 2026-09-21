@@ -1,0 +1,157 @@
+# Beebo + Home Assistant
+#
+# What this gives you
+#   * sensors:      how many streams are playing, who is watching what, how big the library is
+#   * an automation: dim the lights when someone presses play on the living-room TV, and bring
+#                    them back up when it is paused or stops
+#
+# Set up (about five minutes)
+#   1. In Beebo, Admin > API keys: make a key named "Home Assistant" that ticks Library and
+#      Now playing. Copy it (it is shown once).
+#   2. In Home Assistant's secrets.yaml add one line:
+#        beebo_bearer: "Bearer beebo_pat_xxxxxxxxxxxx_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+#      and change 192.168.1.20:47811 below to your Beebo server. (Use https and its real address if
+#      Home Assistant is not on the same network as Beebo: a key is a password.)
+#   3. In Beebo, Admin > Webhooks: add one that sends to
+#        http://<home-assistant>:8123/api/webhook/beebo_playback
+#      choose "Generic JSON (signed)", tick Playback started / paused / resumed / stopped, and tick
+#      "Allow a target on my home network" (Home Assistant is on your LAN). Press "Send a test event".
+#   4. Put the blocks below in configuration.yaml (or split them into packages) and restart.
+#
+# Everything here only reads from Beebo. The key can never change anything on the server.
+
+# ---------------------------------------------------------------------------------------------
+# 1. Sensors: polled every 30 seconds. (Prefer push? Beebo also has a live event stream,
+#    GET /api/v1/events; see docs/PUBLIC-API.md.)
+# ---------------------------------------------------------------------------------------------
+rest:
+  - resource: http://192.168.1.20:47811/api/v1/now-playing   # your Beebo server's address
+    scan_interval: 30
+    timeout: 10
+    headers:
+      Authorization: !secret beebo_bearer
+    sensor:
+      - name: "Beebo streams"
+        unique_id: beebo_streams
+        icon: mdi:play-network
+        value_template: "{{ value_json.count | int(0) }}"
+        json_attributes_path: "$"
+        json_attributes:
+          - items
+    binary_sensor:
+      - name: "Beebo playing"
+        unique_id: beebo_playing
+        device_class: running
+        value_template: "{{ (value_json.count | int(0)) > 0 }}"
+
+  # The library size, once every ten minutes: `total` is the number of matches before paging,
+  # so asking for one item is enough.
+  - resource: http://192.168.1.20:47811/api/v1/library/movies?limit=1
+    scan_interval: 600
+    headers:
+      Authorization: !secret beebo_bearer
+    sensor:
+      - name: "Beebo movies"
+        unique_id: beebo_movies
+        icon: mdi:movie-open
+        value_template: "{{ value_json.total | int(0) }}"
+        state_class: measurement
+
+  - resource: http://192.168.1.20:47811/api/v1/library/tvshows?limit=1
+    scan_interval: 600
+    headers:
+      Authorization: !secret beebo_bearer
+    sensor:
+      - name: "Beebo TV shows"
+        unique_id: beebo_tvshows
+        icon: mdi:television-classic
+        value_template: "{{ value_json.total | int(0) }}"
+        state_class: measurement
+
+# A friendly sentence for a dashboard card: "Sam: Severance S1E3 (direct, Chrome on Windows)".
+template:
+  - sensor:
+      - name: "Beebo now playing"
+        unique_id: beebo_now_playing_text
+        icon: mdi:television-play
+        state: >-
+          {% set items = state_attr('sensor.beebo_streams', 'items') or [] %}
+          {% if items | length == 0 %}
+            Nothing
+          {% else %}
+            {% for i in items %}{{ i.user.name if i.user else 'Someone' }}: {{ i.title }}{% if not loop.last %}; {% endif %}{% endfor %}
+          {% endif %}
+
+# ---------------------------------------------------------------------------------------------
+# 2. Automation: lights follow the TV.
+#    Beebo posts { "event": "playback.started", "timestamp": "...", "data": { ... } } to the webhook.
+#    In Home Assistant that body is `trigger.json`.
+#    data.session.device says what is playing ("Living room TV"), data.user.name who, and
+#    data.session.playback whether it is "direct" or "transcode".
+# ---------------------------------------------------------------------------------------------
+automation:
+  - alias: "Beebo: dim the lights when the living-room TV plays"
+    id: beebo_dim_on_play
+    mode: restart
+    trigger:
+      - platform: webhook
+        webhook_id: beebo_playback
+        allowed_methods:
+          - POST
+        local_only: true        # only devices on your own network may call it
+    condition:
+      - condition: template
+        value_template: >-
+          {{ trigger.json.event in ['playback.started', 'playback.resumed']
+             and 'living room' in (trigger.json.data.session.device | default('') | lower) }}
+    action:
+      # Remember how the room was, so "paused" can put it back exactly.
+      - service: scene.create
+        data:
+          scene_id: before_beebo
+          snapshot_entities:
+            - light.living_room
+      - service: light.turn_on
+        target:
+          entity_id: light.living_room
+        data:
+          brightness_pct: 10
+          transition: 3
+
+  - alias: "Beebo: bring the lights back when it is paused or stops"
+    id: beebo_restore_on_pause
+    mode: restart
+    trigger:
+      - platform: webhook
+        webhook_id: beebo_playback
+        allowed_methods:
+          - POST
+        local_only: true
+    condition:
+      - condition: template
+        value_template: >-
+          {{ trigger.json.event in ['playback.paused', 'playback.stopped']
+             and 'living room' in (trigger.json.data.session.device | default('') | lower) }}
+    action:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.before_beebo
+        data:
+          transition: 3
+
+# ---------------------------------------------------------------------------------------------
+# 3. (Optional) Phone notification when someone requests a title. Add a second Beebo webhook for
+#    request.added pointing at another Home Assistant webhook id, then:
+#
+#  - alias: "Beebo: someone asked for a title"
+#    trigger:
+#      - platform: webhook
+#        webhook_id: beebo_requests
+#        allowed_methods: [POST]
+#        local_only: true
+#    action:
+#      - service: notify.mobile_app_your_phone
+#        data:
+#          title: "New request: {{ trigger.json.data.request.title }}"
+#          message: "{{ trigger.json.data.requester.name }} asked for it."
+# ---------------------------------------------------------------------------------------------

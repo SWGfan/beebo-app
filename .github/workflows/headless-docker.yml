@@ -1,0 +1,214 @@
+# Headless Beebo server: builds the Docker image and smoke-tests it. Never pushes an image
+# anywhere (no registry login, read-only token).
+#
+# Smoke test: a container with a 5 second synthetic video, then docker/smoke.js checks
+# /api/ping, the first-run setup code flow, sign-in, the admin API, the library scan and an
+# HLS transcode (playlist plus first segment). See desktop/apps/desktop/docker/README.md.
+name: Headless Docker
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "desktop/apps/desktop/headless/**"
+      - "desktop/apps/desktop/docker/**"
+      - "desktop/apps/desktop/.dockerignore"
+      - "desktop/apps/desktop/electron/**"
+      - "desktop/apps/desktop/package.json"
+      - "desktop/apps/desktop/package-lock.json"
+      - "desktop/apps/desktop/test/headless-*.test.js"
+      - ".github/workflows/headless-docker.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: headless-docker-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Audit stays ON; the high-severity check is the separate continue-on-error step below.
+  NPM_CONFIG_AUDIT: "true"
+  NPM_CONFIG_FUND: "false"
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+
+jobs:
+  headless-tests:
+    name: Headless unit and boot tests (Linux, Node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: desktop/apps/desktop
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: desktop/apps/desktop/package-lock.json
+      - run: npm ci --workspaces=false
+      - name: npm audit (production deps; informational, does not fail CI yet)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+      - name: Headless tests
+        run: node --test test/headless-*.test.js
+
+  amd64:
+    name: Image (linux/amd64) build and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build the image (not pushed)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: desktop/apps/desktop
+          file: desktop/apps/desktop/docker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: beebo-server:ci
+          build-args: BEEBO_VERSION=ci
+          cache-from: type=gha,scope=headless-amd64
+          cache-to: type=gha,mode=max,scope=headless-amd64
+
+      # Build provenance (SLSA) attestation is not enabled: this job never pushes an image, so
+      # there is no registry digest to attest yet. When the image is published to a registry:
+      #   1. give THIS job (not the workflow) `id-token: write`, `attestations: write`,
+      #      `packages: write`, plus `contents: read`;
+      #   2. push the image (build-push-action `push: true`) and add, after the push:
+      #        - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      #          with:
+      #            subject-name: ghcr.io/<owner>/beebo-server
+      #            subject-digest: ${{ steps.push.outputs.digest }}
+      #            push-to-registry: true
+
+      - name: What is in the image
+        run: |
+          docker image ls beebo-server:ci
+          docker run --rm --entrypoint sh beebo-server:ci -c 'id; node -v; /app/resources/ffmpeg/ffmpeg -hide_banner -version | head -1; ls /app/THIRD_PARTY_LICENSES/ffmpeg'
+          docker run --rm --entrypoint sh beebo-server:ci -c '/app/resources/ffmpeg/ffmpeg -hide_banner -encoders | grep -E "openh264|vaapi|qsv|nvenc|libx264" || true'
+
+      - name: Make a 5 second test video with the image's own ffmpeg
+        run: |
+          mkdir -p media/movies config
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/media/movies:/out" --entrypoint /app/resources/ffmpeg/ffmpeg beebo-server:ci \
+            -hide_banner -loglevel error -f lavfi -i "testsrc=duration=5:size=640x360:rate=24" -f lavfi -i "sine=frequency=440:duration=5" \
+            -c:v libopenh264 -pix_fmt yuv420p -c:a aac -shortest "/out/Test Movie (2020).mp4"
+          ls -la media/movies
+
+      - name: Start the container (as an arbitrary non-root user, media read-only)
+        run: |
+          docker run -d --name beebo --user "$(id -u):$(id -g)" -p 47811:47811 \
+            -e BEEBO_UPNP=0 -e BEEBO_SECRET_KEY="$(openssl rand -hex 32)" \
+            -v "$PWD/config:/config" -v "$PWD/media/movies:/media/movies:ro" \
+            beebo-server:ci
+          (docker logs -f beebo > server.log 2>&1 &)
+
+      - name: Smoke test
+        run: node desktop/apps/desktop/docker/smoke.js --base https://localhost:47811 --log server.log --expect-title "Test Movie"
+
+      - name: Container health, secrets and logs
+        run: |
+          for i in $(seq 1 30); do
+            s="$(docker inspect --format '{{.State.Health.Status}}' beebo)"; echo "health: $s"
+            [ "$s" = healthy ] && break; sleep 3
+          done
+          [ "$s" = healthy ]
+          test "$(docker exec beebo id -u)" != 0
+          test "$(stat -c %a config/config.json)" = 600
+          ! grep -q "smoke-test-password-1" server.log
+          ! grep -Eq "[?&]mt=[A-Za-z0-9]" server.log
+          ls -la config
+          grep -E "secrets are encrypted|ffmpeg:|Setup code|owner account" server.log
+
+      - name: Graceful stop on SIGTERM
+        run: |
+          start=$(date +%s)
+          docker stop -t 20 beebo
+          echo "stopped in $(( $(date +%s) - start )) s"
+          test "$(docker inspect --format '{{.State.ExitCode}}' beebo)" = 0
+          docker logs beebo 2>&1 | grep -E "stopping \(SIGTERM\)|Beebo server stopped"
+
+      - name: Restart keeps the account and no setup code is printed again
+        run: |
+          since="$(date -u +%Y-%m-%dT%H:%M:%S)"
+          docker start beebo
+          for i in $(seq 1 40); do
+            code="$(curl -sk -o /dev/null -w '%{http_code}' https://localhost:47811/api/ping || true)"
+            [ "$code" = 200 ] && break; sleep 3
+          done
+          [ "$code" = 200 ]
+          test "$(curl -sk -o /dev/null -w '%{http_code}' https://localhost:47811/setup)" != 200
+          docker logs --since "$since" beebo 2>&1 | grep -q "Beebo server .* is up on"
+          ! docker logs --since "$since" beebo 2>&1 | grep -q "Setup code"
+
+      - name: PUID and PGID when started as root
+        run: |
+          mkdir -p config-puid
+          docker run -d --name beebo-puid --user 0 -e PUID=1234 -e PGID=1234 -e BEEBO_UPNP=0 -e BEEBO_SECRET_KEY="$(openssl rand -hex 32)" \
+            -v "$PWD/config-puid:/config" -v "$PWD/media/movies:/media/movies:ro" beebo-server:ci
+          for i in $(seq 1 40); do
+            state="$(docker inspect --format '{{.State.Health.Status}}' beebo-puid)"; [ "$state" = healthy ] && break; sleep 3
+          done
+          [ "$state" = healthy ]
+          test "$(stat -c %u config-puid)" = 1234
+          test "$(stat -c %u config-puid/config.json)" = 1234
+          test "$(stat -c %a config-puid/config.json)" = 600
+
+      - name: Container logs on failure
+        if: failure()
+        run: |
+          docker logs beebo 2>&1 | tail -150 || true
+          docker logs beebo-puid 2>&1 | tail -60 || true
+          cat server.log | tail -100 || true
+
+  arm64:
+    name: Image (linux/arm64, QEMU) build and start
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build the image (not pushed)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: desktop/apps/desktop
+          file: desktop/apps/desktop/docker/Dockerfile
+          platforms: linux/arm64
+          load: true
+          push: false
+          tags: beebo-server:ci-arm64
+          build-args: BEEBO_VERSION=ci
+          cache-from: type=gha,scope=headless-arm64
+          cache-to: type=gha,mode=max,scope=headless-arm64
+
+      - name: The arm64 image starts and answers /api/ping
+        run: |
+          mkdir -p media/movies config
+          docker run --rm --platform linux/arm64 --entrypoint sh beebo-server:ci-arm64 -c 'uname -m; node -v; /app/resources/ffmpeg/ffmpeg -hide_banner -version | head -1'
+          docker run -d --name beebo-arm --platform linux/arm64 --user "$(id -u):$(id -g)" -p 47811:47811 \
+            -e BEEBO_UPNP=0 -e BEEBO_SECRET_KEY="$(openssl rand -hex 32)" \
+            -v "$PWD/config:/config" -v "$PWD/media/movies:/media/movies:ro" beebo-server:ci-arm64
+          for i in $(seq 1 60); do
+            code="$(curl -sk -o /dev/null -w '%{http_code}' https://localhost:47811/api/ping || true)"
+            [ "$code" = 200 ] && break; sleep 5
+          done
+          docker logs beebo-arm 2>&1 | tail -30
+          [ "$code" = 200 ]
+          docker logs beebo-arm 2>&1 | grep -q "Setup code"
+          docker stop -t 20 beebo-arm
+          test "$(docker inspect --format '{{.State.ExitCode}}' beebo-arm)" = 0

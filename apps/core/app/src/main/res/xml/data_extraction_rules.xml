@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (android:dataExtractionRules). Same exclusions as backup_rules.xml,
+  applied to both transports:
+
+    cloud-backup   - Google Drive / Auto Backup
+    device-transfer - the direct phone-to-phone copy during setup
+
+  device-transfer is the one people forget. It is not "safer" than a cloud backup
+  for our purposes: it still writes the token onto a second device, and it still
+  carries an encrypted store whose hardware key stays behind. Both get the same
+  treatment. See backup_rules.xml for the full reasoning.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="beebo_prefs.xml" />
+        <exclude domain="sharedpref" path="beebo_secure.xml" />
+        <exclude domain="file" path="offline/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="beebo_prefs.xml" />
+        <exclude domain="sharedpref" path="beebo_secure.xml" />
+        <exclude domain="file" path="offline/" />
+    </device-transfer>
+</data-extraction-rules>

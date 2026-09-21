@@ -1,0 +1,13 @@
+{
+  "name": "beeboentertainment",
+  "private": true,
+  "version": "0.1.2",
+  "workspaces": [
+    "apps/desktop",
+    "apps/viewer"
+  ],
+  "scripts": {
+    "desktop": "npm run dev --workspace apps/desktop",
+    "viewer": "npm run dev --workspace apps/viewer"
+  }
+}

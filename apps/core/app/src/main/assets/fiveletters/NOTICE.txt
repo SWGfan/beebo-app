@@ -1,0 +1,24 @@
+Five Letters word lists
+=======================
+
+answers.txt  - 1,527 everyday words that can be the hidden word
+guesses.txt  - 3,625 more words accepted as guesses (the full allowed list is both files)
+
+Source: the 12Dicts word lists by Alan Beale, as packaged in "Alt12Dicts"
+version 2020.12.07 by Kevin Atkinson:
+  https://github.com/en-wl/wordlist/tree/v1/alt12dicts
+  http://wordlist.aspell.net/12dicts/
+Files used: 3esl.txt (answers pool), 2of12full.txt and 2of12id.txt (extra guesses).
+
+Licence: public domain. The Alt12Dicts README states: "All of these files have been
+explicitly placed in the Public Domain by Alan Beale." No attribution is required;
+it is given here as a courtesy and so the source can be checked.
+
+These lists were NOT taken from any other word game's lists.
+
+Processing (apps/core/tools/fiveletters/build_wordlists.py): kept lowercase a-z
+five-letter words only; removed slurs, sexual and crude words from both lists;
+removed adult, gross, violent, drug/alcohol, religious, insulting, slang and
+uncommon words from the answers (they are still accepted as guesses unless they
+were in the blocked set); removed bare inflections (plurals, past tenses) from
+the answers.

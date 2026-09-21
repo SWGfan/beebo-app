@@ -1,0 +1,196 @@
+{
+  "title": "The Little School of Small Magic",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your friendly bench-mate at the school of small magic",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "a tiny sleepy classroom owl who sits on your wand",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Alex and the Little School of Small Magic",
+    "dedication": "For Alex, who is exactly magic enough"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "It is your very first morning at the Little School of Small Magic, where kids learn cozy spells like warming cocoa and making socks match. Your teacher hands you a bendy little wand, and a sleepy owl named Pip lands right on the tip. \"Small magic, big heart,\" says your bench-mate Sam with a grin.\n\nYou wave the wand to say hello, and a puff of blue sparkles pops out with a friendly pop. What do you want to try first?",
+      "choices": [
+        {
+          "text": "Try the cocoa-warming spell",
+          "target": 2
+        },
+        {
+          "text": "Try the room-tidying spell",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You point your wand at a cold cup of cocoa and whisper the warming words. Instead of warm cocoa, the whole cup grows a fluffy wool sweater and gives a tiny burp. Pip hoots softly, as if to say, close enough.\n\nSam laughs so hard they slide off the bench. \"Your wand is silly today,\" they say. \"Let us figure it out together.\"",
+      "choices": [
+        {
+          "text": "Ask your teacher for a tip",
+          "target": 4
+        },
+        {
+          "text": "Practice quietly with Sam",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "You aim your wand at your messy desk and say the tidying rhyme. All the crayons line up in a neat row, then stand up and do a tiny bow. Your pencils salute you like small soldiers.\n\nSam claps. \"That is the wrong spell, but it is the best wrong spell I have ever seen.\" Pip blinks, impressed.",
+      "choices": [
+        {
+          "text": "Ask your teacher for a tip",
+          "target": 4
+        },
+        {
+          "text": "Practice quietly with Sam",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "Your teacher kneels beside your bench and smiles. \"Small magic listens to how you feel, not just what you say. Take a slow breath and picture something warm.\"\n\nYou close your eyes and think of cozy blankets. When you open them, Pip gives your hand a gentle nudge, ready to try again.",
+      "choices": [
+        {
+          "text": "Cast a warming spell on the cocoa",
+          "target": 6
+        },
+        {
+          "text": "Cast a matching spell on the socks",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You and Sam practice in the corner by the window. You wiggle the wand this way, then that way, and a shower of soft sparkles drifts down like slow snow.\n\n\"Try feeling the spell before you say it,\" Sam whispers. Pip fluffs up, cheering you on in tiny hoots.",
+      "choices": [
+        {
+          "text": "Cast a warming spell on the cocoa",
+          "target": 6
+        },
+        {
+          "text": "Cast a matching spell on the socks",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You picture warm blankets and steaming mugs, and you say the words gently this time. Little curls of steam rise from the cocoa, and the whole room smells like a cozy hug.\n\nSam takes a happy sip. \"You did it,\" they cheer. \"That is real small magic.\" But the class talent share is starting, and your wand gives a nervous wobble.",
+      "choices": [
+        {
+          "text": "Show the class your cocoa spell",
+          "target": 8
+        },
+        {
+          "text": "Let Sam go first while you steady your wand",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "A basket of lonely, mismatched socks sits by the door. You breathe slow, picture happy pairs, and swish your wand. One by one the socks find their partners and hold hands, um, hold toes.\n\nPip does a proud little spin. Sam grins, \"The talent share is starting. Want to show everyone?\"",
+      "choices": [
+        {
+          "text": "Show the class your sock spell",
+          "target": 8
+        },
+        {
+          "text": "Let Sam go first while you steady your wand",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You stand in front of the whole class with Pip on your shoulder. You lift your wand, take a warm breath, and the whole room fills with gentle, glittery magic.\n\nEveryone gasps in a good way. Your wand, finally calm, seems to hum a happy little tune. What kind of magic do you feel like sharing?",
+      "choices": [
+        {
+          "text": "Share a cozy, warming spell",
+          "target": 10
+        },
+        {
+          "text": "Share a big, sparkly surprise",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You let Sam go first, and they make a whole line of teacups do a wobbly dance. While they perform, you and Pip take slow breaths and steady your wand.\n\nBy the time it is your turn, your hand feels calm and warm. The class leans in, curious and kind.",
+      "choices": [
+        {
+          "text": "Share a warm cocoa for the whole class",
+          "target": 11
+        },
+        {
+          "text": "Turn your wobbly wand into a fun act",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "The Coziest Kid in Class",
+      "endingType": "good",
+      "text": "You cast a soft warming spell, and every desk gets a tiny blanket and a warm mug. The whole class sighs, happy and snug, like the room just got a hug.\n\n\"Welcome to small magic,\" says your teacher. Sam bumps your shoulder, Pip yawns a sleepy hoot, and you know you found exactly your kind of magic. The end.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Sparkle Champion",
+      "endingType": "good",
+      "text": "You swirl your wand and burst the whole room into gentle, floating sparkles that taste faintly of cocoa. Kids laugh and reach up to catch them, and every sock in the room finds its perfect pair.\n\nYour teacher pins a tiny star to your collar. \"Big heart, small magic,\" she says. You, Sam, and Pip take a happy bow together. The end.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Silliest Spell of All",
+      "endingType": "silly-safe",
+      "text": "Your wobbly wand still will not behave, so you turn the wobbles into a show. Every time it hiccups, a rubber duck appears, until the whole class is knee-deep in gentle, quacking ducks.\n\nEveryone giggles, even your teacher. \"Sometimes the silliest magic is the best magic,\" she says warmly. Sam and Pip pick you a duck crown, and you wear it proudly. The end.",
+      "choices": []
+    }
+  ],
+  "setHash": "0c8b9785438665a1",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Sam",
+    "{{PET_NAME}}": "Pip"
+  }
+}

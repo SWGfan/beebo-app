@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  BeeboView - base for every full-screen view. Provides theme, url/format helpers,
+  the Api client and navigation helpers. Views ask the scene to navigate by setting
+  `navigate` (see BeeboScene.brs), they never touch each other directly.
+-->
+<component name="BeeboView" extends="Group">
+  <interface>
+    <field id="navigate" type="assocarray" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/BeeboView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Urls.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Log.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Registry.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Api.brs" />
+</component>

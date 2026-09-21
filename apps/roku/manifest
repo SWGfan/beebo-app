@@ -1,0 +1,20 @@
+title=Beebo Entertainment
+major_version=0
+minor_version=1
+build_version=00001
+subtitle=Your own movies and shows, on your TV
+
+# FHD-only UI (all coordinates in components are 1920x1080)
+ui_resolutions=fhd
+
+# ---- PLACEHOLDER art: replace before any Channel Store submission (same sizes) ----
+mm_icon_focus_fhd=pkg:/images/PLACEHOLDER_icon_focus_fhd.png
+mm_icon_focus_hd=pkg:/images/PLACEHOLDER_icon_focus_hd.png
+splash_screen_fhd=pkg:/images/PLACEHOLDER_splash_fhd.png
+splash_screen_hd=pkg:/images/PLACEHOLDER_splash_hd.png
+splash_color=#0B0F14
+splash_min_time=1000
+# -------------------------------------------------------------------------------------
+
+# Plain http to the home server on the LAN is intentional (see README, "Security").
+# No special permissions are needed; this channel bundles no content.

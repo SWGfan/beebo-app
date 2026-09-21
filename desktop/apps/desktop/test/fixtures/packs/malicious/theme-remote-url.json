@@ -1,0 +1,12 @@
+{
+  "format": "beebo-pack", "v": 1, "kind": "theme", "id": "evil.remote-url", "name": "Totally Safe", "version": "1.0.0",
+  "author": { "name": "Mallory" }, "license": "MIT",
+  "content": {
+    "scheme": "dark", "themeColor": "#000000",
+    "vars": {
+      "--bg": "#000000",
+      "--noposter-bg": "url(https://evil.example/track.png)",
+      "--card-bg": "linear-gradient(145deg,#111111,url(https://evil.example/x.png))"
+    }
+  }
+}

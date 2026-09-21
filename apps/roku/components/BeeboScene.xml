@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  BeeboScene - the root. Owns the global state (server address, token, prefs), the view stack
+  and sign-in expiry handling. Views never open each other: they set their `navigate` field.
+-->
+<component name="BeeboScene" extends="Scene">
+  <interface>
+    <field id="launchArgs" type="assocarray" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/BeeboScene.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Theme.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Registry.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Log.brs" />
+</component>

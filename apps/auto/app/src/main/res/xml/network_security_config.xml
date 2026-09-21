@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Beebo Entertainment is self-hosted and commonly reached over plain HTTP on a home
+  network or a Tailscale address, so cleartext has to be permitted. When the
+  server does have a certificate it answers HTTP with a 308 to HTTPS on the
+  same port, and that upgrade happens automatically.
+
+  User-installed CAs are deliberately NOT trusted. Trusting them app-wide means
+  anything in the user's CA store can silently sit in the middle of every
+  request the app makes, for one self-hosted box's sake. There is no
+  trust-any-certificate switch either (there was, it is gone): the PC's
+  certificate is a public Let's Encrypt one, and on the LAN or Tailscale it
+  is reached over plain http without a redirect. If a self-signed box ever
+  needs support, add a domain-config here that pins that one certificate.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

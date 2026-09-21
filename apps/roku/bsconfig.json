@@ -1,0 +1,16 @@
+{
+  "rootDir": ".",
+  "files": [
+    "manifest",
+    "source/**/*",
+    "components/**/*",
+    "images/**/*"
+  ],
+  "stagingDir": "out/staging",
+  "outFile": "out/beebo-roku.zip",
+  "createPackage": true,
+  "sourceMap": false,
+  "autoImportComponentScript": false,
+  "diagnosticLevel": "info",
+  "logLevel": "warn"
+}

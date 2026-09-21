@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  PlaylistsView - the viewer's playlists (manual and smart). Pick one to see its films and
+  episodes; selecting an item plays it and continues down the playlist. Music tracks in a
+  playlist are skipped (this channel plays video only).
+-->
+<component name="PlaylistsView" extends="BeeboView">
+  <interface>
+    <field id="params" type="assocarray" alwaysNotify="true" onChange="onParams" />
+    <function name="focusMe" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/views/PlaylistsView.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Nodes.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Models.brs" />
+  <script type="text/brightscript" uri="pkg:/components/lib/Playback.brs" />
+  <children>
+    <Label id="title" />
+    <LabelList id="lists" visible="false" />
+    <LibraryGrid id="items" mode="static" columns="4" visible="false" />
+    <StatusPanel id="status" />
+  </children>
+</component>

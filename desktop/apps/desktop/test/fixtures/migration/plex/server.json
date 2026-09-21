@@ -1,0 +1,36 @@
+{
+  "identity": { "MediaContainer": { "friendlyName": "Den Plex", "machineIdentifier": "abc123" } },
+  "sections": { "MediaContainer": { "Directory": [
+    { "key": "1", "type": "movie", "title": "Movies" },
+    { "key": "2", "type": "show", "title": "TV Shows" },
+    { "key": "3", "type": "artist", "title": "Music" }
+  ] } },
+  "movies": { "MediaContainer": { "totalSize": 4, "Metadata": [
+    { "ratingKey": "101", "type": "movie", "title": "The Matrix", "year": 1999, "viewCount": 2, "lastViewedAt": 1682971200, "userRating": 9, "duration": 8160000, "Guid": [ { "id": "imdb://tt0133093" }, { "id": "tmdb://603" }, { "id": "tvdb://169" } ], "Media": [ { "Part": [ { "file": "/data/movies/The Matrix (1999)/The Matrix (1999).mkv" } ] } ] },
+    { "ratingKey": "102", "type": "movie", "title": "Heat", "year": 1995, "viewOffset": 2712500, "lastViewedAt": 1672689600, "duration": 10200000, "Guid": [ { "id": "imdb://tt0113277" }, { "id": "tmdb://949" } ] },
+    { "ratingKey": "103", "type": "movie", "title": "Unwatched One", "year": 2010, "Guid": [ { "id": "tmdb://55555" } ] },
+    { "ratingKey": "104", "type": "movie", "title": "Rated Only", "year": 2005, "userRating": 7.5, "Guid": [ { "id": "tmdb://66666" } ] }
+  ] } },
+  "shows": { "MediaContainer": { "totalSize": 1, "Metadata": [
+    { "ratingKey": "200", "type": "show", "title": "Severance", "year": 2022, "userRating": 10, "Guid": [ { "id": "tvdb://371980" }, { "id": "tmdb://95396" }, { "id": "imdb://tt11280740" } ] }
+  ] } },
+  "episodes": { "MediaContainer": { "totalSize": 3, "Metadata": [
+    { "ratingKey": "201", "type": "episode", "title": "Good News About Hell", "grandparentRatingKey": "200", "grandparentTitle": "Severance", "parentIndex": 1, "index": 1, "viewCount": 1, "lastViewedAt": 1646172600 },
+    { "ratingKey": "202", "type": "episode", "title": "Half Loop", "grandparentRatingKey": "200", "grandparentTitle": "Severance", "parentIndex": 1, "index": 2, "viewOffset": 601000, "duration": 3000000, "lastViewedAt": 1646258400 },
+    { "ratingKey": "203", "type": "episode", "title": "In Perpetuity", "grandparentRatingKey": "200", "grandparentTitle": "Severance", "parentIndex": 1, "index": 3 }
+  ] } },
+  "playlists": { "MediaContainer": { "Metadata": [
+    { "ratingKey": "900", "type": "playlist", "title": "Plex Marathon", "smart": false },
+    { "ratingKey": "901", "type": "playlist", "title": "Smart One", "smart": true }
+  ] } },
+  "playlistItems": { "900": { "MediaContainer": { "Metadata": [
+    { "ratingKey": "102", "type": "movie", "title": "Heat", "year": 1995, "Guid": [ { "id": "tmdb://949" } ] },
+    { "ratingKey": "101", "type": "movie", "title": "The Matrix", "year": 1999, "Guid": [ { "id": "tmdb://603" } ] }
+  ] } } },
+  "user": { "title": "nickplex", "username": "nickplex" },
+  "watchlist": { "MediaContainer": { "totalSize": 3, "Metadata": [
+    { "type": "movie", "title": "Blade Runner 2049", "year": 2017, "Guid": [ { "id": "imdb://tt1856101" }, { "id": "tmdb://335984" } ] },
+    { "type": "show", "title": "Chernobyl", "year": 2019, "Guid": [ { "id": "tvdb://360893" }, { "id": "tmdb://87108" } ] },
+    { "type": "artist", "title": "Not Video" }
+  ] } }
+}

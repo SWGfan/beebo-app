@@ -1,0 +1,22 @@
+node_modules/
+# placeholder Store-listing pictures: regenerate with `npm run assets` (3.5 MB of PNG we do not need in git)
+store-assets/
+# staged web app: created by `npm run build`, packaged into the MSIX by the project file
+shell/WebCode/
+# Visual Studio / MSBuild output
+shell/bin/
+shell/obj/
+shell/AppPackages/
+shell/BundleArtifacts/
+*.msix
+*.msixupload
+*.appx
+*.appxupload
+*.appxsym
+*.msixbundle
+*.appxbundle
+# test-signing keys and certificates: never commit (make-test-cert.ps1 writes them to dev-cert/)
+dev-cert/
+*.pfx
+*.cer
+*.snk

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup rules for Android 11 and below (android:fullBackupContent).
+
+  Two things must never leave this device in a backup:
+
+  1. beebo_prefs.xml - normally just settings, but SessionStore falls back to it
+     when an OEM's keystore refuses to make a master key, and on those devices it
+     holds the server bearer token and the hub JWT in the clear. A cleartext
+     credential in a Google Drive backup is a credential on someone else's disk.
+  2. beebo_secure.xml - the encrypted store. The ciphertext would back up, but the
+     AndroidKeyStore key that decrypts it is hardware-bound and cannot. Restoring
+     it onto a new phone produces an undecryptable file, not a signed-in user.
+
+  Excluding both means a restored phone asks you to sign in again. That is the
+  correct outcome, and it is what happens today anyway - just without leaving a
+  copy of the token in the cloud on the way.
+
+  offline/ is where downloaded films live. Auto Backup's quota is 25 MB; one film
+  would blow past it and silently break backup for the whole app.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="beebo_prefs.xml" />
+    <exclude domain="sharedpref" path="beebo_secure.xml" />
+    <exclude domain="file" path="offline/" />
+</full-backup-content>

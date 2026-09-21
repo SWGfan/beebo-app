@@ -1,0 +1,211 @@
+name: Apple client build
+
+# Verifies apps/apple on a real macOS runner: the BeeboKit unit tests (swift test) and a
+# no-signing simulator build of the tvOS and iOS apps. No Mac is needed on the dev machine.
+# Runs on demand and on pushes to the `apple-client` branch that touch apps/apple.
+on:
+  workflow_dispatch:
+  push:
+    branches: [apple-client]
+    paths:
+      - "apps/apple/**"
+      - ".github/workflows/apple-build.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kit-tests:
+    name: BeeboKit swift test
+    runs-on: macos-26
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          xcodebuild -showsdks
+          xcrun simctl list runtimes
+      - name: swift test
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee swift-test.log
+      - name: Test summary
+        if: always()
+        run: |
+          grep -E "Executed [0-9]+ tests?" swift-test.log | tail -n 3 || true
+          echo "passed: $(grep -cE "Test Case .* passed" swift-test.log)  failed: $(grep -cE "Test Case .* failed" swift-test.log)"
+          grep -E "error:|failed" swift-test.log | head -n 40 || true
+
+  app-build:
+    name: ${{ matrix.scheme }} (${{ matrix.sdk }})
+    runs-on: macos-26
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scheme: BeeboTV
+            sdk: tvOS Simulator
+          - scheme: BeeboiOS
+            sdk: iOS Simulator
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun simctl list devices available | head -n 60
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate the Xcode project
+        run: |
+          xcodegen --version
+          xcodegen generate --spec project.yml
+      - name: Build (no signing)
+        env:
+          SCHEME: ${{ matrix.scheme }}
+          SDK: ${{ matrix.sdk }}
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Beebo.xcodeproj \
+            -scheme "$SCHEME" \
+            -destination "generic/platform=$SDK" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            2>&1 | tee build.log
+      - name: Compiler diagnostics
+        if: always()
+        run: |
+          grep -E "error:|warning: .*(deprecated|unused)" build.log | sort -u | head -n 80 || true
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build-log-${{ matrix.scheme }}
+          path: apps/apple/build.log
+
+  simulator-smoke:
+    name: Simulator smoke (${{ matrix.platform }})
+    runs-on: macos-26
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: tvOS
+            scheme: BeeboTV
+            device: "Apple TV"
+          - platform: iOS
+            scheme: BeeboiOS
+            device: "iPhone"
+    defaults:
+      run:
+        working-directory: apps/apple
+    env:
+      BUNDLE_ID: com.beeboentertainment.apple
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: |
+          brew install xcodegen ffmpeg
+          node --version || brew install node
+      - name: Make the test video and start the mock Beebo server
+        run: |
+          sh tools/mock-server/make-media.sh
+          nohup node tools/mock-server/server.js 47811 > mock.log 2>&1 &
+          curl --retry 10 --retry-delay 1 --retry-connrefused -s http://127.0.0.1:47811/api/ping
+      - name: Generate the Xcode project
+        run: xcodegen generate --spec project.yml
+      - name: Pick and boot a simulator
+        env:
+          DEVICE: ${{ matrix.device }}
+        run: |
+          UDID=$(python3 - "$DEVICE" <<'EOF'
+          import json, subprocess, sys
+          want = sys.argv[1]
+          data = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
+          pick = None
+          for runtime, devices in sorted(data["devices"].items()):
+              if want == "Apple TV" and "tvOS" not in runtime: continue
+              if want == "iPhone" and "iOS" not in runtime: continue
+              for d in devices:
+                  if d["name"].startswith(want):
+                      pick = d
+          print(pick["udid"])
+          EOF
+          )
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl list devices available | grep "$UDID" || true
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+      - name: Build (Debug, no signing)
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          set -o pipefail
+          xcodebuild build -project Beebo.xcodeproj -scheme "$SCHEME" \
+            -destination "id=$UDID" -configuration Debug -derivedDataPath dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" 2>&1 | tail -n 20
+      - name: Install and take screenshots
+        run: |
+          mkdir -p shots
+          APP=$(find dd/Build/Products -maxdepth 2 -name "Beebo.app" | head -n 1)
+          echo "app: $APP"
+          echo "--- bundle contents that matter for review"
+          find "$APP" -name "PrivacyInfo.xcprivacy" -print
+          plutil -p "$APP/Info.plist" | grep -E "NSLocalNetworkUsageDescription|NSAllowsLocalNetworking|NSAllowsArbitraryLoads|CFBundleIdentifier|MinimumOSVersion|CFBundleURLSchemes|beebo"
+          xcrun simctl install "$UDID" "$APP"
+          shoot() {
+            name="$1"; wait="$2"; shift 2
+            xcrun simctl terminate "$UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+            env "$@" xcrun simctl launch "$UDID" "$BUNDLE_ID"
+            sleep "$wait"
+            xcrun simctl io "$UDID" screenshot "shots/$name.png"
+          }
+          DEMO="SIMCTL_CHILD_BEEBO_DEMO_SERVER=127.0.0.1 SIMCTL_CHILD_BEEBO_DEMO_USER=demo SIMCTL_CHILD_BEEBO_DEMO_PASS=demo"
+          shoot 01-signin 8 SIMCTL_CHILD_NOTHING=1
+          shoot 02-home 14 $DEMO
+          shoot 03-movies 12 $DEMO SIMCTL_CHILD_BEEBO_DEMO_TAB=movies
+          shoot 04-shows 12 $DEMO SIMCTL_CHILD_BEEBO_DEMO_TAB=shows
+          shoot 05-settings 10 $DEMO SIMCTL_CHILD_BEEBO_DEMO_TAB=settings
+          shoot 06-detail-movie 14 $DEMO "SIMCTL_CHILD_BEEBO_DEMO_OPEN=movie:movie-006:Frozen Orbit 006"
+          shoot 07-detail-show 14 $DEMO "SIMCTL_CHILD_BEEBO_DEMO_OPEN=tv:show-02:Northern Lights 02"
+          shoot 08-player 16 $DEMO "SIMCTL_CHILD_BEEBO_DEMO_PLAY=movie:movie-006:Frozen Orbit 006"
+          sleep 6
+          xcrun simctl io "$UDID" screenshot shots/09-player-later.png
+      - name: What the mock server saw
+        if: always()
+        run: |
+          grep -E "playback|hls|progress|login|watch-session" mock.log | tail -n 60 || true
+      - name: App log
+        if: always()
+        run: |
+          xcrun simctl spawn "$UDID" log show --style compact --last 6m --predicate 'process == "Beebo"' 2>/dev/null | tail -n 120 || true
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: screenshots-${{ matrix.platform }}
+          path: |
+            apps/apple/shots
+            apps/apple/mock.log

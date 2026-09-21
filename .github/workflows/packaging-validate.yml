@@ -1,0 +1,111 @@
+# Lints and checks the package-manager files under packaging/ on Ubuntu. Nothing here publishes or
+# submits anything. Runs by hand and on pushes that touch packaging/ (or this file) only.
+#
+# Steps marked "informational" use tools whose exact behaviour was not run locally (they need a Linux
+# machine); they never fail the workflow, but read their output before submitting to Flathub.
+name: Packaging validate
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "packaging/**"
+      - ".github/workflows/packaging-validate.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: packaging-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and consistency checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends yamllint libxml2-utils shellcheck desktop-file-utils appstream
+          python3 -m pip install --user pyyaml jsonschema
+
+      - name: yamllint (manifests and store files)
+        run: |
+          yamllint -c packaging/.yamllint.yml \
+            packaging/winget \
+            packaging/flatpak/com.beeboentertainment.Beebo.yml \
+            packaging/snap/snap/snapcraft.yaml \
+            packaging/nas-stores \
+            packaging/ghcr/publish-image.yml.example \
+            .github/workflows/packaging-validate.yml
+
+      - name: XML well-formed (nuspec, metainfo, Unraid template)
+        run: |
+          xmllint --noout \
+            packaging/chocolatey/beebo-entertainment/beebo-entertainment.nuspec \
+            packaging/flatpak/com.beeboentertainment.Beebo.metainfo.xml \
+            packaging/unraid/beebo-entertainment.xml
+
+      - name: JSON well-formed
+        run: |
+          for f in packaging/scoop/bucket/beebo-entertainment.json packaging/flatpak/flathub.json packaging/nas-stores/casaos/store-config.json; do
+            python3 -m json.tool "$f" > /dev/null && echo "ok $f"
+          done
+
+      - name: Shell scripts (bash -n and shellcheck)
+        run: |
+          bash -n packaging/aur/beebo-entertainment-bin/PKGBUILD
+          bash -n packaging/flatpak/beebo.sh
+          bash -n packaging/linux/check-deb-layout.sh
+          shellcheck packaging/flatpak/beebo.sh packaging/linux/check-deb-layout.sh
+          # A PKGBUILD is sourced by makepkg: variables look unused and functions use makepkg's globals.
+          shellcheck -s bash -e SC2034,SC2154,SC2164 packaging/aur/beebo-entertainment-bin/PKGBUILD
+
+      - name: PowerShell scripts parse (Chocolatey)
+        shell: pwsh
+        run: |
+          foreach ($f in Get-ChildItem packaging/chocolatey -Recurse -Filter *.ps1) {
+            $errs = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$errs)
+            if ($errs.Count) { $errs | ForEach-Object { Write-Error "$($f.Name): $($_.Message)" }; exit 1 }
+            "ok $($f.Name)"
+          }
+
+      - name: Desktop file (Flatpak)
+        run: desktop-file-validate packaging/flatpak/com.beeboentertainment.Beebo.desktop
+
+      - name: Cross-file consistency and JSON schemas (winget, Scoop)
+        run: python3 packaging/tools/check-packaging.py --online
+
+      - name: AppStream metainfo (informational)
+        continue-on-error: true
+        run: appstreamcli validate --no-net packaging/flatpak/com.beeboentertainment.Beebo.metainfo.xml
+
+  flatpak-lint:
+    name: flatpak-builder-lint on the metainfo (informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install flatpak and the Flathub builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends flatpak
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.flatpak.Builder
+      - name: Lint the appstream file and the manifest
+        working-directory: packaging/flatpak
+        run: |
+          # The manifest still has placeholder URL/hash until the Linux release exists, so a failure
+          # about the deb source is expected; anything else (finish-args, appstream) is real.
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream com.beeboentertainment.Beebo.metainfo.xml || true
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest com.beeboentertainment.Beebo.yml || true

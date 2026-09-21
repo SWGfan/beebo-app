@@ -1,0 +1,23 @@
+Beebo optional computer narration — Kokoro
+
+Kokoro Python engine: https://github.com/hexgrad/kokoro
+Kokoro-82M model and voice tensors: https://huggingface.co/hexgrad/Kokoro-82M
+Voice inventory: https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md
+Publisher-declared license for engine and model: Apache License 2.0.
+The license text accompanies this notice. No publisher endorsement is implied.
+
+Beebo's installer supplies its own integration scripts and original story templates.
+It does not bundle Kokoro, its voice tensors, Python, PyTorch, Misaki or eSpeak-NG.
+The optional voice setup installs/downloads those components on the user's PC.
+Each dependency retains its own license and notices. eSpeak-NG has GPL terms;
+its separate installation must not be described as an Apache-licensed component.
+If a later Beebo installer bundles those dependencies, audit that exact bundle
+and supply all required license, notice and source-code materials before release.
+
+The upstream model card credits public-domain and permissive training data,
+including Koniwa (CC BY 3.0) and SIWIS (CC BY 4.0). Preserve upstream notices
+when redistributing model artifacts. This release offers the 28 English voices.
+No custom voice-cloning feature or rights to a person's identity are included.
+
+Beebo modifications: library provisioning, external worker dispatch, language-aware
+English pipeline selection, CPU thread limit, error reporting and local audio caching.

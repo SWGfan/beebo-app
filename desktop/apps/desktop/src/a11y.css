@@ -1,0 +1,80 @@
+/* Accessibility layer (docs/ACCESSIBILITY.md). Loaded after styles.css, so it only adds and fixes:
+   nothing here restyles a screen beyond what WCAG 2.2 AA needs. Uses the existing theme tokens
+   (--focus, --muted, --text, --panel). */
+
+/* Text for screen readers only: the live regions (lib/announcer.js), result counts. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Skip link: first Tab stop in the window, visible only while it has focus. */
+.skip-link {
+  position: fixed; top: 8px; inset-inline-start: 8px; z-index: 10000;
+  padding: 10px 16px; border-radius: 10px; font-weight: 700; text-decoration: none;
+  color: #0b1120; background: var(--focus); border: 2px solid #0b1120;
+  transform: translateY(-200%);
+}
+.skip-link:focus, .skip-link:focus-visible { transform: none; outline: 3px solid #fff; outline-offset: 2px; }
+.main:focus { outline: none; }
+
+/* Focus rings. styles.css already draws a 3px gold ring on every control; these places would
+   clip or hide it (the sidebar scrolls and hides overflow, poster cards paint over their edge). */
+.nav-btn:focus-visible, .sidebar-mode-option:focus-visible, .sidebar-display-summary:focus-visible { outline-offset: -3px; }
+.poster-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; transform: translateY(-3px); border-color: var(--focus); }
+.poster-card:focus-visible .poster-overlay { opacity: 1 !important; }
+.confirm-dialog:focus-visible { outline: none; }
+:where(summary):focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.sidebar-toggle:focus-visible { outline-offset: 2px; }
+
+/* Colour contrast (WCAG 1.4.3, AA 4.5:1): the "No poster" placeholder was #555 on near-black
+   (2.6:1); it now uses the muted token (8:1). Disabled controls are exempt, but the A-Z bar's
+   inactive letters are also lifted so people can still read which letters exist. */
+.card .no-poster { color: var(--muted); }
+.alphabet-letter { min-width: 24px; min-height: 24px; }
+.alphabet-letter:disabled { opacity: .5 !important; }
+
+/* Status text that must not rely on colour alone (WCAG 1.4.1): errors and success get an icon
+   or word from the component; here the colours are simply kept at AA on the panel background. */
+.error-text { color: #ffb6b6; }
+
+/* Reduced motion (WCAG 2.3.3): the earlier rule in styles.css stops transitions; this also
+   stops animations, smooth scrolling and the hover lift, and lets the sidebar snap. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .card:hover, .poster-card:focus-visible { transform: none !important; }
+}
+
+/* Zoom and small windows (WCAG 1.4.4 / 1.4.10). At 200% zoom a 1280x720 window is 640x360 CSS
+   pixels: a pinned toolbar three rows tall would fill the screen, so it scrolls away instead of
+   staying stuck, and the rows of controls wrap rather than run off the edge. */
+@media (max-height: 640px) {
+  .sticky-bar { position: static; top: auto; }
+}
+@media (max-width: 760px) {
+  .app { --sidebar-w: 208px; }
+  .main { padding: 14px; }
+  .sticky-bar { margin: -14px -14px 16px; padding: 14px; }
+  .row { flex-wrap: wrap; }
+  .row > input, .row > select { min-width: 0; max-width: 100%; }
+  .setup-page h2 { overflow-wrap: anywhere; }
+  .md-page { overflow-x: hidden; }
+}
+@media (max-width: 480px) {
+  .sidebar-toggle { top: 8px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(min(var(--poster-size, 160px), 44vw), 1fr)); }
+}
+
+/* Windows high-contrast mode: keep focus and selection visible with the system colours. */
+@media (forced-colors: active) {
+  :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid Highlight; }
+  .nav-btn.active, .subtab.active, [aria-pressed='true'] { outline: 2px solid Highlight; }
+  .skip-link { forced-color-adjust: none; }
+}
+
+/* Right-to-left languages (none shipped yet; the switch is in place, see docs/I18N.md): mirror the
+   few shared pieces that use physical sides. Screens using logical properties follow on their own. */
+html[dir='rtl'] .nav-btn { text-align: right; }
+html[dir='rtl'] .sidebar-slot { border-right: 0; border-left: 1px solid var(--border); }
+html[dir='rtl'] .sidebar-toggle { left: auto; right: 6px; }
+html[dir='rtl'] .nav-btn.active { box-shadow: 0 5px 18px #0003, inset -3px 0 #D4AF37; }

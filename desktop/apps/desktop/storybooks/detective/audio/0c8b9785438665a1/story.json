@@ -1,0 +1,204 @@
+{
+  "title": "The Case of the Missing Birthday Cake",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 4,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character, a clever kid detective",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your trusty detective sidekick",
+      "default": "Sam"
+    },
+    {
+      "token": "{{PET_NAME}}",
+      "role": "the family dog who loves sniffing out clues",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "Detective Alex and the Missing Birthday Cake",
+    "dedication": "For Alex"
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "The party balloons are up, the candles are ready, but the big birthday cake has vanished from the kitchen counter. \"A mystery!\" you gasp, snapping on your detective cap.\n\nYour sidekick Sam grabs a magnifying glass, and the dog Pip wags a helpful tail. Time to crack the case.",
+      "choices": [
+        {
+          "text": "Look for sticky fingerprints",
+          "target": 2
+        },
+        {
+          "text": "Search for a trail of crumbs",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You spot little smudges of frosting near the counter, shaped like tiny fingertips. \"A clue!\" whispers Sam, writing it in the notebook.\n\nThe smudges lead in two directions, one toward the humming fridge and one toward the open window.",
+      "choices": [
+        {
+          "text": "Peek inside the fridge",
+          "target": 4
+        },
+        {
+          "text": "Check the open window",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "A line of soft cake crumbs trails across the floor like a dotted path. Pip sniffs each one with a curious wet nose.\n\nThe crumbs split at the hallway, one path leading to the sunny garden and one to the cozy living room.",
+      "choices": [
+        {
+          "text": "Follow the crumbs to the garden",
+          "target": 4
+        },
+        {
+          "text": "Follow the crumbs to the living room",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "Here you find a surprising clue: a single fuzzy slipper print pressed into a dusting of flour. \"Whoever took the cake was wearing comfy slippers,\" you note.\n\nPip barks and points a paw toward the backyard, while your little cousin peeks around the corner with a grin.",
+      "choices": [
+        {
+          "text": "Follow the paw toward the backyard",
+          "target": 6
+        },
+        {
+          "text": "Ask your grinning cousin what they saw",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "You discover a sprinkle of rainbow candy bits and a tiny folded note. The note says, \"Just making sure it tastes perfect.\"\n\n\"Very suspicious,\" says Sam. The sprinkles lead toward the garden shed and toward Grandpa's comfy reading chair.",
+      "choices": [
+        {
+          "text": "Investigate the garden shed",
+          "target": 6
+        },
+        {
+          "text": "Investigate Grandpa's chair",
+          "target": 7
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "Outside in the warm sun, you spot the cake sitting safe on a low table, with only one tiny nibble missing from the corner. Nearby, Pip has a smudge of frosting right on that fuzzy nose.\n\n\"The case is warming up,\" you giggle. But something tells you there is more to this sweet mystery.",
+      "choices": [
+        {
+          "text": "Sneak closer for a better look",
+          "target": 8
+        },
+        {
+          "text": "Call everyone over to explain",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "Your cousin points toward the porch, where a trail of powdered sugar leads to a big striped picnic blanket. Something lumpy is hiding underneath.\n\nYou tiptoe closer and hear a soft, happy humming sound. \"We have almost solved it,\" you whisper to Sam.",
+      "choices": [
+        {
+          "text": "Gently peek under the blanket",
+          "target": 8
+        },
+        {
+          "text": "Knock politely and wait",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You lift the corner and find Grandpa sitting with the cake on his lap, a tiny spoon in hand. \"I was only checking the frosting,\" he laughs, \"to make sure it was perfect for the party.\"\n\nHe did not eat much at all, just a wee taste, and the cake is still beautiful. Everyone bursts into giggles.",
+      "choices": [
+        {
+          "text": "Laugh and carry the cake back inside",
+          "target": 10
+        },
+        {
+          "text": "Make Grandpa an honorary taste tester",
+          "target": 11
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "Everyone gathers around, and the truth comes out with lots of laughing. Pip took one gentle nibble, and Grandpa carried the cake outside for a secret taste test, both of them just too excited for the party.\n\nThe cake is safe, the frosting is perfect, and the mystery is solved. Detective work is delicious.",
+      "choices": [
+        {
+          "text": "Forgive Pip with a big hug",
+          "target": 12
+        },
+        {
+          "text": "Bake a little extra treat together",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "Case Closed",
+      "endingType": "good",
+      "text": "You carry the cake back to the table like a true hero, and everyone claps for the great detective. The candles are lit, and the whole family sings a happy birthday song.\n\nGrandpa promises to wait for the party next time, with a twinkle in his eye. Best case ever. The end.",
+      "choices": []
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "Detective of the Year",
+      "endingType": "silly-safe",
+      "text": "You pin a shiny paper badge on your shirt and one on Sam too. Grandpa gets the official title of Chief Frosting Tester, which he wears with great pride.\n\nEveryone agrees it was the silliest, sweetest mystery of the year. The end.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Frosting Bandit",
+      "endingType": "silly-safe",
+      "text": "You give Pip a big forgiving hug and pop a tiny party hat right between those fuzzy ears. The frosting bandit wags a happy tail and licks your cheek.\n\nEveryone poses for a photo with the rescued cake. Case closed, hearts full. The end.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "A Bigger, Better Cake",
+      "endingType": "good",
+      "text": "To celebrate cracking the case, you and Sam help bake a second little cake, just for fun. You swirl the frosting and toss on a rainbow of sprinkles.\n\nNow there is plenty of cake for everyone, even the very hungry helpers. Sharing is the sweetest ending of all. The end.",
+      "choices": []
+    }
+  ],
+  "setHash": "0c8b9785438665a1",
+  "resolvedNames": {
+    "{{CHILD_NAME}}": "Alex",
+    "{{FRIEND_NAME}}": "Sam",
+    "{{PET_NAME}}": "Pip"
+  }
+}

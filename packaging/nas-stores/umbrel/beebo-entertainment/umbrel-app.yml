@@ -1,0 +1,44 @@
+# DRAFT Umbrel app. NOT submit-ready: see ../../README.md ("Umbrel blockers"). For the official store the
+# id is used as is; for your own community store Umbrel requires the store id as prefix
+# (<store-id>-beebo-entertainment) in this file, the folder name and APP_HOST below.
+manifestVersion: 1.1
+id: beebo-entertainment
+category: media
+name: Beebo Entertainment
+version: "0.1.57"
+tagline: Your movies, TV, music and photos on every screen at home
+description: >-
+  Beebo Entertainment is a home media server. Point it at your folders of movies, TV shows,
+  music and photos and it builds a library with posters and details, with a web viewer, phone
+  and TV apps and an admin page.
+
+
+  Beebo converts video on the fly for devices that cannot play a file as it is.
+  The first time you open it you create the owner account with a one-time setup code that the app writes to its log.
+developer: Beebo Entertainment
+website: https://beeboentertainment.com
+dependencies: []
+repo: https://github.com/SWGfan/beebotv
+support: https://github.com/SWGfan/beebotv/issues
+port: 47811
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+releaseNotes: First Umbrel release.
+torOnly: false
+storage:
+  dataRoot: data
+folderAccess:
+  - id: umbrel-downloads
+    name: Downloads
+    note: Media files in your Downloads folder. Available inside Beebo at /media/downloads.
+    mounts:
+      - service: server
+        targetPath: /media/downloads
+        readOnly: true
+permissions:
+  - STORAGE_DOWNLOADS
+  - GPU
+submitter: Beebo Entertainment
+submission: ""

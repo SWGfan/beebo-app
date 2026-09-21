@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Campsite Mode serves guests' phones joined to this phone's own Wi-Fi (connectedDevice). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <!-- Background playback: the media session service runs foreground while the screen is off. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      Photo backup (Settings > Photo backup): reads the photos and videos in the albums the person
+      chooses and copies them to their own home computer. Asked for only after the in-app
+      explanation, only when backup is turned on. Android 14+ also offers "Select photos"
+      (READ_MEDIA_VISUAL_USER_SELECTED). Nothing is ever written to or deleted from the phone's
+      media. Play Console declaration text: docs/PLAY-READINESS.md, "Photo and video permissions".
+    -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Hot Potato and the bingo caller buzz when the timer goes off (never on silent). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Cast discovery uses multicast/mDNS on the local network. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!--
+      Campsite Scavenger Hunt: a find can be pinned to where it was spotted.
+      Asked for at runtime when that screen opens, never on launch, and nothing
+      else in the app reads location. Android 8-12 also insists on it before an
+      app may make the Campsite "BeeboTV" Wi-Fi (see campsite/BeeboWifi.kt);
+      that path never reads a location.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!--
+      Campsite Mode makes its own Wi-Fi for guests (local-only hotspot or Wi-Fi
+      Direct group). Android 13+ gates that on Nearby devices; neverForLocation
+      is true, the app derives nothing about location from it.
+    -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="tiramisu" />
+    <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
+
+    <!-- The app is useful without a Chromecast, so don't let Play filter devices on it. -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!--
+      Android TV / Google TV. Not required: this is the SAME APK on phones and TVs, and
+      required="false" is what lets it install on both. The TV entry point is the
+      LEANBACK_LAUNCHER filter on MainActivity plus the application banner below.
+      Wi-Fi and GPS are only used by the phone-only Campsite / Scavenger Hunt features
+      (hidden on a TV), so an Ethernet-only TV box must not be filtered out for them.
+    -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+
+    <application
+        android:name=".BeeboApp"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:banner="@drawable/tv_banner"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.BeeboEntertainment"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:targetApi="34">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:theme="@style/Theme.BeeboEntertainment">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- The sign-in page's "Open in Beebo": beebo://tv-link?code=ABCD-EFGH opens Link a TV with the code filled in. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="beebo" android:host="tv-link" />
+            </intent-filter>
+            <!-- The QR code Beebo shows on the computer: beebo://pair?server=192.168.1.20:47811&name=thesmiths (docs/pairing-link.md). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="beebo" android:host="pair" />
+            </intent-filter>
+            <!--
+              Android TV home screen. The same activity, not a separate TV one: the Compose
+              screens adapt when TvDevice reports a television (nav rail, focus rings,
+              phone-only features hidden).
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <!-- Google Assistant App Actions: "search for <title> on Beebo", "open continue watching in Beebo". -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <!--
+          Voice: Google Assistant ("Hey Google, play <title> on Beebo"), Google TV / Android TV
+          search results, App Actions and the TV home screen's Continue watching row all arrive
+          here. No screen of its own: it finds the title and starts the player. See docs/VOICE.md.
+        -->
+        <activity
+            android:name=".voice.VoiceSearchActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="beebo" android:host="play" />
+                <data android:scheme="beebo" android:host="open" />
+                <data android:scheme="beebo" android:host="feature" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+
+        <!-- Library titles for Google TV / Android TV global search. Only the system search reads it. -->
+        <provider
+            android:name=".voice.TvSearchProvider"
+            android:authorities="${applicationId}.tvsearch"
+            android:exported="true"
+            android:readPermission="android.permission.GLOBAL_SEARCH" />
+
+        <!--
+          supportsPictureInPicture + resizeableActivity are what make PiP possible at all, and the
+          configChanges list must cover the size/layout changes entering PiP causes, or the
+          Activity would be recreated (and playback restarted) every time.
+        -->
+        <activity
+            android:name=".player.PlayerActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|layoutDirection|density|uiMode"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
+            android:theme="@style/Theme.BeeboEntertainment.Player" />
+
+        <!--
+          Playback lives in a MediaSessionService so it survives the Activity being stopped or
+          destroyed (screen off, Home pressed). exported="true" plus the MediaSessionService
+          action is what Media3 requires so external controllers - Bluetooth buttons, the
+          lock screen, Android Auto, Assistant - can drive it.
+        -->
+        <service
+            android:name=".player.PlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
+        <!--
+          Music has its own MediaSessionService: a queue of songs with Media3's own playlist
+          (gapless, shuffle, repeat), separate from the film/episode player above so neither can
+          break the other. Audio focus makes them take turns. Same exported + action as the video
+          service so Bluetooth, the lock screen and Assistant can drive it.
+        -->
+        <service
+            android:name=".music.MusicPlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".downloads.DownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Resumes queued downloads when Wi-Fi (an unmetered network) comes back. -->
+        <service
+            android:name=".downloads.DownloadResumeJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- Space Saver: backs up picked folders to the home computer in the background. -->
+        <service
+            android:name=".spacesaver.SpaceSaverService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Website-build-only services are declared in src/web/AndroidManifest.xml. -->
+
+        <!--
+          Campsite Mode: the phone's local streaming server for guests' phones joined to this
+          phone's own Wi-Fi (local-only hotspot or Wi-Fi Direct group). That is an interaction
+          with external devices over a network connection, so connectedDevice, not dataSync
+          (it is not a sync, and a movie night shouldn't hit the shared 6-hour dataSync budget).
+          Android 14+ prerequisite: CHANGE_WIFI_STATE, declared above.
+        -->
+        <service
+            android:name=".campsite.CampsiteService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!--
+          Trip Journal video export: renders the slideshow to an MP4 on the phone. An encode takes
+          about as long as the video, so it runs in the foreground with a progress notification and
+          a Cancel button. dataSync (Google's list includes local file processing and import/export)
+          needs only FOREGROUND_SERVICE_DATA_SYNC, declared above. Nothing is uploaded.
+        -->
+        <service
+            android:name=".trip.TripExportService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!--
+          Shares the Trip Recap PNG (written to cacheDir/recap) through the Android share
+          sheet. Roots are declared in res/xml/file_paths.xml; nothing else is exposed.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Cast SDK entry point. -->
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.beeboentertainment.movie.player.CastOptionsProvider" />
+    </application>
+</manifest>

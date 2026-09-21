@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<movie>
+    <title>The Matrix</title>
+    <originaltitle>The Matrix</originaltitle>
+    <year>1999</year>
+    <userrating>9</userrating>
+    <ratings>
+        <rating name="imdb" max="10" default="true">
+            <value>8.7</value>
+            <votes>1900000</votes>
+        </rating>
+        <rating name="themoviedb" max="10">
+            <value>8.2</value>
+            <votes>24000</votes>
+        </rating>
+    </ratings>
+    <plot>A computer hacker learns from mysterious rebels about the true nature of his reality &amp; his role in the war against its controllers.</plot>
+    <tagline>Welcome to the Real World.</tagline>
+    <runtime>136</runtime>
+    <mpaa>R</mpaa>
+    <uniqueid type="imdb" default="true">tt0133093</uniqueid>
+    <uniqueid type="tmdb">603</uniqueid>
+    <genre>Action</genre>
+    <genre>Science Fiction</genre>
+    <tag>cyberpunk</tag>
+    <set>
+        <name>The Matrix Collection</name>
+    </set>
+    <thumb aspect="poster" preview="https://image.tmdb.org/t/p/w500/poster.jpg">https://image.tmdb.org/t/p/original/poster.jpg</thumb>
+    <thumb aspect="banner">banner.jpg</thumb>
+    <fanart>
+        <thumb>https://image.tmdb.org/t/p/original/fanart.jpg</thumb>
+    </fanart>
+    <playcount>2</playcount>
+    <lastplayed>2022-05-14 21:30:00</lastplayed>
+    <actor>
+        <name>Keanu Reeves</name>
+        <role>Neo</role>
+        <order>0</order>
+        <thumb>https://image.tmdb.org/t/p/w185/keanu.jpg</thumb>
+    </actor>
+    <actor>
+        <name>Carrie-Anne Moss</name>
+        <role>Trinity</role>
+        <order>1</order>
+        <thumb>../../../../etc/passwd</thumb>
+    </actor>
+</movie>

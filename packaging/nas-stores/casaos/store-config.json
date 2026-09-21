@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "store_id": "beebo-entertainment-apps",
+  "name": {
+    "en_US": "Beebo Entertainment"
+  },
+  "description": {
+    "en_US": "Beebo Entertainment home media server for CasaOS and ZimaOS"
+  },
+  "maintainer": "Beebo Entertainment",
+  "url": "https://beeboentertainment.com"
+}

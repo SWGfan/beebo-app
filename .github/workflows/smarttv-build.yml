@@ -1,0 +1,59 @@
+# Samsung Tizen / LG webOS TV app: tests, old-Chromium compatibility lint, and the two staging folders.
+# Only runs when apps/smarttv changes. No secrets, no signing, no deploys: the .wgt / .ipk are made
+# on a PC with the vendor CLIs (see apps/smarttv/README.md). The staged folders are attached as artifacts.
+name: smarttv-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/smarttv/**"
+      - ".github/workflows/smarttv-build.yml"
+  pull_request:
+    paths:
+      - "apps/smarttv/**"
+      - ".github/workflows/smarttv-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smarttv-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smarttv:
+    name: Test, lint, stage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/smarttv
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/smarttv/package-lock.json
+      - run: npm ci
+      - name: npm audit (production deps; informational, does not fail CI yet)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+      - name: Unit tests
+        run: npm test
+      - name: Old-Chromium compatibility lint
+        run: npm run lint
+      - name: Stage Tizen and webOS folders
+        run: npm run build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: smarttv-staging
+          path: |
+            apps/smarttv/dist/tizen
+            apps/smarttv/dist/webos
+            apps/smarttv/dist/build-report.json
+          if-no-files-found: error

@@ -1,0 +1,62 @@
+/* Trailers screen. Class names are all trailers-*. The :not() tail on the button rules matches the app-wide
+   button rule in styles.css, which would otherwise win on specificity and flatten every button here. */
+.trailers-page { max-width: 1280px; }
+.trailers-page h2 { margin: 0 0 4px; }
+.trailers-lead { margin: 0 0 18px; }
+.trailers-page .muted { color: var(--muted); }
+
+.trailers-filters { background: var(--panel); border: 1px solid var(--border, #2a2f3a); border-radius: 12px; padding: 16px; margin-bottom: 26px; }
+.trailers-row { display: flex; flex-wrap: wrap; gap: 14px 16px; align-items: flex-end; }
+.trailers-field { display: flex; flex-direction: column; gap: 4px; min-width: 170px; flex: 1 1 170px; font-size: 12px; color: var(--muted); }
+.trailers-field-year { flex: 0 1 170px; }
+.trailers-field-sort { flex: 0 1 160px; }
+.trailers-field input, .trailers-field select { width: 100%; min-height: 38px; font-size: 14px; }
+.trailers-field input[aria-invalid="true"] { border-color: #e2726a; }
+
+.trailers-seg { display: inline-flex; border: 1px solid #405376; border-radius: 9px; overflow: hidden; }
+.trailers-seg button:not(.nav-btn):not(.subtab):not(.primary) { background: transparent; color: #c0cbe0; border: 0; padding: 9px 16px; cursor: pointer; font-size: 13px; min-height: 38px; }
+.trailers-seg button.on:not(.nav-btn):not(.subtab):not(.primary) { background: #6540b1; color: #fff; }
+
+.trailers-person { position: relative; }
+.trailers-people { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: #122039; border: 1px solid #5b7194; border-radius: 10px; box-shadow: 0 12px 30px #0008; max-height: 280px; overflow-y: auto; }
+.trailers-people li { padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text); }
+.trailers-people li:hover, .trailers-people li.active { background: #24395f; }
+
+.trailers-genres, .trailers-chip-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+.trailers-chip-row { margin-top: 0; }
+button.trailers-chip:not(.nav-btn):not(.subtab):not(.primary) { border: 1px solid #405376; background: transparent; color: #c0cbe0; border-radius: 999px; padding: 5px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+button.trailers-chip:not(.nav-btn):not(.subtab):not(.primary):hover { border-color: #7f97c4; }
+button.trailers-chip.trailers-chip-on:not(.nav-btn):not(.subtab):not(.primary) { background: #6540b1; border-color: #b092ee; color: #fff; }
+button.trailers-link:not(.nav-btn):not(.subtab):not(.primary) { background: none; border: 0; padding: 4px 6px; color: var(--link, #6db3ff); font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
+.trailers-hint { margin-top: 6px; font-size: 12px; color: var(--muted); }
+.trailers-hint-error { color: #ffb6b6; }
+
+.trailers-section { margin-bottom: 34px; }
+.trailers-section h3 { margin: 0 0 12px; font-size: 18px; }
+.trailers-count { font-size: 13px; font-weight: 400; }
+.trailers-basis { margin: -6px 0 12px; font-size: 13px; }
+.trailers-message { color: #ffd9a3; margin: 0 0 12px; }
+
+.trailers-grid { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.trailers-card { display: flex; gap: 14px; background: linear-gradient(155deg, #152540, #101827); border: 1px solid #293a56; border-radius: 13px; padding: 12px; min-width: 0; }
+.trailers-poster { flex: 0 0 96px; width: 96px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 8px; background: #22262f; align-self: flex-start; }
+.trailers-poster-empty { display: flex; align-items: center; justify-content: center; font-size: 30px; color: #55607a; }
+.trailers-card-body { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.trailers-card-title { margin: 0; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.trailers-card-meta { font-size: 12px; color: var(--muted); }
+.trailers-card-overview { margin: 0; font-size: 12.5px; line-height: 1.45; color: #c9d1de; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.trailers-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }
+.trailers-card-note { font-size: 12px; color: #9ee6a8; }
+.trailers-card-note-error { color: #ffb6b6; }
+
+button.trailers-btn:not(.nav-btn):not(.subtab):not(.primary) { background: #1d2c47; color: #e8e8e8; border: 1px solid #405376; border-radius: 8px; padding: 7px 12px; font-size: 13px; cursor: pointer; min-height: 34px; }
+button.trailers-btn:not(.trailers-btn-primary):not(.nav-btn):not(.subtab):not(.primary):hover:not(:disabled) { background: #26385a; }
+button.trailers-btn-primary:not(.nav-btn):not(.subtab):not(.primary):hover:not(:disabled) { filter: brightness(1.12); }
+button.trailers-btn.trailers-btn-primary:not(.nav-btn):not(.subtab):not(.primary) { background: linear-gradient(115deg, #7144c3, #355997); border-color: #9c7cda; font-weight: 600; }
+
+.trailers-footer { border-top: 1px solid var(--border, #2a2f3a); padding-top: 14px; font-size: 12px; color: var(--muted); }
+.trailers-footer p { margin: 0 0 6px; }
+
+@media (max-width: 720px) {
+  .trailers-grid { grid-template-columns: 1fr; }
+}

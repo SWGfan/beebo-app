@@ -1,0 +1,17 @@
+{
+  "name": "beebo-roku",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Beebo Entertainment Roku channel (client for the user's own Beebo home server)",
+  "type": "module",
+  "scripts": {
+    "lint": "node build.mjs --lint",
+    "build": "node build.mjs",
+    "test": "node --test test/logic.test.mjs",
+    "placeholders": "node tools/make-placeholders.mjs"
+  },
+  "devDependencies": {
+    "@rokucommunity/brs": "^0.47.6",
+    "brighterscript": "^0.70.0"
+  }
+}

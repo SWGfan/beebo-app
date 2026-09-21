@@ -1,0 +1,197 @@
+# Beebo Entertainment CI: runs the test suites on pushes and pull requests to main.
+# No secrets, no deploys, read-only token. See "Continuous integration" in README.md.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+  # Skip network calls that only matter for publishing
+  ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+  # Audit stays ON (installs print advisories). The high-severity check runs as its own
+  # continue-on-error "npm audit" steps until the baseline is clean; see
+  # docs/SUPPLY-CHAIN-SECURITY.md.
+  NPM_CONFIG_AUDIT: "true"
+  NPM_CONFIG_FUND: "false"
+
+jobs:
+  # Decides which suites to run from the changed paths. Uses plain git (no third-party
+  # action, no extra token permissions). Anything it can't diff (first push of a branch,
+  # force push, manual run) runs everything.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      core: ${{ steps.filter.outputs.core }}
+      auto: ${{ steps.filter.outputs.auto }}
+      desktop: ${{ steps.filter.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none # history + trees only; the diff needs no file contents
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          all() { for k in core auto desktop; do echo "$k=true" >> "$GITHUB_OUTPUT"; done; }
+          case "$EVENT" in
+            pull_request) base="$PR_BASE" ;;
+            push) base="$PUSH_BEFORE" ;;
+            *) base="" ;;
+          esac
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "No usable base commit ($EVENT); running every suite."; all; exit 0
+          fi
+          if [ "$EVENT" = pull_request ]; then
+            changed="$(git diff --no-renames --name-only "$base"...HEAD)"
+          else
+            changed="$(git diff --no-renames --name-only "$base" HEAD)"
+          fi
+          echo "Changed files:"; echo "$changed" | sed 's/^/  /'
+          # CI config itself changing re-runs everything.
+          ci='^\.github/'
+          match() { if grep -Eq "$1" <<< "$changed"; then echo "$2=true"; else echo "$2=false"; fi >> "$GITHUB_OUTPUT"; }
+          match "$ci|^apps/core/" core
+          match "$ci|^apps/auto/" auto
+          match "$ci|^desktop/apps/desktop/" desktop
+          cat "$GITHUB_OUTPUT"
+
+  android-core:
+    name: Android phone app (apps/core)
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/core
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4 - Gradle cache; only main writes it
+      # No local.properties and no keystore.properties on the runner: the SDK comes from
+      # ANDROID_HOME on the ubuntu image, and release signing is only configured when
+      # keystore.properties exists (debug unit tests never need it).
+      # Runs test<Flavor>DebugUnitTest for every flavor (or testDebugUnitTest if none).
+      - name: Unit tests (debug, all flavors)
+        run: bash ../../.github/scripts/android-unit-tests.sh
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-core-test-reports
+          path: apps/core/app/build/reports/tests/
+          retention-days: 7
+
+  android-auto:
+    name: Car app (apps/auto)
+    needs: changes
+    if: needs.changes.outputs.auto == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/auto
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4 - Gradle cache; only main writes it
+      # debug.keystore is gitignored; build.gradle.kts falls back to AGP's default debug key.
+      - name: Unit tests (debug, all flavors)
+        run: bash ../../.github/scripts/android-unit-tests.sh
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-auto-test-reports
+          path: apps/auto/app/build/reports/tests/
+          retention-days: 7
+
+  desktop:
+    name: Desktop (desktop/apps/desktop)
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: desktop/apps/desktop
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            desktop/apps/desktop/package-lock.json
+            desktop/apps/desktop/resources/beebo-rtc-host/package-lock.json
+      # desktop/ is an npm workspace root; --workspaces=false keeps npm ci on this app's
+      # own package-lock.json and node_modules (otherwise npm walks up to desktop/).
+      - run: npm ci --workspaces=false
+      - name: npm audit (production deps; informational, does not fail CI yet)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+      - name: Install rtc-host deps (werift, for the own-relay and game-relay tests)
+        working-directory: desktop/apps/desktop/resources/beebo-rtc-host
+        run: npm ci
+      - name: npm audit, rtc-host (informational, does not fail CI yet)
+        continue-on-error: true
+        working-directory: desktop/apps/desktop/resources/beebo-rtc-host
+        run: npm audit --omit=dev --audit-level=high
+      # A few end-to-end tests exercise Beebo's private cloud Worker, which is not part of
+      # this repository; they detect its absence and skip themselves (see
+      # test/helpers/privateParts.js).
+      - name: Tests (one process per file, with a timeout)
+        env:
+          BEEBO_RTC_NODE_MODULES: ${{ github.workspace }}/desktop/apps/desktop/resources/beebo-rtc-host/node_modules
+        run: bash ../../../.github/scripts/desktop-tests.sh
+      - name: Renderer build
+        run: npx vite build
+
+  # Single status to require in branch protection. Skipped suites (no changes) count
+  # as OK; failed or cancelled ones don't.
+  ci-ok:
+    name: CI OK
+    needs: [changes, android-core, android-auto, desktop]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success|skipped) ;; *) echo "::error::a CI job ended with '$r'"; exit 1 ;; esac
+          done

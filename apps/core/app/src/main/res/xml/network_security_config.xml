@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext (plain http) is for the local network only. Everything on the internet is https.
+
+  What Android can and can't express here: a domain-config matches exact host names and their
+  subdomains. It has no address ranges, so it can't say "192.168.0.0/16". A home Beebo on the
+  LAN is reached at whatever address the router handed out (http://192.168.1.50:47811,
+  http://10.0.0.7:47811, a Tailscale 100.x address), so the base config has to permit
+  cleartext, and the app narrows it in code instead:
+
+    core/CleartextPolicy.Guard, a network interceptor on every OkHttp client the app builds
+    (API, posters, the player, subtitles, downloads, hub, beebo.tv, account deletion), refuses a
+    plain-http request - or a redirect - to anything but loopback, 10/8, 172.16/12, 192.168/16,
+    100.64/10 (Tailscale), link-local, IPv6 local addresses and local-only names (.local, .lan,
+    a single-label name). The only WebView (Campsite games) loads 127.0.0.1 and refuses to
+    navigate anywhere else.
+
+  Beebo's own internet hosts are locked to https here as well, so no code path can ever reach
+  them in plain text. usesCleartextTraffic was removed from the manifest: with this file
+  present it is ignored on every Android version the app supports (minSdk 24).
+
+  Casting away from home (player/PhoneCastRelay) needs NOTHING added here, and nothing was.
+  In that case the phone is the SERVER: a Chromecast on the same Wi-Fi fetches
+  http://<this phone>:<port>/c/<token>/<slot> from it. Android's network security config governs
+  what this app CONNECTS OUT to, not what connects in, so an incoming plain-http request is not
+  its business at all. The two outgoing legs are already covered: the phone fetches the film from
+  https://name.beebo.tv over the tunnel, and the only plain-http URL the app itself may load is
+  the poster on its own 192.168.x.x address, which the base config permits and CleartextPolicy
+  narrows to private addresses exactly as it does for a home Beebo on the LAN. Nothing about
+  cleartext was loosened for the app as a whole.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">beebo.tv</domain>
+        <domain includeSubdomains="true">beebotv.com</domain>
+        <domain includeSubdomains="true">beeboentertainment.com</domain>
+    </domain-config>
+</network-security-config>

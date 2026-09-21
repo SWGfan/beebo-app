@@ -1,0 +1,7 @@
+"date","user","media_type","full_title","title","grandparent_title","year","parent_media_index","media_index","watched_status","percent_complete","view_offset","duration","guid"
+"2023-05-01","nick","movie","The Matrix","The Matrix","","1999","","","1","100","","8160000","imdb://tt0133093"
+"2023-05-08","nick","movie","The Matrix","The Matrix","","1999","","","1","98","","8160000","imdb://tt0133093"
+"2023-01-02","nick","movie","Heat","Heat","","1995","","","0","27","2712500","10200000","imdb://tt0113277"
+"2022-03-01","nick","episode","Severance - Good News About Hell","Good News About Hell","Severance","2022","1","1","1","100","","3000000",""
+"2022-03-02","sam","episode","Severance - Half Loop","Half Loop","Severance","2022","1","2","0","20","601000","3000000",""
+"2022-03-02","sam","movie","Alien","Alien","","1979","","","1","100","","7000000","tmdb://348"

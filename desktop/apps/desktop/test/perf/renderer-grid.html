@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- Poster-grid render benchmark (docs/PERFORMANCE.md): the Movies grid with N cards using the app's real
+     styles.css and the same card structure as Movies.jsx / LibraryControls.jsx (poster-card, six overlay buttons,
+     poster + badge, caption, chips), no React and no IPC. Open through a static server rooted at apps/desktop:
+       http://127.0.0.1:PORT/test/perf/renderer-grid.html?n=2000&cv=1
+     cv=1 is the app as shipped (content-visibility rule in styles.css); cv=0 turns that rule off (the old behaviour). The page fills
+     window.__result = { n, cv, buildMs, firstLayoutMs, firstPaintMs, scrollFrames, scrollMaxFrameMs, scrollAvgFrameMs, scrollDropped }.
+-->
+<html><head><meta charset="utf-8"><title>grid bench</title>
+<link rel="stylesheet" href="../../src/styles.css">
+<style id="cv-rule"></style>
+</head><body>
+<div class="main" style="height:100vh;overflow-y:auto" id="scroller"><div class="grid" id="grid"></div></div>
+<script>
+(async function () {
+  const q = new URLSearchParams(location.search)
+  const n = Number(q.get('n') || 2000)
+  const cv = q.get('cv') === '1'
+  // cv=1: the rule styles.css ships (content-visibility on grid cards). cv=0: switched off, the old behaviour.
+  if (!cv) document.getElementById('cv-rule').textContent = '.grid > .poster-card { content-visibility: visible !important; }'
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAADCAYAAAC56t6BAAAAEklEQVR4nGP4z8DwHwwZGBgAKP0F+Sb6ZHMAAAAASUVORK5CYII='
+  const btn = (t, top, side) => `<button class="poster-overlay" title="${t}" style="position:absolute;top:${top}px;${side}:4px;z-index:1;font-size:11px;padding:2px 5px;opacity:.85">i</button>`
+  function card(i) {
+    return `<div class="card poster-card" role="group" tabindex="0" aria-label="Movie ${i}" style="position:relative" data-movie-path="D:\\Movies\\Movie ${i}.mp4">
+      ${btn('Play', 48, 'left')}${btn('Info', 4, 'left')}${btn('Collection', 4, 'left')}${btn('Recheck', 4, 'right')}${btn('Folder', 26, 'right')}${btn('Delete', 26, 'left')}
+      <div style="position:relative"><img src="${png}" alt="Movie ${i}" loading="lazy" decoding="async">
+        <div class="poster-overlay poster-badge" style="position:absolute;bottom:4px;right:4px;z-index:1;font-size:10px;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(0,0,0,.75);color:#eee">1080p</div></div>
+      <div class="meta"><div class="title">Movie number ${i}</div><div class="sub">${1950 + (i % 75)}</div>
+        <div class="card-chips" style="display:flex;gap:4px"><span style="font-size:10px;padding:1px 6px;border-radius:4px;background:#22262f">PG-13</span><span style="font-size:10px;padding:1px 6px;border-radius:4px;background:#22262f">Action</span><span style="font-size:10px;padding:1px 6px;border-radius:4px;background:#22262f">Drama</span></div></div></div>`
+  }
+  const grid = document.getElementById('grid')
+  const scroller = document.getElementById('scroller')
+  // A hidden page gets no animation frames; then only style + layout are measured (forced by reading offsetHeight), not paint.
+  const visible = document.visibilityState === 'visible'
+  const raf = () => (visible ? new Promise((r) => requestAnimationFrame(r)) : new Promise((r) => setTimeout(r, 0)))
+  await raf(); await raf()
+  const t0 = performance.now()
+  let html = ''
+  for (let i = 0; i < n; i++) html += card(i)
+  grid.innerHTML = html
+  const tBuilt = performance.now()
+  void grid.offsetHeight // forces style + layout
+  const tLayout = performance.now()
+  await raf(); await raf()
+  const tPaint = performance.now()
+  // Scroll like a mouse wheel: 150 px per frame for 200 frames (30,000 px, about 33 screens), recording frame times.
+  const frames = []
+  let last = performance.now()
+  const steps = 200
+  for (let s = 1; s <= steps; s++) {
+    scroller.scrollTop = s * 150
+    void grid.offsetHeight // style + layout for the new scroll position
+    await raf()
+    const now = performance.now()
+    frames.push(now - last); last = now
+  }
+  const avg = frames.reduce((a, b) => a + b, 0) / frames.length
+  window.__result = {
+    n, cv, paintMeasured: visible, nodes: document.getElementsByTagName('*').length,
+    buildMs: Math.round(tBuilt - t0), firstLayoutMs: Math.round(tLayout - tBuilt), firstPaintMs: Math.round(tPaint - tLayout),
+    totalToFirstPaintMs: Math.round(tPaint - t0),
+    scrollHeight: scroller.scrollHeight,
+    scrollAvgFrameMs: Math.round(avg * 10) / 10, scrollMaxFrameMs: Math.round(Math.max(...frames)), scrollDropped: frames.filter((f) => f > 34).length, scrollFrames: frames.length
+  }
+  document.title = 'done'
+})()
+</script></body></html>

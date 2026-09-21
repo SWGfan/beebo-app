@@ -1,0 +1,234 @@
+{
+  "title": "The Little Backyard Robot",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 13,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend who tinkers with you",
+      "default": "Sam"
+    },
+    {
+      "token": "{{ROBOT_NAME}}",
+      "role": "a cheerful little helper robot who beeps and boops",
+      "default": "Bolt"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}} and the Little Backyard Robot",
+    "dedication": "For every helper, big and small, who is happy to lend a hand."
+  },
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "One sunny morning, you and {{FRIEND_NAME}} were poking around the backyard when you heard a soft little sound behind the tomato plants. Beep. Boop. Beep. Out rolled a round metal robot no taller than your knee, with two blinky blue eyes and a smile made of light. \"Beep boop, hello friends! I am here to help!\" chirped {{ROBOT_NAME}}. {{FRIEND_NAME}} gasped and clapped their hands. \"A real robot! In your backyard! Where did you even come from?\" said {{FRIEND_NAME}}. The little robot spun in a happy circle. \"Boop! I am not sure, but I love helping. What shall we do first?\" asked {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Help {{ROBOT_NAME}} water the garden.",
+          "target": 2
+        },
+        {
+          "text": "Ask {{ROBOT_NAME}} to help find the missing socks.",
+          "target": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You led {{ROBOT_NAME}} over to the garden, where the little green sprouts looked thirsty. \"Beep boop, I have a watering setting!\" said {{ROBOT_NAME}}, and a tiny sprinkler popped out of its head. \"Careful, careful,\" giggled {{FRIEND_NAME}}, holding up an umbrella just in case. The robot began to water the plants, humming a bloopy little tune the whole time. \"Boop boop, growing is my favorite,\" chirped {{ROBOT_NAME}} happily. But then a plump little frog hopped right onto the robot's head. \"Beep! A passenger!\" said {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Gently move the frog to the pond.",
+          "target": 4
+        },
+        {
+          "text": "Let the frog ride along while you finish watering.",
+          "target": 5
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "\"Missing socks? Beep boop, a mystery! I love mysteries!\" said {{ROBOT_NAME}}, and its blue eyes turned into tiny magnifying glasses. {{FRIEND_NAME}} pulled a notebook from their pocket. \"Okay, detectives, here are the clues. Three socks vanished from the laundry line,\" said {{FRIEND_NAME}}. The robot sniffed the air with a little beep and rolled straight toward the big oak tree. \"Boop! The trail leads up, up, up!\" said {{ROBOT_NAME}}, pointing a claw at the branches. High above, something fuzzy and stripey was tucked into a cozy nest.",
+      "choices": [
+        {
+          "text": "Climb up with {{FRIEND_NAME}} to peek at the nest.",
+          "target": 5
+        },
+        {
+          "text": "Let {{ROBOT_NAME}} extend its telescope arms to look.",
+          "target": 6
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "You cupped your hands and gently, gently scooped the frog off the robot's head. \"Beep boop, thank you! I was worried I might tip him,\" said {{ROBOT_NAME}}. You carried the little frog to the pond, and he plopped in with a happy splash. \"Goodbye, froggy friend!\" called {{FRIEND_NAME}}, waving both hands. The robot rolled up beside you and gave a proud little beep. \"Boop, the garden is watered and the frog is home. We make a wonderful team!\" said {{ROBOT_NAME}}. Just then, dark clouds rolled in and a light rain began to fall.",
+      "choices": [
+        {
+          "text": "Build a little shelter for {{ROBOT_NAME}}.",
+          "target": 7
+        },
+        {
+          "text": "Dance in the warm rain together.",
+          "target": 8
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "\"Boop, hold on tight, little friend!\" laughed {{ROBOT_NAME}} as you all set off together. The robot rolled cheerfully along, beeping a bouncy song, while {{FRIEND_NAME}} skipped beside you. \"This is the best morning ever,\" said {{FRIEND_NAME}} with a huge grin. Soon you reached a wobbly plank bridge over the little garden stream. The robot's wheels were not sure about the wobble. \"Beep boop, that bridge looks bouncy. What is your plan, {{CHILD_NAME}}?\" asked {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Carry {{ROBOT_NAME}} carefully across.",
+          "target": 8
+        },
+        {
+          "text": "Fix the bridge with {{FRIEND_NAME}} first.",
+          "target": 9
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "The robot's arms stretched up like two shiny telescopes, and its eyes zoomed in on the nest. \"Boop! Mystery solved!\" announced {{ROBOT_NAME}}. Curled up in the branches was a small striped kitten, snuggled into a cozy pile of the missing socks. \"Aww, she built herself a sock bed!\" said {{FRIEND_NAME}}, melting a little. The kitten blinked down at you and gave a tiny mew. \"Beep boop, she seems friendly. Shall we invite her down for a snack?\" asked {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Set out a saucer of milk to coax her down.",
+          "target": 9
+        },
+        {
+          "text": "Let {{ROBOT_NAME}} make a soft ramp with its arms.",
+          "target": 10
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "Quick as anything, you and {{FRIEND_NAME}} propped a big umbrella against the fence and tucked a blanket underneath. \"Beep boop, a robot fort! I have always wanted one,\" said {{ROBOT_NAME}}, rolling happily inside. You all squished in together and listened to the rain pattering softly on the umbrella. \"I brought crackers,\" whispered {{FRIEND_NAME}}, sharing them around. The robot glowed warm and cozy. \"Boop, a snack, a fort, and my two best friends. My helping heart is very full,\" said {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Tell cozy stories until the rain stops.",
+          "target": 11
+        },
+        {
+          "text": "Play a quiet guessing game with {{ROBOT_NAME}}.",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You laughed and spun in the warm summer rain, and {{ROBOT_NAME}} spun right along with you, splashing in the puddles. \"Beep boop, I have a bubble setting!\" said {{ROBOT_NAME}}, and out floated hundreds of shimmery bubbles. {{FRIEND_NAME}} jumped up to pop them, giggling the whole time. \"This is pure magic,\" said {{FRIEND_NAME}}, catching a bubble on their nose. The sun peeked back out and painted a bright rainbow across the sky. \"Boop, look up! A rainbow, just for helpers like us,\" said {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Follow the rainbow to its end.",
+          "target": 11
+        },
+        {
+          "text": "Make a wish under the rainbow together.",
+          "target": 12
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "\"A helper always fixes things properly,\" said {{ROBOT_NAME}}, popping a little screwdriver from its side. Together you and {{FRIEND_NAME}} gathered smooth flat stones while the robot tightened the wobbly plank. \"Beep boop, hold steady, hold steady,\" it hummed, working carefully. Soon the bridge was snug and sturdy. \"Ta-da! Good as new,\" announced {{FRIEND_NAME}}, brushing off their hands. The robot beeped with pride and rolled across easily. \"Boop, now everyone can cross safely. That is the best kind of helping,\" said {{ROBOT_NAME}}.",
+      "choices": [
+        {
+          "text": "Celebrate with a picnic by the stream.",
+          "target": 12
+        },
+        {
+          "text": "Head home to show everyone the sturdy new bridge.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "isEnding": false,
+      "text": "With a soft whir, the robot lowered its arms into a gentle ramp, as cozy as a slide. \"Beep boop, take your time, little one,\" said {{ROBOT_NAME}} kindly. The striped kitten stretched, yawned, and padded slowly down the ramp, socks and all. \"She trusts you, {{CHILD_NAME}}! Look how calm she is,\" whispered {{FRIEND_NAME}}. At the bottom, the kitten bumped her head against the robot and began to purr. \"Boop, I think I have made a new friend, and we found the socks too,\" said {{ROBOT_NAME}} proudly.",
+      "choices": [
+        {
+          "text": "Bring the kitten inside for a warm nap.",
+          "target": 12
+        },
+        {
+          "text": "Return the cozy socks and thank the kitten.",
+          "target": 13
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "The Coziest Team",
+      "endingType": "good",
+      "text": "By the time the sky was clear again, you and {{FRIEND_NAME}} and {{ROBOT_NAME}} were tucked together, warm and happy and just a little bit muddy. \"Beep boop, today I learned the very best thing,\" said {{ROBOT_NAME}} softly. \"What is that?\" asked {{FRIEND_NAME}}, leaning in close. The robot's eyes glowed a gentle blue. \"Boop, helping is nice, but helping with friends is the nicest thing of all,\" said {{ROBOT_NAME}}. You gave the little robot a great big hug, and it beeped a happy, sleepy beep. And from that day on, the backyard always had one more cheerful helper in it.",
+      "choices": []
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "A Wish Come True",
+      "endingType": "good",
+      "text": "As the afternoon turned golden, you all gathered close, tired in the happiest way. \"Beep boop, may I share my wish?\" asked {{ROBOT_NAME}}. {{FRIEND_NAME}} nodded, resting their chin on their hands. \"I wished to find a home and some friends to help,\" said {{ROBOT_NAME}}, its light glowing warm. \"And, boop, my wish already came true, because I found you.\" You smiled so wide it made your cheeks ache. \"Then you can stay forever,\" you said. And the little backyard robot beeped the happiest beep of all, because forever with friends was exactly what it had hoped for.",
+      "choices": []
+    },
+    {
+      "id": 13,
+      "isEnding": true,
+      "endingTitle": "Home, Sweet Backyard",
+      "endingType": "silly-safe",
+      "text": "You marched home with {{FRIEND_NAME}} on one side and {{ROBOT_NAME}} rolling proudly on the other, beeping a triumphant little march. \"Boop, boop, coming through, helpers on the move!\" it announced to a very surprised garden snail. {{FRIEND_NAME}} burst out laughing. \"Did you just say hello to a snail?\" said {{FRIEND_NAME}}. \"Beep boop, of course! A good helper greets everyone,\" said {{ROBOT_NAME}}, tipping an imaginary hat. You all fell into a giggling heap in the soft grass. From then on, no chore was ever boring and no adventure was ever lonely, because the little backyard robot was always ready with a beep, a boop, and a helping hand.",
+      "choices": []
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "Where did they find the little robot?",
+      "choices": [
+        "the backyard",
+        "school",
+        "the beach"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What did they find behind the plants?",
+      "choices": [
+        "a robot",
+        "a puppy",
+        "a dragon"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What does the robot love to do?",
+      "choices": [
+        "help",
+        "sleep",
+        "hide"
+      ],
+      "correct": 0
+    }
+  ]
+}

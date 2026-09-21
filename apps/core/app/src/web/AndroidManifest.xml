@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Website (sideload) build only. Merged over src/main/AndroidManifest.xml.
+  The Play build never declares these; see the "play" flavor in app/build.gradle.kts.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Scan QR code on the sign-in screen: the website build reads the code with its own camera view
+      (CameraX + ZXing). The Google Play build uses Google's code scanner instead and declares no
+      camera permission at all. Asked for only when the person taps Scan QR code.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <application>
+        <!--
+          BeeboBook: waits on the home computer while it voices a storybook, so leaving
+          the story screen (or the app) no longer loses the finished narration, and a
+          notification can say when it is ready. Started from a button tap.
+        -->
+        <service
+            android:name="com.beeboentertainment.movie.stories.StoryNarrationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!--
+          BeeboBook: waits on the home computer while its own AI writes a new storybook. The
+          model can take many minutes, far longer than a screen stays open. Started from a
+          button tap.
+        -->
+        <service
+            android:name="com.beeboentertainment.movie.stories.StoryCowriterService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+    </application>
+</manifest>

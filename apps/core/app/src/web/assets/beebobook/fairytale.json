@@ -1,0 +1,232 @@
+{
+  "title": "The Shy Little Dragon and the Lantern Festival",
+  "ageRange": "All ages",
+  "startPage": 1,
+  "totalPages": 12,
+  "endingCount": 3,
+  "personalizable": true,
+  "characters": [
+    {
+      "token": "{{CHILD_NAME}}",
+      "role": "the reader / main character",
+      "default": "Alex"
+    },
+    {
+      "token": "{{FRIEND_NAME}}",
+      "role": "your best friend from the village who comes along to help",
+      "default": "Sam"
+    },
+    {
+      "token": "{{DRAGON_NAME}}",
+      "role": "the shy baby dragon who is afraid of its own glittery hiccups",
+      "default": "Pip"
+    }
+  ],
+  "coverMeta": {
+    "personalizedTitle": "{{CHILD_NAME}} and the Shy Little Dragon",
+    "dedication": "For {{CHILD_NAME}}"
+  },
+  "hasScenes": true,
+  "pages": [
+    {
+      "id": 1,
+      "isEnding": false,
+      "text": "On the morning of the Kingdom's Lantern Festival, you and {{FRIEND_NAME}} find a tiny dragon hiding under a mushroom. Its name is {{DRAGON_NAME}}, and it has the hiccups. Every hiccup puffs a little cloud of glittery smoke that smells like warm honey, and every puff makes {{DRAGON_NAME}} squeak and hide its eyes.\n\n\"I can't go to the festival,\" the little dragon whispers. \"What if I hiccup in front of everyone?\"",
+      "choices": [
+        {
+          "text": "Sit down and give the dragon a gentle hug",
+          "target": 2
+        },
+        {
+          "text": "Tell the dragon that its hiccups are actually magic",
+          "target": 3
+        }
+      ],
+      "alt": "{{CHILD_NAME}} and {{FRIEND_NAME}} find {{DRAGON_NAME}} beside a large mushroom as a little golden hiccup rises into the sunlight."
+    },
+    {
+      "id": 2,
+      "isEnding": false,
+      "text": "You sit right down in the soft grass and wrap {{DRAGON_NAME}} in a warm, slow hug. The little dragon breathes with you, in and out, and its wings stop trembling.\n\n\"That feels better,\" it says. A tiny hiccup escapes, and a puff of silver glitter floats up like a wish. {{FRIEND_NAME}} laughs kindly. \"See? Nothing scary happened at all.\"",
+      "choices": [
+        {
+          "text": "Go practice hiccups together in the quiet meadow",
+          "target": 4
+        },
+        {
+          "text": "Visit the wise old owl for some advice",
+          "target": 5
+        }
+      ],
+      "alt": "{{CHILD_NAME}} gives {{DRAGON_NAME}} a gentle hug while {{FRIEND_NAME}} smiles and a tiny silver sparkle floats above them."
+    },
+    {
+      "id": 3,
+      "isEnding": false,
+      "text": "\"Those aren't embarrassing hiccups,\" you say. \"That's festival magic. People pay coins to see sparkles like that!\" {{DRAGON_NAME}} peeks out from behind its wing, curious now instead of scared.\n\n\"Really?\" it asks. Another hiccup slips out, and a swirl of gold glitter spins into the air. {{FRIEND_NAME}} claps. \"Do it again!\"",
+      "choices": [
+        {
+          "text": "Go practice hiccups together in the quiet meadow",
+          "target": 4
+        },
+        {
+          "text": "Visit the wise old owl for some advice",
+          "target": 5
+        }
+      ],
+      "alt": "{{DRAGON_NAME}} peeks past a raised wing at a golden glitter swirl while {{CHILD_NAME}} encourages and {{FRIEND_NAME}} applauds."
+    },
+    {
+      "id": 4,
+      "isEnding": false,
+      "text": "In the quiet meadow, you help {{DRAGON_NAME}} practice. Each time a hiccup comes, you all cheer instead of gasping. Soon the little dragon is giggling, and giggles make even bigger, prettier puffs of glitter.\n\nBy lunchtime the meadow shimmers like the inside of a snow globe. \"I think I'm getting braver,\" {{DRAGON_NAME}} says softly.",
+      "choices": [
+        {
+          "text": "Head toward the festival while the dragon feels brave",
+          "target": 6
+        },
+        {
+          "text": "Rest a little longer and make a plan first",
+          "target": 7
+        }
+      ],
+      "alt": "{{DRAGON_NAME}} giggles in a sparkling meadow while {{CHILD_NAME}} and {{FRIEND_NAME}} cheer."
+    },
+    {
+      "id": 5,
+      "isEnding": false,
+      "text": "The wise old owl blinks down from her oak branch and listens to the whole story. \"Ah,\" she hoots gently. \"A hiccup is just your body being silly. Silly is not the same as scary.\"\n\n{{DRAGON_NAME}} thinks about that for a long, quiet moment. \"Silly is not scary,\" it repeats, and a small smile curls up. \"I like that.\"",
+      "choices": [
+        {
+          "text": "Head toward the festival while the dragon feels brave",
+          "target": 6
+        },
+        {
+          "text": "Rest a little longer and make a plan first",
+          "target": 7
+        }
+      ],
+      "alt": "A wise owl on an oak branch listens kindly to {{DRAGON_NAME}}, {{CHILD_NAME}} and {{FRIEND_NAME}} below."
+    },
+    {
+      "id": 6,
+      "isEnding": false,
+      "text": "You reach the edge of the festival, where lanterns hang from every tree waiting to be lit. Music drifts over the crowd, and the whole square glows soft and gold. {{DRAGON_NAME}} freezes at the sight of so many people.\n\n\"That is a lot of eyes,\" it gulps, and one nervous hiccup sends up a puff of pink glitter.",
+      "choices": [
+        {
+          "text": "Stand in front so the dragon can hide behind you",
+          "target": 8
+        },
+        {
+          "text": "Cheer loudly so a hiccup feels fun, not frightening",
+          "target": 9
+        }
+      ],
+      "alt": "{{DRAGON_NAME}} looks nervously toward the festival crowd beside {{CHILD_NAME}} and {{FRIEND_NAME}}, with a little pink hiccup in the air."
+    },
+    {
+      "id": 7,
+      "isEnding": false,
+      "text": "You and {{FRIEND_NAME}} make a cozy plan under a willow tree. If {{DRAGON_NAME}} feels scared, it can squeeze your hand twice, and you will squeeze back. A secret signal, just for the three of you.\n\nThe little dragon practices the squeeze and nods bravely. \"Okay,\" it says. \"I'm ready to try.\"",
+      "choices": [
+        {
+          "text": "Stand in front so the dragon can hide behind you",
+          "target": 8
+        },
+        {
+          "text": "Cheer loudly so a hiccup feels fun, not frightening",
+          "target": 9
+        }
+      ],
+      "alt": "{{CHILD_NAME}} and {{DRAGON_NAME}} practice their secret hand-squeeze beneath a willow while {{FRIEND_NAME}} watches supportively."
+    },
+    {
+      "id": 8,
+      "isEnding": false,
+      "text": "You step to the front of the crowd, and {{DRAGON_NAME}} tucks in close behind your legs, safe and warm. The Lantern Keeper calls out that the very first lantern needs a spark, but her match has gone out in the evening breeze.\n\nEveryone goes quiet. {{DRAGON_NAME}} feels a hiccup building, and this time it looks up at you, unsure whether to hold it in.",
+      "choices": [
+        {
+          "text": "Whisper to let the hiccup out toward the lantern",
+          "target": 10
+        },
+        {
+          "text": "Let the dragon decide all by itself",
+          "target": 11
+        }
+      ],
+      "alt": "{{DRAGON_NAME}} peeks from behind {{CHILD_NAME}} as the Lantern Keeper waits beside the first unlit lantern, with {{FRIEND_NAME}} nearby."
+    },
+    {
+      "id": 9,
+      "isEnding": false,
+      "text": "You throw your arms up and cheer, and {{FRIEND_NAME}} cheers, and soon the little dragon is laughing too. Laughing tickles its nose, and here comes the biggest hiccup yet, warm and glittery and bright.\n\nThe puff floats straight up over the crowd and bursts into a shower of sparkles. The whole square goes \"ooh,\" and {{DRAGON_NAME}} realizes everyone is smiling.",
+      "choices": [
+        {
+          "text": "Aim the next happy hiccup right at the tallest lantern",
+          "target": 10
+        },
+        {
+          "text": "Take a shy little bow and enjoy the moment",
+          "target": 12
+        }
+      ],
+      "alt": "{{CHILD_NAME}} and {{FRIEND_NAME}} cheer as {{DRAGON_NAME}} sends a happy golden glitter shower above the smiling crowd."
+    },
+    {
+      "id": 10,
+      "isEnding": true,
+      "endingTitle": "The Dragon Who Lit the Festival",
+      "endingType": "good",
+      "text": "{{DRAGON_NAME}} takes a deep breath and lets the hiccup go on purpose. A ribbon of golden glitter sails up and lights the very first lantern with a soft, happy glow. One by one, sparks leap from lantern to lantern until the whole kingdom shines.\n\nThe crowd cheers your names, and the little dragon stands tall and proud in the light it made. \"I wasn't scary,\" {{DRAGON_NAME}} laughs. \"I was wonderful the whole time.\" And every Lantern Festival after that, it lights the very first lantern.",
+      "choices": [],
+      "alt": "{{DRAGON_NAME}} proudly lights the festival lanterns with a golden ribbon of glitter while {{CHILD_NAME}}, {{FRIEND_NAME}} and the villagers celebrate."
+    },
+    {
+      "id": 11,
+      "isEnding": true,
+      "endingTitle": "A Whole Sky of Sparkles",
+      "endingType": "silly-safe",
+      "text": "{{DRAGON_NAME}} gets so excited that it hiccups again, and again, and again, faster than anyone can count. Puffs of glitter fill the whole square in every color, until the festival looks like it is snowing rainbows.\n\nThe Lantern Keeper laughs and gives up on her match entirely. \"Who needs lanterns,\" she says, \"when we have a dragon like this?\" You and {{FRIEND_NAME}} dance in the sparkle-snow all night, and nobody stops smiling.",
+      "choices": [],
+      "alt": "{{CHILD_NAME}} and {{FRIEND_NAME}} dance in rainbow sparkle-snow as {{DRAGON_NAME}} hiccups colorful magic and the Lantern Keeper laughs."
+    },
+    {
+      "id": 12,
+      "isEnding": true,
+      "endingTitle": "The Shyest, Bravest Bow",
+      "endingType": "good",
+      "text": "The little dragon takes a small, shy bow, and the whole crowd bows back. It didn't light every lantern, and it didn't do a single fancy trick, but it stood in front of everyone and let itself be seen.\n\n\"That was the bravest thing I ever did,\" {{DRAGON_NAME}} tells you quietly. You squeeze its hand twice, the secret signal, and it squeezes back. Some victories are quiet, and this one belongs to your friend.",
+      "choices": [],
+      "alt": "{{DRAGON_NAME}} takes a shy little bow beside {{CHILD_NAME}} and {{FRIEND_NAME}}, and the friendly villagers bow back."
+    }
+  ],
+  "comprehension": [
+    {
+      "question": "What little animal did they find?",
+      "choices": [
+        "a dragon",
+        "a bunny",
+        "a bird"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "Where was the little dragon hiding?",
+      "choices": [
+        "under a mushroom",
+        "in a cave",
+        "up a tree"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "What puffs out when the dragon hiccups?",
+      "choices": [
+        "✨ glitter",
+        "water",
+        "snow"
+      ],
+      "correct": 0
+    }
+  ]
+}
