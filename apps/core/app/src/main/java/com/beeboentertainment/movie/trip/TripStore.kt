@@ -83,6 +83,13 @@ class TripStore(
         return true
     }
 
+    /** Whether a finished Scavenger Hunt for Everyone was kept (false when no trip is running). */
+    fun recordHuntCard(tally: TallyResult): Boolean {
+        if (active() == null) return false
+        change { TripLogic.recordHuntCard(it, tally, clock()) }
+        return true
+    }
+
     fun recordArrival() {
         if (active() == null) return
         change { TripLogic.recordArrival(it, clock()) }

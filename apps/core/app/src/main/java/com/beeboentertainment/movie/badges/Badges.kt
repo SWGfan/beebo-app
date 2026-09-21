@@ -37,6 +37,10 @@ data class BadgeInputs(
     val alphabetComplete: Boolean = false,
     /** Nights quiet hours were kept while Campsite was running (Family Pack A). */
     val quietNights: Int = 0,
+    /** Items found across finished Scavenger Hunts for Everyone (the best list of each hunt). */
+    val huntItems: Int = 0,
+    /** Someone found every item on a hunt card. */
+    val huntComplete: Boolean = false,
 )
 
 /** The fixed catalog, in display order. Ids are stable — they're the persistence key. */
@@ -49,6 +53,8 @@ val BADGES: List<Badge> = listOf(
     Badge("plate_spotter_20", "Plate Spotter", "🚗", "Spot 20 plates in Plate & Sign Hunt"),
     Badge("alphabet_complete", "Alphabet Complete", "🔤", "Find every letter A to Z on signs"),
     Badge("quiet_hero", "Quiet Hero", "🌙", "Keep quiet hours for 3 nights"),
+    Badge("sharp_eyes", "Sharp Eyes", "🔎", "Find 30 things in Scavenger Hunts"),
+    Badge("full_card", "Full Card", "🗒️", "Find every item on a hunt card"),
 )
 
 /** Decide, from [inputs], which catalog badges are currently satisfied. */
@@ -61,6 +67,8 @@ fun badgeEarned(id: String, inputs: BadgeInputs): Boolean = when (id) {
     "plate_spotter_20" -> inputs.platesSpotted >= 20
     "alphabet_complete" -> inputs.alphabetComplete
     "quiet_hero" -> inputs.quietNights >= 3
+    "sharp_eyes" -> inputs.huntItems >= 30
+    "full_card" -> inputs.huntComplete
     else -> false
 }
 
@@ -76,6 +84,8 @@ object BadgeStore {
     private const val K_TRIP_DAY = "badge_trip_last_day_v1" // yyyyDDD of the last counted trip day
     private const val K_PLATES = "badge_plates_spotted_v1"
     private const val K_ALPHABET = "badge_alphabet_complete_v1"
+    private const val K_HUNT_ITEMS = "badge_hunt_items_v1"
+    private const val K_HUNT_COMPLETE = "badge_hunt_complete_v1"
 
     /** The ids already earned and kept. */
     fun earnedIds(prefs: SharedPreferences): Set<String> =
@@ -112,6 +122,17 @@ object BadgeStore {
         edit.apply()
     }
 
+    /**
+     * A Scavenger Hunt for Everyone finished. [found] (the best list's count) is added to the running
+     * total; [complete] latches when someone found every item. Two small numbers, on this phone only.
+     */
+    fun recordHuntRound(prefs: SharedPreferences, found: Int, complete: Boolean) {
+        val edit = prefs.edit()
+        if (found > 0) edit.putInt(K_HUNT_ITEMS, (prefs.getInt(K_HUNT_ITEMS, 0) + found).coerceAtMost(1_000_000))
+        if (complete) edit.putBoolean(K_HUNT_COMPLETE, true)
+        edit.apply()
+    }
+
     /** How many distinct days a trip landmark (Campfire Mode) has been used. */
     fun tripCount(prefs: SharedPreferences): Int = prefs.getInt(K_TRIP_COUNT, 0)
 
@@ -143,6 +164,8 @@ object BadgeStore {
             trips = tripCount(prefs),
             platesSpotted = prefs.getInt(K_PLATES, 0),
             alphabetComplete = prefs.getBoolean(K_ALPHABET, false),
+            huntItems = prefs.getInt(K_HUNT_ITEMS, 0),
+            huntComplete = prefs.getBoolean(K_HUNT_COMPLETE, false),
             quietNights = runCatching {
                 com.beeboentertainment.movie.campsite.quiet.QuietHoursStore(
                     com.beeboentertainment.movie.campsite.family.SharedPrefsFamilyStorage(prefs),

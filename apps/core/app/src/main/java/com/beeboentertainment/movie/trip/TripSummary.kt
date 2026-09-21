@@ -50,10 +50,12 @@ internal data class TripSummary(
     val arrivedAt: Long = 0L,
     /** Nights quiet hours were kept while Campsite ran during this trip (Family Pack A). */
     val quietNights: Int = 0,
+    /** Finished Scavenger Hunts for Everyone (a `hunt` moment whose id starts with the card prefix). */
+    val huntCards: List<TripMoment> = emptyList(),
 ) {
     val name: String get() = trip.name
     val isEmpty: Boolean
-        get() = gameCount == 0 && stories.isEmpty() && hunt.isEmpty() && badges.isEmpty() && packing == null &&
+        get() = gameCount == 0 && stories.isEmpty() && hunt.isEmpty() && huntCards.isEmpty() && badges.isEmpty() && packing == null &&
             tallies.isEmpty() && stops.isEmpty() && arrivedAt == 0L && quietNights == 0
 }
 
@@ -89,7 +91,8 @@ internal object TripSummaryBuilder {
             tally = tally(inWindow),
             champions = champs.map { ChampionLine(it.title, it.champion) },
             stories = trip.moments.filter { it.kind == MomentKind.STORY },
-            hunt = trip.moments.filter { it.kind == MomentKind.HUNT },
+            hunt = trip.moments.filter { it.kind == MomentKind.HUNT && !it.id.startsWith(TripLogic.HUNT_CARD_PREFIX) },
+            huntCards = trip.moments.filter { it.kind == MomentKind.HUNT && it.id.startsWith(TripLogic.HUNT_CARD_PREFIX) },
             badges = TripQueries.badgesEarned(trip, earnedBadgesNow),
             packing = if (depart.total == 0 && trip.packingAtReturn == null) null
             else PackingSummary(depart, trip.packingAtReturn, depart.items.filterNot { it.checked }.map { it.text }),

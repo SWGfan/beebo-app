@@ -9,7 +9,14 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.beeboentertainment.auto.family.FamilyIds
+import com.beeboentertainment.auto.family.FamilyMedia
+import com.beeboentertainment.auto.family.FamilySessionCommands
+import com.beeboentertainment.auto.family.FamilySleepController
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.LibraryResult
@@ -60,11 +67,18 @@ class PlaybackService : MediaLibraryService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    // Family Fun (stories, voice games, trip clock glance): see the family package. The player
+    // must only be touched from the main thread, so the sleep timer runs on its own main scope.
+    private lateinit var family: FamilyMedia
+    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var sleepController: FamilySleepController? = null
+
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs.get(this)
         api = ApiClient(this)
         catalog = Catalog(this)
+        family = FamilyMedia(this)
 
         val httpFactory = OkHttpDataSource.Factory(
             Call.Factory { request -> Http.streamClient().newCall(request) }
@@ -73,7 +87,11 @@ class PlaybackService : MediaLibraryService() {
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(this)
-                    .setDataSourceFactory(DefaultDataSource.Factory(this, httpFactory))
+                    // Family Fun's spoken audio is made on the phone: its beebo-tts addresses are
+                    // resolved to a file first, everything else goes straight to the network source.
+                    .setDataSourceFactory(
+                        ResolvingDataSource.Factory(DefaultDataSource.Factory(this, httpFactory), family.resolver)
+                    )
             )
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -97,8 +115,10 @@ class PlaybackService : MediaLibraryService() {
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 val id = mediaItem?.mediaId
+                updateSleepButton()
                 // Songs are not watch history: only films and episodes are reported.
-                if (id != null && MusicIds.isMusic(id)) {
+                // Family Fun audio is never watch history and never reported anywhere.
+                if (id != null && (MusicIds.isMusic(id) || FamilyIds.isFamily(id))) {
                     reporter?.onMediaChanged(null, "movie", null)
                     return
                 }
@@ -122,6 +142,22 @@ class PlaybackService : MediaLibraryService() {
         session = MediaLibrarySession.Builder(this, player, LibraryCallback())
             .setSessionActivity(openAppIntent())
             .build()
+
+        sleepController = FamilySleepController(player, mainScope) { updateSleepButton() }.also { it.start() }
+    }
+
+    /**
+     * The sleep timer's one button on the now-playing screen, shown only while Family Fun audio is
+     * playing, so a film or a song never grows an extra control.
+     */
+    private fun updateSleepButton() {
+        val s = session ?: return
+        val familyPlaying = FamilyIds.isFamily(player.currentMediaItem?.mediaId.orEmpty())
+        runCatching {
+            s.setMediaButtonPreferences(
+                if (familyPlaying) ImmutableList.of(FamilySessionCommands.sleepButton()) else ImmutableList.of()
+            )
+        }.onFailure { Log.w(TAG, "sleep button not updated", it) }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? =
@@ -135,6 +171,10 @@ class PlaybackService : MediaLibraryService() {
     override fun onDestroy() {
         AutoRemote.hold(HOLD_PLAYING, false)
         reporter?.stop()
+        sleepController?.stop()
+        sleepController = null
+        mainScope.cancel()
+        family.shutdown()
         scope.cancel()
         session?.run { player.release(); release() }
         session = null
@@ -164,11 +204,26 @@ class PlaybackService : MediaLibraryService() {
             MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
                 .setAvailableSessionCommands(
                     MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS
+                        .buildUpon().add(FamilySessionCommands.SLEEP).build()
                 )
                 .setAvailablePlayerCommands(
                     MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS
                 )
                 .build()
+
+        /** The sleep-timer button on the now-playing screen (Family Fun audio only). */
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle,
+        ): ListenableFuture<SessionResult> {
+            if (customCommand.customAction == FamilySessionCommands.SLEEP.customAction) {
+                FamilySessionCommands.cycleSleep()
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+        }
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
@@ -229,13 +284,21 @@ class PlaybackService : MediaLibraryService() {
             pageSize: Int,
             params: LibraryParams?,
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = scope.future {
+            // Family Fun folders need no server and no sign-in: they are answered on the phone.
+            if (FamilyIds.isFamily(parentId)) {
+                val rows = family.children(parentId) ?: emptyList()
+                return@future LibraryResult.ofItemList(ImmutableList.copyOf(rows), params)
+            }
             // Android Auto does not paginate — it sends page 0 and MAX_VALUE.
             // The sign-in row belongs at the root and nowhere else: handing it
             // back as the contents of every folder just hides the real shape of
             // the tree behind it.
             if (!prefs.isConfigured) {
-                val items = if (isRoot(parentId)) ImmutableList.of(catalog.notice(SIGN_IN))
-                else ImmutableList.of()
+                // Signed out: the sign-in row, and Family Fun beside it when a parent turned it on.
+                val items = if (isRoot(parentId)) {
+                    val row = catalog.notice(SIGN_IN)
+                    if (family.enabled) ImmutableList.of(row, family.rootItem()) else ImmutableList.of(row)
+                } else ImmutableList.of()
                 return@future LibraryResult.ofItemList(items, params)
             }
             val items = try {
@@ -263,7 +326,13 @@ class PlaybackService : MediaLibraryService() {
                 Log.w(TAG, "onGetChildren($parentId) failed", e)
                 listOf(catalog.notice("Something went wrong: ${e.message ?: "unknown error"}"))
             }
-            LibraryResult.ofItemList(ImmutableList.copyOf(items), params)
+            // Family Fun sits as a seventh root tab on a host that shows that many, otherwise last in Movies.
+            val withFamily = family.decorate(
+                parentId, items, catalog.rootLimit,
+                isRoot = parentId == MediaIds.ROOT_AUTO || parentId == MediaIds.ROOT_APP,
+                moviesTabId = MediaIds.TAB_MOVIES,
+            )
+            LibraryResult.ofItemList(ImmutableList.copyOf(withFamily), params)
         }
 
         /**
@@ -287,6 +356,12 @@ class PlaybackService : MediaLibraryService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = scope.future {
             val tapped = mediaItems.getOrNull(if (startIndex == C.INDEX_UNSET) 0 else startIndex)
+            // Family Fun: a tap on a game or a story queues all its rounds or parts, from the start.
+            // A refusal (games resting, hands-free off) fails the future with a plain sentence.
+            if (tapped != null && family.isQueueStart(tapped.mediaId)) {
+                val expanded = family.resolve(listOf(tapped), family.isOwnController(controller))
+                return@future MediaSession.MediaItemsWithStartPosition(expanded, 0, C.TIME_UNSET)
+            }
             val queue = tapped?.mediaId?.let { id ->
                 runCatching { catalog.musicQueueFor(id) }
                     .onFailure { Log.w(TAG, "music queue for $id failed", it) }
@@ -305,6 +380,11 @@ class PlaybackService : MediaLibraryService() {
             browser: MediaSession.ControllerInfo,
             mediaId: String,
         ): ListenableFuture<LibraryResult<MediaItem>> = scope.future {
+            if (FamilyIds.isFamily(mediaId)) {
+                val row = family.itemFor(mediaId)
+                return@future if (row != null) LibraryResult.ofItem(row, null)
+                else LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
+            }
             val resolved = runCatching { catalog.resolvePlayable(mediaId) }
                 .onFailure { Log.w(TAG, "onGetItem($mediaId)", it) }
                 .getOrNull()
@@ -337,6 +417,11 @@ class PlaybackService : MediaLibraryService() {
             val out = ArrayList<MediaItem>(mediaItems.size)
             for (item in mediaItems) {
                 if (item.localConfiguration != null) { out += item; continue }
+                // Family Fun rows: spoken on the phone, judged by the parked/driving and quiet-hours rules.
+                if (FamilyIds.isFamily(item.mediaId)) {
+                    out += family.resolve(listOf(item), family.isOwnController(controller))
+                    continue
+                }
                 // A spoken search from Assistant ("play Heat on Beebo"): no media id, a query instead.
                 val spoken = item.requestMetadata.searchQuery
                 if (item.mediaId.isBlank() && spoken != null) {

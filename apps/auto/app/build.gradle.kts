@@ -115,7 +115,31 @@ val syncSharedRtcTests = tasks.register<Sync>("syncSharedRtcTests") {
 }
 android.sourceSets.getByName("main").java.srcDir(syncSharedRtc.map { it.destinationDir })
 android.sourceSets.getByName("test").java.srcDir(syncSharedRtcTests.map { it.destinationDir })
-tasks.named("preBuild") { dependsOn(syncSharedRtc, syncSharedRtcTests) }
+
+// ---------------------------------------------------------------------------------------------
+// Family features (Trip Clock glance, quiet hours), shared with the phone app the same way.
+//
+// The phone app's Trip Clock and Quiet Hours logic (apps/core .../campsite/tripclock and .../quiet)
+// is pure Kotlin: wall-clock arithmetic, the countdown, the quiet window and their small JSON
+// stores. It is synced in here unchanged, in its own package, so the car and the phone can never
+// disagree on "how long is left" or "is it quiet". Only the pure files are taken. Left out on
+// purpose: the Compose screens, the guest web page, the GPS progress, the wind-down runner and
+// everything else in those folders that is glued to the phone app (Trip Journal, campsite server,
+// notifications). The declarations are `internal`, which is visible inside this module.
+// ---------------------------------------------------------------------------------------------
+val syncSharedFamily = tasks.register<Sync>("syncSharedFamily") {
+    from(coreJava) {
+        include("com/beeboentertainment/movie/campsite/family/WallClock.kt")
+        include("com/beeboentertainment/movie/campsite/family/FamilyPackStorage.kt")
+        include("com/beeboentertainment/movie/campsite/quiet/QuietHours.kt")
+        include("com/beeboentertainment/movie/campsite/quiet/QuietHoursStore.kt")
+        include("com/beeboentertainment/movie/campsite/tripclock/TripClockLogic.kt")
+        include("com/beeboentertainment/movie/campsite/tripclock/TripClockStore.kt")
+    }
+    into(layout.buildDirectory.dir("generated/sharedFamily/main"))
+}
+android.sourceSets.getByName("main").java.srcDir(syncSharedFamily.map { it.destinationDir })
+tasks.named("preBuild") { dependsOn(syncSharedRtc, syncSharedRtcTests, syncSharedFamily) }
 
 kotlin {
     compilerOptions {

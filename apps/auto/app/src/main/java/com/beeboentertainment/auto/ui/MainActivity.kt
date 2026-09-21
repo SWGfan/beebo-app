@@ -56,6 +56,9 @@ class MainActivity : ComponentActivity() {
     // Driving/parked signals for the parked-only video features.
     private val drive by lazy { DriveMonitor(this) }
 
+    // Copies the signals into Family Fun's shared state while the screen is in front.
+    private var familySignals: kotlinx.coroutines.Job? = null
+
     // The watch party's players: the media session (host) and a local video
     // player (viewer). The host controller connects asynchronously.
     private val players by lazy { PartyPlayers(this) }
@@ -92,6 +95,10 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         drive.start(lifecycleScope)
+        // Family Fun's media service judges requests from this screen with these live signals.
+        familySignals = lifecycleScope.launch {
+            drive.signals.collect { com.beeboentertainment.auto.family.FamilyRuntime.signals.value = it }
+        }
         // The phone screen is open: keep the connection to the home computer ready.
         AutoRemote.hold("screen", true)
     }
@@ -108,6 +115,11 @@ class MainActivity : ComponentActivity() {
         // Nobody can see the picture any more (PIP keeps us started, not stopped).
         players.viewer.pause()
         drive.stop()
+        // With the screen gone the phone is judged as if it were in the dashboard again.
+        familySignals?.cancel()
+        familySignals = null
+        com.beeboentertainment.auto.family.FamilyRuntime.signals.value =
+            com.beeboentertainment.auto.family.FamilyRuntime.WORST_CASE
         AutoRemote.hold("screen", false)
     }
 
@@ -290,6 +302,16 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 com.beeboentertainment.auto.games.GamesScreen(prefs = prefs)
+
+                HorizontalDivider()
+
+                // Family Fun: audio-only stories, voice games and the trip clock. Its buttons follow
+                // the same parked/passenger rule as the video features (see family/FamilyGate.kt).
+                com.beeboentertainment.auto.family.FamilyScreen(
+                    signals = signals,
+                    player = host,
+                    onConfirmPassenger = { drive.confirmPassenger(true) },
+                )
 
                 HorizontalDivider()
 

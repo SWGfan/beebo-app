@@ -141,12 +141,18 @@ internal object TripSlides {
         }
 
     private fun hunt(summary: TripSummary, mask: NameMask): Slide? {
-        if (summary.hunt.isEmpty()) return null
+        if (summary.hunt.isEmpty() && summary.huntCards.isEmpty()) return null
+        // Hunts played from a card (Scavenger Hunt for Everyone) say their counts; GPS waypoints say who found them.
+        val cardLines = summary.huntCards.take(4).map { it.text.ifBlank { it.title } }
+        val subtitle = listOfNotNull(
+            summary.huntCards.takeIf { it.isNotEmpty() }?.let { "${plural(it.size, "hunt")} played" },
+            summary.hunt.takeIf { it.isNotEmpty() }?.let { "${plural(it.size, "waypoint")} found" },
+        ).joinToString(" · ")
         return Slide(
             SlideKind.HUNT,
             title = "Scavenger hunt",
-            subtitle = "${plural(summary.hunt.size, "waypoint")} found",
-            lines = summary.hunt.take(8).map { h ->
+            subtitle = subtitle,
+            lines = cardLines + summary.hunt.take(8).map { h ->
                 val by = mask.all(h.names).joinToString(" & ")
                 if (by.isEmpty()) h.title else "${h.title} · found by $by"
             },

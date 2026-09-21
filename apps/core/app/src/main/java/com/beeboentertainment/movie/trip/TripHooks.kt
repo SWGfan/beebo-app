@@ -11,6 +11,9 @@ internal interface TripMomentSink {
     /** A finished plate or sign hunt. Default does nothing so older sinks and tests are unaffected. */
     fun tally(tally: TallyResult) {}
 
+    /** A finished Scavenger Hunt for Everyone: a card name and a count. Default does nothing. */
+    fun huntCard(tally: TallyResult) {}
+
     object None : TripMomentSink {
         override fun story(story: StoryResult) {}
     }
@@ -25,6 +28,10 @@ internal class TripStoreSink(private val store: TripStore) : TripMomentSink {
 
     override fun tally(tally: TallyResult) {
         runCatching { store.recordTally(tally) }
+    }
+
+    override fun huntCard(tally: TallyResult) {
+        runCatching { store.recordHuntCard(tally) }
     }
 }
 

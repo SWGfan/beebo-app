@@ -746,6 +746,7 @@ fun BeeboAppRoot(
                                 onOpenSongbook = { navController.navigate("songbook") },
                                 onOpenQuiz = { navController.navigate("roadsidequiz") },
                                 onOpenTripClock = { navController.navigate("tripclock") },
+                                onOpenHunt = { navController.navigate("everyonehunt") },
                             )
                         } }
                         composable("campsite-slides") {
@@ -754,6 +755,8 @@ fun BeeboAppRoot(
                         // Family pack B: both work on this phone alone, so they are not phone-only routes.
                         composable("songbook") { com.beeboentertainment.movie.campsite.songbook.SongbookHostScreen() }
                         composable("roadsidequiz") { com.beeboentertainment.movie.campsite.quiz.QuizHostScreen() }
+                        // Scavenger Hunt for Everyone: hosted on this phone, joined from a plain browser, no internet needed.
+                        composable("everyonehunt") { com.beeboentertainment.movie.campsite.hunt.HuntHostScreen() }
                         composable("starchart") { PhoneOnly("starchart") { com.beeboentertainment.movie.campsite.StarChartScreen() } }
                         composable("nearby") { PhoneOnly("nearby") { com.beeboentertainment.movie.campsite.NearbyScreen() } }
                         composable("badges") { com.beeboentertainment.movie.badges.BadgesScreen() }

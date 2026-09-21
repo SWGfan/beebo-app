@@ -8,6 +8,15 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Family Fun reads stories aloud with the phone's own speech engine. From Android 11 an app
+         has to say it wants to see the installed engines. Output only: there is no microphone
+         permission anywhere in this app. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".App"
         android:allowBackup="false"

@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e2418">
+<meta name="color-scheme" content="dark">
+<title>Scavenger Hunt - Beebo</title>
+<style>
+/* One self-contained page: no external fonts, images or scripts. The host serves it with a policy that forbids any. */
+:root{--bg:#08110c;--panel:#0e2418;--raised:#14301f;--line:#2b4d38;--text:#f1f7f2;--muted:#a9c0b0;--gold:#e3bf55;--leaf:#5fcf8b;--leafbg:#123a26;--warn:#f0a35c;--warnbg:#3a2a14;--bad:#e8615c;--badbg:#3a1f2a}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:radial-gradient(ellipse at 100% 0,#123a26 0,transparent 55%),var(--bg);color:var(--text);font:16px/1.45 system-ui,'Segoe UI',Roboto,sans-serif;min-height:100vh;min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(28px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+[hidden]{display:none!important}
+a{color:#a6e3bd}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+:where(button,a):focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar a{text-decoration:none;font-size:14px;padding:10px 4px}
+.bar b{flex:1;font-size:16px}
+.bar .me{font-size:13px;color:var(--muted);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{max-width:640px;margin:0 auto;padding:16px}
+.card{background:linear-gradient(155deg,var(--raised),#0e1f16);border:1px solid var(--line);border-radius:18px;padding:18px;margin:0 0 16px}
+.eyebrow{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(24px,6.5vw,32px);line-height:1.2;margin:8px 0 12px;overflow-wrap:anywhere}
+h2{font-size:19px;margin:0 0 10px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.safe{border-color:#7a6a2b;background:linear-gradient(155deg,#2b2810,#1a1a0c)}
+.safe .eyebrow{color:var(--gold)}
+.safe ul{margin:8px 0 0;padding-left:20px}
+.safe li{margin:0 0 6px;font-size:16px}
+.stats{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:15px;margin:4px 0 8px}
+.stats b{color:var(--text)}
+.timer{height:10px;border-radius:99px;background:#0a1a10;overflow:hidden;margin:12px 0 4px}
+.timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--leaf),var(--gold));transform-origin:left}
+.timer-text{font-size:15px;font-weight:700;text-align:right;min-height:1.3em}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{min-height:56px;padding:10px 18px;border-radius:14px;background:#0f2418;border:2px solid #3b6350;font-size:18px;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{border-color:var(--gold);background:#2b2810}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.item{background:#0f2418;border:2px solid #34573f;border-radius:16px;padding:0;overflow:hidden}
+.item.found{border-color:var(--leaf);background:var(--leafbg)}
+.item.pending{border-color:var(--warn);background:var(--warnbg)}
+.tap{display:flex;align-items:center;gap:14px;width:100%;min-height:64px;padding:12px 16px;text-align:left;font-size:19px;line-height:1.3;background:none;border:0;cursor:pointer}
+.tap:disabled{cursor:default}
+.mark{flex:0 0 40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#1f4130;font-weight:800;font-size:22px}
+.item.found .mark{background:var(--leaf);color:#06160c}
+.item.pending .mark{background:var(--warn);color:#1e1000}
+.txt{flex:1;overflow-wrap:anywhere}
+.pts{font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap}
+.sub{padding:0 16px 12px 70px;font-size:14px;color:var(--muted)}
+.sub .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.small{min-height:48px;padding:8px 14px;border-radius:12px;background:#12291c;border:2px solid #3b6350;font-size:15px;font-weight:700;cursor:pointer}
+.thumb{display:block;width:88px;height:88px;object-fit:cover;border-radius:10px;border:2px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:6px}
+.cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:88px;padding:6px 2px;text-align:center;font-size:clamp(11px,3.2vw,14px);line-height:1.25;background:#0f2418;border:2px solid #34573f;border-radius:12px;cursor:pointer;overflow-wrap:break-word;word-break:normal;hyphens:auto}
+.cell.found{border-color:var(--leaf);background:var(--leafbg)}
+.cell.pending{border-color:var(--warn);background:var(--warnbg)}
+.cell .mark{flex:0 0 auto;width:26px;height:26px;font-size:15px}
+.board{width:100%;border-collapse:collapse;font-size:17px}
+.board td{padding:9px 6px;border-top:1px solid var(--line)}
+.board tr:first-child td{border-top:0}
+.board td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
+.board tr.you td{background:rgba(227,191,85,.10)}
+.board .tag{font-size:12px;color:var(--muted);font-weight:600;margin-left:6px}
+.rank{display:inline-block;min-width:1.6em;color:var(--gold);font-weight:800}
+.big{font-size:clamp(24px,6.5vw,32px);font-weight:800;margin:0 0 6px}
+.tool{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px;font-size:14px;color:var(--muted)}
+#notice{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));padding:12px 14px;border-radius:12px;background:var(--badbg);border:1px solid #8a3b4a;color:#ffd9de;font-size:15px;text-align:center;z-index:5}
+.sr{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="bar"><a href="/library" aria-label="Back to the campsite">&larr; Camp</a><b>Scavenger Hunt</b><span class="me" id="me"></span></div>
+<main id="view" aria-live="polite"></main>
+<div id="notice" role="alert" hidden></div>
+<input class="sr" type="file" id="photo" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var GLYPH = ['▲', '●', '■', '★'];   // triangle, circle, square, star: colour is never the only cue
+  var SAFE = [
+    "Stay with your grown-up, and always within sight of an adult.",
+    "Look, don't touch: leave plants, animals and their homes where they are.",
+    "Never eat or taste anything you find.",
+    "Stay inside the areas your grown-up says are OK, and on marked paths."
+  ];
+  var ASK_FIRST = "Ask a grown-up before you pick anything up.";
+  var PHOTO_LOCAL = "Photos stay on your own phone. Nothing is sent to anyone.";
+  var PHOTO_THINGS = "Photograph things, not people: no faces, no other campers, no signs with names or numbers.";
+  var MAX_PHOTOS = 12;
+
+  var st = null, recvAt = 0, sig = '', busy = false, backoff = 0, joinAt = 0, sending = false, noticeTimer = 0;
+  var photos = {};              // item id -> object URL of a picture on THIS phone. Never read, resized or sent.
+  var potdUrl = '';
+  var pendingFor = '';
+  var soundOn = false, audioCtx = null, prevFound = -1;
+
+  function api(method, body) {
+    var opt = { method: method, headers: { 'X-Beebo-Hunt': '1' }, credentials: 'same-origin', cache: 'no-store' };
+    if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch('/api/hunt', opt).then(function (r) { return r.json().then(function (j) { j.__status = r.status; return j; }); });
+  }
+  function say(text) {
+    var n = $('notice'); n.textContent = text; n.hidden = false;
+    clearTimeout(noticeTimer); noticeTimer = setTimeout(function () { n.hidden = true; }, 3500);
+  }
+  function quietNow() { return !!(window.__beeboQuiet || (st && st.quiet)); }
+  function beep() {
+    if (!soundOn || quietNow()) return;
+    try {
+      var C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+      audioCtx = audioCtx || new C();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = 660; g.gain.value = 0.05;
+      o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.12);
+    } catch (e) { }
+  }
+  function apply(j) {
+    if (!j) return;
+    if (j.ok === false) { if (j.error) say(j.error); if (j.__status === 429) backoff = 3000; return; }
+    backoff = 0; st = j; recvAt = performance.now();
+    if (st.me) {
+      if (prevFound >= 0 && st.me.found > prevFound) beep();
+      prevFound = st.me.found;
+    } else { prevFound = -1; }
+    render();
+  }
+  function poll() {
+    if (busy || document.hidden) return;
+    busy = true;
+    api('GET').then(function (j) {
+      apply(j);
+      // A hunt is open and we are not in it yet: join (at most once every 5 s; a full hunt refuses, which is fine).
+      if (j && j.ok !== false && j.phase && j.phase !== 'idle' && j.phase !== 'done' && !j.me && Date.now() - joinAt > 5000) {
+        joinAt = Date.now();
+        return api('POST', { action: 'join' }).then(apply);
+      }
+    }).catch(function () { }).then(function () { busy = false; });
+  }
+  function act(body) {
+    if (sending) return;
+    sending = true;
+    api('POST', body).then(apply).catch(function () { say('Could not reach your host. Check your Wi-Fi.'); }).then(function () { sending = false; });
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function card(cls) { return el('section', 'card' + (cls ? ' ' + cls : '')); }
+  function teamLabel(i) { return GLYPH[i] + ' Team ' + st.teamNames[i]; }
+  function ordinal(n) { var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+  function minutes(ms) { var m = Math.round(ms / 60000); return m < 1 ? 'under a minute' : m + (m === 1 ? ' minute' : ' minutes'); }
+
+  function safetyCard(extra) {
+    var c = card('safe'); c.appendChild(el('span', 'eyebrow', 'Before you start'));
+    var ul = el('ul');
+    SAFE.forEach(function (line) { ul.appendChild(el('li', '', line)); });
+    if (extra) ul.appendChild(el('li', '', extra));
+    c.appendChild(ul); return c;
+  }
+
+  function board() {
+    var c = card();
+    c.appendChild(el('h2', '', st.mode === 'solo' ? 'Leaderboard' : (st.mode === 'together' ? 'Team score' : 'Teams')));
+    var rows = st.board || [];
+    if (!rows.length) { c.appendChild(el('p', 'muted', 'Nobody has joined yet.')); return c; }
+    var t = el('table', 'board');
+    rows.forEach(function (r) {
+      var tr = el('tr', r.you ? 'you' : '');
+      var n = el('td', '');
+      n.appendChild(el('span', 'rank', String(r.rank)));
+      n.appendChild(document.createTextNode((r.team >= 0 ? GLYPH[r.team] + ' ' : '') + r.name));
+      if (st.mode === 'teams') n.appendChild(el('span', 'tag', r.members + (r.members === 1 ? ' player' : ' players')));
+      if (r.you) n.appendChild(el('span', 'tag', 'you'));
+      n.appendChild(el('span', 'tag', r.found + ' of ' + st.total + (r.done ? ', all found!' : '')));
+      if (st.card.layout === 'bingo' && r.lines > 0) n.appendChild(el('span', 'tag', r.lines + (r.lines === 1 ? ' line' : ' lines')));
+      tr.appendChild(n); tr.appendChild(el('td', '', String(r.points))); t.appendChild(tr);
+    });
+    c.appendChild(t); return c;
+  }
+
+  function askPhoto(key) {
+    if (Object.keys(photos).length + (potdUrl ? 1 : 0) >= MAX_PHOTOS && key !== '__potd' && !photos[key]) { say('That is enough photos for one hunt.'); return; }
+    pendingFor = key; $('photo').click();
+  }
+  function forget(key) {
+    if (key === '__potd') { if (potdUrl) URL.revokeObjectURL(potdUrl); potdUrl = ''; }
+    else if (photos[key]) { URL.revokeObjectURL(photos[key]); delete photos[key]; }
+    sig = ''; render();
+  }
+  function photoBlock(key, label) {
+    var url = key === '__potd' ? potdUrl : photos[key];
+    var box = el('div', 'row');
+    if (url) {
+      var im = document.createElement('img'); im.className = 'thumb'; im.alt = 'Your photo. It stays on this phone.'; im.src = url; box.appendChild(im);
+      var rm = el('button', 'small', 'Remove photo'); rm.type = 'button'; rm.addEventListener('click', function () { forget(key); }); box.appendChild(rm);
+    } else {
+      var add = el('button', 'small', label); add.type = 'button'; add.addEventListener('click', function () { askPhoto(key); }); box.appendChild(add);
+    }
+    return box;
+  }
+
+  function itemCard(it) {
+    var li = el('li', 'item ' + (it.state === 'none' ? '' : it.state));
+    var b = el('button', 'tap'); b.type = 'button';
+    var mark = el('span', 'mark', it.state === 'found' ? '✓' : (it.state === 'pending' ? '…' : ''));
+    mark.setAttribute('aria-hidden', 'true');
+    b.appendChild(mark); b.appendChild(el('span', 'txt', it.text));
+    b.appendChild(el('span', 'pts', it.points + (it.points === 1 ? ' pt' : ' pts')));
+    var status = it.state === 'found' ? 'Found' : (it.state === 'pending' ? 'Waiting for your grown-up to check' : 'Not found yet');
+    b.setAttribute('aria-label', it.text + '. ' + status);
+    if (it.state === 'none' && st.phase === 'running') b.addEventListener('click', function () { act({ action: 'tick', item: it.id }); });
+    else b.disabled = true;
+    li.appendChild(b);
+    var subs = [];
+    if (it.hint) subs.push(it.hint);
+    if (st.mode !== 'solo' && it.by && it.state !== 'none') subs.push((it.state === 'pending' ? 'Sent by ' : 'Found by ') + it.by);
+    if (it.state === 'pending') subs.push('Waiting for your grown-up to check it.');
+    var canUndo = st.phase === 'running' && it.mine && (it.state === 'pending' || (it.state === 'found' && !st.approval));
+    var wantsPhoto = st.photos && st.phase === 'running' && it.state !== 'none';
+    if (subs.length || canUndo || wantsPhoto || photos[it.id]) {
+      var sub = el('div', 'sub');
+      subs.forEach(function (s) { sub.appendChild(el('div', '', s)); });
+      if (canUndo) {
+        var row = el('div', 'row'); var u = el('button', 'small', 'Undo'); u.type = 'button';
+        u.setAttribute('aria-label', 'Take back: ' + it.text);
+        u.addEventListener('click', function () { act({ action: 'untick', item: it.id }); }); row.appendChild(u); sub.appendChild(row);
+      }
+      if (wantsPhoto || photos[it.id]) sub.appendChild(photoBlock(it.id, 'Add a photo'));
+      li.appendChild(sub);
+    }
+    return li;
+  }
+
+  function bingoCard(it) {
+    var b = el('button', 'cell ' + (it.state === 'none' ? '' : it.state)); b.type = 'button';
+    var mark = el('span', 'mark', it.state === 'found' ? '✓' : (it.state === 'pending' ? '…' : ''));
+    mark.setAttribute('aria-hidden', 'true');
+    b.appendChild(mark); b.appendChild(el('span', '', it.text));
+    b.setAttribute('aria-label', it.text + '. ' + (it.state === 'found' ? 'Found' : (it.state === 'pending' ? 'Waiting for your grown-up' : 'Not found yet')));
+    if (it.state === 'none' && st.phase === 'running') b.addEventListener('click', function () { act({ action: 'tick', item: it.id }); });
+    else if ((it.state === 'pending' || it.state === 'found') && it.mine && st.phase === 'running' && (it.state === 'pending' || !st.approval)) {
+      b.setAttribute('aria-label', it.text + '. Tap to take it back.');
+      b.addEventListener('click', function () { act({ action: 'untick', item: it.id }); });
+    } else b.disabled = true;
+    return b;
+  }
+
+  function potdCard() {
+    var c = card(); c.appendChild(el('span', 'eyebrow', 'Photo of the day'));
+    c.appendChild(el('p', 'big', st.photoPrompt));
+    c.appendChild(el('p', 'muted', PHOTO_THINGS));
+    c.appendChild(el('p', 'muted', PHOTO_LOCAL));
+    if (st.phase === 'lobby') { c.appendChild(el('p', '', 'It opens when the hunt starts.')); return c; }
+    c.appendChild(photoBlock('__potd', 'Take or choose a photo'));
+    if (st.me) {
+      var d = el('button', 'small', st.me.photoDone ? 'You said you took yours' : 'I took mine'); d.type = 'button';
+      d.disabled = st.me.photoDone;
+      d.style.marginTop = '10px';
+      d.addEventListener('click', function () { act({ action: 'potd' }); });
+      c.appendChild(d);
+    }
+    c.appendChild(el('p', 'muted', st.photoCount + (st.photoCount === 1 ? ' person has' : ' people have') + ' taken theirs. Only a yes is sent, never the picture.'));
+    return c;
+  }
+
+  function soundRow() {
+    var r = el('div', 'tool');
+    var t = el('span', '', quietNow() ? 'Quiet hours: no sound.' : 'Sound is ' + (soundOn ? 'on' : 'off') + '.');
+    r.appendChild(t);
+    var b = el('button', 'small', soundOn ? 'Turn sound off' : 'Turn sound on'); b.type = 'button';
+    b.disabled = quietNow();
+    b.addEventListener('click', function () { soundOn = !soundOn; sig = ''; render(); });
+    r.appendChild(b); return r;
+  }
+
+  function render() {
+    var view = $('view');
+    if (!st) return;
+    $('me').textContent = st.me ? st.me.name : '';
+    var copy = {}; for (var k in st) if (k !== 'remainingMs') copy[k] = st[k];
+    var s = JSON.stringify(copy) + '|' + soundOn + '|' + Object.keys(photos).length + '|' + potdUrl;
+    if (s !== sig) { sig = s; build(view); }
+    timerTick();
+  }
+
+  function build(view) {
+    while (view.firstChild) view.removeChild(view.firstChild);
+    var p = st.phase;
+    if (p === 'idle') {
+      var c0 = card(); c0.appendChild(el('h1', '', 'No hunt yet'));
+      c0.appendChild(el('p', 'muted', 'Your host has not opened a hunt. This page will fill in by itself when they do.'));
+      view.appendChild(c0); return;
+    }
+    var watching = !st.me;
+    var head = card();
+    head.appendChild(el('span', 'eyebrow', st.card.emoji + ' Scavenger Hunt'));
+    head.appendChild(el('h1', '', st.card.title));
+    if (p === 'lobby') {
+      head.appendChild(el('p', 'muted', st.card.blurb));
+      head.appendChild(el('p', '', st.card.where));
+      var facts = el('div', 'stats');
+      var mode = st.mode === 'solo' ? 'Everyone plays alone' : (st.mode === 'together' ? 'Everyone plays together' : st.teamNames.length + ' teams');
+      [['Play', mode], ['Things to find', String(st.total)], ['Timer', st.timerMinutes ? st.timerMinutes + ' minutes' : 'none'],
+       ['Finds', st.approval ? 'your grown-up checks each one' : 'count right away']].forEach(function (f) {
+        var s = el('span'); s.appendChild(document.createTextNode(f[0] + ': ')); s.appendChild(el('b', '', f[1])); facts.appendChild(s);
+      });
+      head.appendChild(facts);
+      view.appendChild(head);
+      view.appendChild(safetyCard(st.photos ? ASK_FIRST : ''));
+      if (watching) { var wc = card(); wc.appendChild(el('p', 'muted', st.players >= 24 ? 'This hunt is full, so you can watch from here.' : 'Joining the hunt...')); view.appendChild(wc); }
+      else {
+        head.appendChild(el('p', '', watching ? '' : 'You are in! Waiting for your grown-up to start.'));
+        if (st.mode === 'teams') {
+          var tc = card(); tc.appendChild(el('h2', '', 'Pick your team'));
+          var chips = el('div', 'chips');
+          st.teamNames.forEach(function (n, i) {
+            var b = el('button', 'chip', GLYPH[i] + ' ' + n); b.type = 'button';
+            b.setAttribute('aria-pressed', st.me.team === i ? 'true' : 'false');
+            b.addEventListener('click', function () { act({ action: 'team', team: i }); });
+            chips.appendChild(b);
+          });
+          tc.appendChild(chips); view.appendChild(tc);
+        }
+      }
+      if (st.photoOfDay) view.appendChild(potdCard());
+      view.appendChild(board()); return;
+    }
+    if (p === 'running') {
+      if (st.timerMinutes > 0) {
+        var tm = el('div', 'timer'); tm.setAttribute('aria-hidden', 'true'); tm.appendChild(el('i')); head.appendChild(tm);
+        var tt = el('div', 'timer-text'); tt.id = 'timer-text'; head.appendChild(tt);
+      }
+      if (st.me) {
+        var stats = el('div', 'stats');
+        [['Points', String(st.me.points)], ['Found', st.me.found + ' of ' + st.total], ['Place', ordinal(st.me.rank)]].forEach(function (f) {
+          var s = el('span'); s.appendChild(document.createTextNode(f[0] + ': ')); s.appendChild(el('b', '', f[1])); stats.appendChild(s);
+        });
+        if (st.card.layout === 'bingo') { var sl = el('span'); sl.appendChild(document.createTextNode('Bingo lines: ')); sl.appendChild(el('b', '', String(st.me.lines))); stats.appendChild(sl); }
+        if (st.me.team >= 0) { var sm = el('span'); sm.appendChild(el('b', '', teamLabel(st.me.team))); stats.appendChild(sm); }
+        head.appendChild(stats);
+        if (st.me.pending > 0) head.appendChild(el('p', 'muted', st.me.pending + (st.me.pending === 1 ? ' find is' : ' finds are') + ' waiting for your grown-up to check.'));
+      } else head.appendChild(el('p', 'muted', st.players >= 24 ? 'You are watching. This hunt is full.' : 'Joining the hunt...'));
+      head.appendChild(soundRow());
+      view.appendChild(head);
+      if (st.me) {
+        var lc = card();
+        lc.appendChild(el('h2', '', st.card.layout === 'bingo' ? 'Your bingo card' : 'Things to find'));
+        if (st.mode === 'together') lc.appendChild(el('p', 'muted', 'Everyone shares one list. A find by anyone counts for all of you.'));
+        else if (st.mode === 'teams') lc.appendChild(el('p', 'muted', 'This is your team’s list. A find by any teammate counts for the team.'));
+        if (st.card.layout === 'bingo') {
+          var g = el('div', 'grid'); g.style.setProperty('--n', String(st.card.grid));
+          (st.items || []).forEach(function (it) { g.appendChild(bingoCard(it)); });
+          lc.appendChild(g);
+          if (st.photos) { lc.appendChild(el('p', 'muted', PHOTO_LOCAL)); }
+        } else {
+          var ul = el('ul', 'list');
+          (st.items || []).forEach(function (it) { ul.appendChild(itemCard(it)); });
+          lc.appendChild(ul);
+        }
+        view.appendChild(lc);
+      }
+      if (st.photoOfDay) view.appendChild(potdCard());
+      view.appendChild(board());
+      view.appendChild(safetyCard(st.photos ? ASK_FIRST + ' ' + PHOTO_LOCAL : ASK_FIRST));
+      return;
+    }
+    if (p === 'done') {
+      var d = card(); d.appendChild(el('span', 'eyebrow', 'Hunt finished'));
+      var win = st.winners || [];
+      d.appendChild(el('p', 'big', win.length === 0 ? 'Great looking, everybody!' : (win.length === 1 ? win[0] + (st.mode === 'together' ? ' did it!' : ' wins!') : 'A tie: ' + win.join(' and ') + '!')));
+      var why = st.ended && st.ended.everyone ? 'Everybody found everything.' : (st.ended && st.ended.timedOut ? 'The time was up.' : 'Your grown-up ended the hunt.');
+      d.appendChild(el('p', 'muted', why + ' It took ' + minutes(st.ended ? st.ended.durationMs : 0) + '.'));
+      if (st.me) d.appendChild(el('p', '', 'You found ' + st.me.found + ' of ' + st.total + ' and scored ' + st.me.points + '.'));
+      if (st.approval) d.appendChild(el('p', 'muted', 'Finds that were still waiting for your grown-up did not count.'));
+      if (st.photoOfDay) d.appendChild(el('p', 'muted', st.photoCount + (st.photoCount === 1 ? ' person' : ' people') + ' took today’s photo. Yours stays on your phone.'));
+      d.appendChild(el('p', 'muted', 'Please leave everything where you found it. Thanks for playing!'));
+      view.appendChild(d); view.appendChild(board());
+      if (st.photos && Object.keys(photos).length) view.appendChild(el('p', 'muted', 'Your photos are only on this page. Close it and they are gone; save any you like from your own phone.'));
+    }
+  }
+
+  function timerTick() {
+    if (!st || st.phase !== 'running' || !(st.remainingMs >= 0) || !st.timerMinutes) return;
+    var left = Math.max(0, st.remainingMs - (performance.now() - recvAt));
+    var bar = document.querySelector('.timer i'), txt = $('timer-text');
+    if (bar) bar.style.transform = 'scaleX(' + Math.min(1, left / (st.timerMinutes * 60000)) + ')';
+    if (txt) { var secs = Math.ceil(left / 1000); txt.textContent = Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2) + ' left'; }
+  }
+
+  $('photo').addEventListener('change', function () {
+    var input = $('photo'), f = input.files && input.files[0], key = pendingFor;
+    pendingFor = '';
+    if (!f || !key) { input.value = ''; return; }
+    if (!/^image\//.test(f.type)) { input.value = ''; say('That file is not a picture.'); return; }
+    // The picture is shown from this phone's own memory. It is never read into the page, resized or sent anywhere.
+    var url = URL.createObjectURL(f);
+    input.value = '';
+    if (key === '__potd') { if (potdUrl) URL.revokeObjectURL(potdUrl); potdUrl = url; }
+    else { if (photos[key]) URL.revokeObjectURL(photos[key]); photos[key] = url; }
+    sig = ''; render();
+  });
+  window.addEventListener('pagehide', function () {
+    Object.keys(photos).forEach(function (k) { URL.revokeObjectURL(photos[k]); });
+    if (potdUrl) URL.revokeObjectURL(potdUrl);
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  (function loop() { poll(); setTimeout(loop, 1000 + backoff); })();
+  setInterval(function () { timerTick(); }, 250);
+})();
+</script>
+</body>
+</html>

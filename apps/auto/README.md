@@ -39,6 +39,13 @@ Surprise Me           ten random picks from the surf endpoint
 Search is wired up too, including `MEDIA_PLAY_FROM_SEARCH`, so Assistant can hand
 the app a query.
 
+**Family Fun (in development, off by default).** A parent can add one more folder: a read-only
+Trip Clock glance ("About 3 more movies", estimate only), Roadside Stories read aloud with a sleep
+timer, and three audio-only voice games. It is audio only, uses no microphone, records nothing and
+sends nothing. See `docs/BEEBO-AUTO-FAMILY.md` at the repository root for the platform research,
+the parked-versus-driving rule, the safety review and what still needs a head unit to verify.
+Code: `app/src/main/java/com/beeboentertainment/auto/family/`.
+
 ## Building
 
 Requires JDK 17+ and an Android SDK with platform 36 and build-tools 36.0.0.

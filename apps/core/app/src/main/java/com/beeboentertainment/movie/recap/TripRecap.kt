@@ -132,6 +132,7 @@ object TripRecapBuilder {
         if (summary.hunt.isNotEmpty()) {
             stats += RecapStat("🔎", "Scavenger hunt: " + TripSlides.plural(summary.hunt.size, "waypoint") + " found")
         }
+        summary.huntCards.forEach { stats += RecapStat("🔎", it.text.ifBlank { it.title }) }
         summary.tallies.forEach { stats += RecapStat("🚗", it.text.ifBlank { it.title }) }
         if (summary.quietNights > 0) stats += RecapStat("🌙", "Quiet hours kept: " + TripSlides.plural(summary.quietNights, "night"))
         if (summary.stops.isNotEmpty()) {

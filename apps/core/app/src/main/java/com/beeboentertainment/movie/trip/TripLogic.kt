@@ -21,6 +21,9 @@ object TripLogic {
     const val MAX_STORY_CHARS = 4000
     const val MAX_PACK_ITEMS = 200
 
+    /** Id prefix of a `hunt` moment written by Scavenger Hunt for Everyone (a GPS waypoint uses "hunt-" and the waypoint id). */
+    const val HUNT_CARD_PREFIX = "huntcard-"
+
     /** The trip name as saved: trimmed, control characters removed, never empty, bounded. */
     fun cleanName(raw: String, fallback: String): String {
         val text = raw.filter { !it.isISOControl() }.trim().take(MAX_NAME)
@@ -176,6 +179,28 @@ object TripLogic {
                 at = now,
                 kind = MomentKind.TALLY,
                 title = tally.title.trim().take(MAX_NAME * 2).ifBlank { "Plate hunt" },
+                text = tally.text.trim().take(MAX_NAME * 3),
+                names = mergeRoster(emptyList(), tally.names),
+            )
+            trip.copy(moments = upsertMoment(trip.moments, moment))
+        }
+    }
+
+    /**
+     * Keep a finished Scavenger Hunt for Everyone on the running trip as a `hunt` moment, one entry per
+     * hunt id. Counts and nicknames only: a [TallyResult] has no item text, photo or coordinate. The id
+     * starts with [HUNT_CARD_PREFIX] so the recap can tell it from a GPS waypoint.
+     */
+    fun recordHuntCard(book: TripBook, tally: TallyResult, now: Long): TripBook {
+        if (tally.total <= 0 || tally.found <= 0) return book
+        return updateActive(book) { trip ->
+            val id = HUNT_CARD_PREFIX + tally.id.filter { it.isLetterOrDigit() || it == '-' }.take(40)
+            val first = trip.moments.firstOrNull { it.id == id }?.at ?: now
+            val moment = TripMoment(
+                id = id,
+                at = first,
+                kind = MomentKind.HUNT,
+                title = tally.title.trim().take(MAX_NAME * 2).ifBlank { "Scavenger hunt" },
                 text = tally.text.trim().take(MAX_NAME * 3),
                 names = mergeRoster(emptyList(), tally.names),
             )

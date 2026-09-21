@@ -1,7 +1,7 @@
 {
   "name": "beeboentertainment-desktop",
   "private": true,
-  "version": "0.1.57",
+  "version": "0.1.58",
   "description": "Beebo Entertainment desktop: local movie library/player + TMDB metadata",
   "main": "electron/main.js",
   "author": {
@@ -163,6 +163,13 @@
           "!_diag.log",
           "!**/*.log",
           "!_retired{,/**}"
+        ]
+      },
+      {
+        "from": "resources/beebo-rtc-host/node_modules",
+        "to": "beebo-rtc-host/node_modules",
+        "filter": [
+          "**/*"
         ]
       },
       {

@@ -64,6 +64,9 @@ class CampsiteServer(
     /** Family pack B: Campfire Songbook and Roadside Quiz (campsite/songbook, campsite/quiz). Built lazily. */
     private val familyB: com.beeboentertainment.movie.campsite.family.FamilyPackBServices =
         com.beeboentertainment.movie.campsite.family.FamilyPackBServices.shared(),
+    /** Scavenger Hunt for Everyone (campsite/hunt): the offline browser hunt. Built lazily. */
+    private val huntPack: com.beeboentertainment.movie.campsite.hunt.HuntServices =
+        com.beeboentertainment.movie.campsite.hunt.HuntServices.shared(),
 ) {
 
     /**
@@ -275,6 +278,17 @@ class CampsiteServer(
             }
             return
         }
+        // ---- Scavenger Hunt for Everyone: one JSON door, same guards as every other guest API.
+        if (path == "/api/hunt") {
+            val guestName = games.name(playToken)
+            if (playToken == null || guestName == null) {
+                writeJson(out, 403, "{\"ok\":false,\"error\":\"Join the campsite first.\"}"); return
+            }
+            serveApi(method, headers, input, out, "x-beebo-hunt", "Open the hunt from your host's guest page.",
+                onGet = { huntPack.hunt.get(playToken, guestName).let { it.status to it.body.toString() } },
+                onPost = { body -> huntPack.hunt.post(playToken, guestName, body).let { it.status to it.body.toString() } })
+            return
+        }
         if (method != "GET" && method != "HEAD") { writeSimple(out, 405, "Method Not Allowed", "Only GET"); return }
 
         when {
@@ -303,6 +317,7 @@ class CampsiteServer(
                     query["next"] == "music" -> "/music"
                     query["next"] == "songbook" -> "/songbook"
                     query["next"] == "quiz" -> "/quiz"
+                    query["next"] == "hunt" -> "/hunt"
                     query["next"] == "clock" -> "/clock"
                     query["next"] == "watch" && query["id"].orEmpty().isNotBlank() ->
                         "/watch?id=" + encode(decode(query["id"].orEmpty()))
@@ -339,6 +354,10 @@ class CampsiteServer(
             path == "/quiz" -> {
                 if (games.name(playToken) == null) writeRedirect(out, "/join?next=quiz")
                 else writeFamilyHtml(out, familyB.quizPage())
+            }
+            path == "/hunt" -> {
+                if (games.name(playToken) == null) writeRedirect(out, "/join?next=hunt")
+                else writeFamilyHtml(out, huntPack.page(), allowBlobImages = true)
             }
             path == "/clock" -> {
                 if (games.name(playToken) == null) writeRedirect(out, "/join?next=clock")
@@ -611,13 +630,14 @@ class CampsiteServer(
      * host, load nothing from anywhere else (no fonts, images, scripts or frames) and use no
      * microphone, camera or location. The page is one self-contained file, so this costs it nothing.
      */
-    private fun writeFamilyHtml(out: OutputStream, html: String) {
+    private fun writeFamilyHtml(out: OutputStream, html: String, allowBlobImages: Boolean = false) {
         // Same quiet-hours banner every other guest page carries (Family Pack A). It only reads /api/family.
         val bytes = com.beeboentertainment.movie.campsite.family.FamilyBanner.inject(html).toByteArray(Charsets.UTF_8)
         val h = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n" +
             "Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\n" +
             "Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
-            "connect-src 'self'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'\r\n" +
+            "connect-src 'self'; img-src " + (if (allowBlobImages) "blob: data:" else "data:") +
+            "; base-uri 'none'; form-action 'none'; frame-ancestors 'none'\r\n" +
             "Permissions-Policy: microphone=(), camera=(), geolocation=()\r\n" +
             "Content-Length: ${bytes.size}\r\nConnection: close\r\n\r\n"
         out.write(h.toByteArray()); out.write(bytes)

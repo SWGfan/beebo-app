@@ -56,6 +56,8 @@ fun CampsiteScreen(
     onOpenSongbook: () -> Unit = {},
     onOpenQuiz: () -> Unit = {},
     onOpenTripClock: () -> Unit = {},
+    // Scavenger Hunt for Everyone (browser guests, no internet needed).
+    onOpenHunt: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val state by CampsiteHost.state.collectAsState()
@@ -128,6 +130,8 @@ fun CampsiteScreen(
 
         // ---- Family pack B: sing-along and quiz, both usable on this phone alone ----
         com.beeboentertainment.movie.campsite.family.FamilyPackBEntryCards(onOpenSongbook, onOpenQuiz)
+        Spacer(Modifier.height(12.dp))
+        com.beeboentertainment.movie.campsite.hunt.HuntEntryCard(onOpenHunt)
         Spacer(Modifier.height(12.dp))
         // Family Pack A: the trip clock, quiet hours and bedtime wind-down.
         OutlinedButton(onClick = onOpenTripClock, modifier = Modifier.fillMaxWidth()) { Text("🚗 Are we there yet? (trip clock)") }

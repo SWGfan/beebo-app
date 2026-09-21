@@ -32,6 +32,7 @@ private data class MenuItem(val route: String, val icon: String, val title: Stri
 private val outdoors = listOf(
     MenuItem("campsite", "🏕️", "Campsite Mode", "Invite nearby phones to watch your downloads and play. Games don't need it."),
     MenuItem("scavengerhunt", "🔎", "Scavenger Hunt", "Find things together on this phone. Syncing phones needs internet and hub sign-in."),
+    MenuItem("everyonehunt", "\uD83D\uDD0E", "Scavenger Hunt for Everyone", "Card hunts for camp, nature and rainy days. Guests join in a browser. Works offline."),
     MenuItem("songbook", "\uD83C\uDFB6", "Campfire Songbook", "Big-print traditional songs and rounds. Works offline."),
     MenuItem("roadsidequiz", "\u2753", "Roadside Quiz", "Animals, space, geography and more for the whole car. Works offline."),
     MenuItem("tripclock", "🚗", "Are We There Yet?", "A back-seat trip clock: time left in kid terms. An estimate for passengers, not navigation."),
