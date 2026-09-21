@@ -203,7 +203,7 @@ dependencies {
     implementation("androidx.mediarouter:mediarouter:1.7.0")
 
     // Encrypted token storage
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.security:security-crypto:1.1.0")
 
     // WebRTC receiver (peer-to-peer link to the home PC). Maintained webrtc-sdk
     // build of Google's libwebrtc; package org.webrtc, pulled from mavenCentral
