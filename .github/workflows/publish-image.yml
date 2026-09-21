@@ -1,0 +1,136 @@
+# Publishes the headless Beebo server image to ghcr.io/swgfan/beebo-server (linux/amd64 + linux/arm64).
+# Manual (workflow_dispatch) or a pushed tag named Beebo-<version>. Uses only the built-in GITHUB_TOKEN.
+# After the FIRST publish, set the package to Public once (GitHub > Packages > beebo-server > Package settings).
+name: Publish Docker image
+
+on:
+  push:
+    tags:
+      - "Beebo-*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (for example 0.1.58)"
+        required: true
+      latest:
+        description: "Also move the :latest tag"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-image
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/swgfan/beebo-server
+
+jobs:
+  publish:
+    name: Build, check and push (amd64 + arm64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+      id-token: write        # keyless provenance/attestation
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Work out the version
+        id: ver
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            v="${{ inputs.version }}"
+          else
+            v="${GITHUB_REF_NAME#Beebo-}"
+          fi
+          # Only digits and dots: this value ends up in image tags.
+          echo "$v" | grep -Eq '^[0-9]+(\.[0-9]+){1,3}$'
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # 1. Build the amd64 image locally (not pushed) and make sure it starts.
+      - name: Build amd64 (local)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: desktop/apps/desktop
+          file: desktop/apps/desktop/docker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: beebo-server:precheck
+          build-args: BEEBO_VERSION=${{ steps.ver.outputs.version }}
+          cache-from: type=gha,scope=publish-amd64
+          cache-to: type=gha,mode=max,scope=publish-amd64
+
+      - name: The image starts and answers /api/ping
+        run: |
+          mkdir -p config media/movies
+          docker run -d --name beebo --user "$(id -u):$(id -g)" -p 47811:47811 \
+            -e BEEBO_UPNP=0 -e BEEBO_SECRET_KEY="$(openssl rand -hex 32)" \
+            -v "$PWD/config:/config" -v "$PWD/media/movies:/media/movies:ro" beebo-server:precheck
+          for i in $(seq 1 40); do
+            code="$(curl -sk -o /dev/null -w '%{http_code}' https://localhost:47811/api/ping || true)"
+            [ "$code" = 200 ] && break; sleep 3
+          done
+          docker logs beebo 2>&1 | tail -20
+          [ "$code" = 200 ]
+          docker rm -f beebo
+
+      # 2. Log in with the workflow's own token and push both architectures as one manifest list.
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: latest=false
+          tags: |
+            type=raw,value=${{ steps.ver.outputs.version }}
+            type=raw,value=latest,enable=${{ github.event_name != 'workflow_dispatch' || inputs.latest }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/SWGfan/beebo-app
+            org.opencontainers.image.url=https://beeboentertainment.com
+
+      - id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: desktop/apps/desktop
+          file: desktop/apps/desktop/docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: BEEBO_VERSION=${{ steps.ver.outputs.version }}
+          provenance: mode=max
+          cache-from: type=gha,scope=publish-amd64
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      # The digest is what the Umbrel store needs (image: ...@sha256:<digest>).
+      - name: Summary
+        run: |
+          {
+            echo "### Published"
+            echo "\`${IMAGE}:${{ steps.ver.outputs.version }}\`"
+            echo
+            echo "Digest for pinning (Umbrel): \`${{ steps.push.outputs.digest }}\`"
+            echo
+            echo "Remember: set the package to Public once (GitHub > Packages > beebo-server > Package settings)."
+          } >> "$GITHUB_STEP_SUMMARY"
