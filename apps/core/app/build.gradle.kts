@@ -198,7 +198,7 @@ dependencies {
     // class; the amazon build simply never shows the button (NoCastSupport).
     listOf("web", "play").forEach { flavor ->
         add("${flavor}Implementation", "androidx.media3:media3-cast:$media3")
-        add("${flavor}Implementation", "com.google.android.gms:play-services-cast-framework:21.5.0")
+        add("${flavor}Implementation", "com.google.android.gms:play-services-cast-framework:22.3.1")
     }
     implementation("androidx.mediarouter:mediarouter:1.7.0")
 
