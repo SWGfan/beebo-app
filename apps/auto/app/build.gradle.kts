@@ -142,7 +142,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // The away-from-home sign-in (home, username, password) is kept encrypted so the tunnel can
     // sign in again by itself when its 12-hour viewer token runs out. Same as the phone app.
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.security:security-crypto:1.1.0")
     // CarConnection: tells a phone app it is projecting to Android Auto, which
     // keeps the watch party's video off on that phone. See drive/VideoGate.kt.
     implementation("androidx.car.app:app:1.7.0")
