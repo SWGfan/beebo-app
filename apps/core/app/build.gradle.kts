@@ -208,7 +208,7 @@ dependencies {
     // WebRTC receiver (peer-to-peer link to the home PC). Maintained webrtc-sdk
     // build of Google's libwebrtc; package org.webrtc, pulled from mavenCentral
     // which settings.gradle.kts already declares.
-    implementation("io.github.webrtc-sdk:android:125.6422.07")
+    implementation("io.github.webrtc-sdk:android:150.7871.01")
 
     // Google Play Billing (household plan + extra-seat add-on in-app purchases).
     // Flavor-scoped: only the play variant links it at all, so the web/sideload
