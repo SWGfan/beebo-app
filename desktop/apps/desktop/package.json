@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.1",
-    "concurrently": "^8.2.2",
+    "concurrently": "^10.0.5",
     "electron": "^44.4.3",
     "electron-builder": "^26.15.3",
     "esbuild": "0.28.2",
