@@ -19,6 +19,7 @@ const dns = require('dns')
 const http = require('http')
 const https = require('https')
 const zlib = require('zlib')
+const { embeddedIPv4 } = require('../ipEmbedded')
 
 function parseIPv4(text) {
   const s = String(text == null ? '' : text).trim()
@@ -40,11 +41,13 @@ function classifyIp(text) {
   const v4 = parseIPv4(s)
   if (v4) return classifyV4(v4)
   if (s.includes(':')) {
-    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(s)
-    if (mapped) { const m = parseIPv4(mapped[1]); return m ? classifyV4(m) : 'blocked' }
+    // An IPv4 address wearing an IPv6 coat (::ffff:7f00:1, ::7f00:1, NAT64, 6to4: a URL parser writes the
+    // hex form) is judged as the IPv4 address it carries, or "http://[::ffff:7f00:1]/" was "public".
+    const inner = embeddedIPv4(s)
+    if (inner) { const m = parseIPv4(inner); return m ? classifyV4(m) : 'blocked' }
     if (s === '::1') return 'loopback'
     if (s === '::') return 'blocked'
-    if (/^f[cd][0-9a-f]{2}:/.test(s)) return 'lan'
+    if (/^f[cd][0-9a-f]{2}:/.test(s) || /^fe[c-f][0-9a-f]:/.test(s)) return 'lan' // unique-local, and the old site-local range
     if (/^fe[89ab][0-9a-f]:/.test(s)) return 'linklocal'
     if (/^ff[0-9a-f]{2}:/.test(s)) return 'blocked'
     return 'public'

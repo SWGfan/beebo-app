@@ -20,9 +20,10 @@ const SECRET_NAME_PARTS = [
   'licen[cs]e[_-]?key', 'activation[_-]?key', 'app[_-]?pass', 'credential', 'private[_-]?key'
 ].join('|')
 // Short names that are only secrets as a whole word.
-const SHORT_NAMES = 'mt|pw|pwd|pass|pat|sig|sid|auth|session|cookie|otp|pin'
+const SHORT_NAMES = 'mt|pw|pwd|pass|pat|sig|sid|auth|session|cookie|otp|pin|challenge|unlock'
 // Names that are secrets in a URL query string but ordinary words elsewhere ("exit code=0").
-const QUERY_ONLY_NAMES = 'key|code|signature|jwt|assertion|invite|ticket|pair|pairing'
+// wt = a Watch together room code, k = a car-party join key, g = a car-party guest token.
+const QUERY_ONLY_NAMES = 'key|code|signature|jwt|assertion|invite|ticket|pair|pairing|wt|k|g'
 
 const RULES = [
   // Authorization / Cookie headers: the whole value, scheme included.
@@ -33,6 +34,9 @@ const RULES = [
   { re: /\b(?:beebo_)?pat_[A-Za-z0-9_-]{6,}/g, to: 'pat_' + R },
   { re: /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{0,}/g, to: R },
   { re: /\bbeebo_[a-z_]*(?:session|token|media)[a-z_]*=[^\s;,"']+/gi, to: 'beebo_session=' + R },
+  // A secret that lives in the PATH: a private trip link (/trip/<43 chars>) and an HLS ticket (/hls/<ticket>/...).
+  { re: /(\/trip\/)[A-Za-z0-9_-]{20,}/g, to: '$1' + R },
+  { re: /(\/hls\/)(?!\[redacted)[A-Za-z0-9_.-]{10,}(?=\/)/g, to: '$1' + R },
   // https://user:password@host
   { re: /(\b[a-z][a-z0-9+.-]*:\/\/)[^/\s:@]+:[^/\s@]+@/gi, to: '$1' + R + '@' },
   // Query strings and form bodies: ?token=..&mt=..

@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "nature",
+ "title": "Nature",
+ "questions": [
+  {
+   "id": "nature-46-01",
+   "band": "4-6",
+   "q": "What do plants need to grow?",
+   "o": [
+    "Candy and juice",
+    "Toys",
+    "Sunlight and water",
+    "Music"
+   ],
+   "a": 2,
+   "fact": "Plants make their own food using sunlight.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-02",
+   "band": "4-6",
+   "q": "Which season comes after winter?",
+   "o": [
+    "Fall",
+    "Summer",
+    "Spring",
+    "Winter"
+   ],
+   "a": 2,
+   "fact": "Many flowers bloom in spring.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-03",
+   "band": "4-6",
+   "q": "What falls from clouds when it is wet outside?",
+   "o": [
+    "Sand",
+    "Rain",
+    "Milk",
+    "Paper"
+   ],
+   "a": 1,
+   "fact": "Clouds are made of tiny drops of water floating in the air.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-04",
+   "band": "4-6",
+   "q": "What color are most leaves in summer?",
+   "o": [
+    "Green",
+    "Blue",
+    "Pink",
+    "Purple"
+   ],
+   "a": 0,
+   "fact": "Leaves are green because of a special stuff inside them that catches sunlight.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-05",
+   "band": "4-6",
+   "q": "What part of a tree grows down into the ground?",
+   "o": [
+    "The wings",
+    "The feet",
+    "The roots",
+    "The fins"
+   ],
+   "a": 2,
+   "fact": "Roots drink up water and hold the tree in place.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-06",
+   "band": "4-6",
+   "q": "What do we call a bear's cozy winter home?",
+   "o": [
+    "A web",
+    "A hive",
+    "A nest",
+    "A den"
+   ],
+   "a": 3,
+   "fact": "Many bears spend the coldest months resting in a den.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-07",
+   "band": "4-6",
+   "q": "What can you see in the sky when sun and rain happen together?",
+   "o": [
+    "A rainbow",
+    "A star",
+    "A kite",
+    "A comet"
+   ],
+   "a": 0,
+   "fact": "A rainbow shows all the colors hiding inside sunlight.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-08",
+   "band": "4-6",
+   "q": "Which season is the coldest?",
+   "o": [
+    "Summer",
+    "Winter",
+    "Spring",
+    "Fall"
+   ],
+   "a": 1,
+   "fact": "In winter, some animals grow thicker fur.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-09",
+   "band": "4-6",
+   "q": "What pops out of a seed when it starts to grow?",
+   "o": [
+    "A puppy",
+    "A bubble",
+    "A rock",
+    "A sprout"
+   ],
+   "a": 3,
+   "fact": "A tiny seed holds a whole plant inside.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-10",
+   "band": "4-6",
+   "q": "What do many leaves do in the fall?",
+   "o": [
+    "Start to sing",
+    "Turn into flowers",
+    "Change color and drop",
+    "Get much bigger"
+   ],
+   "a": 2,
+   "fact": "Leaves turn red, orange and yellow before they fall.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-11",
+   "band": "4-6",
+   "q": "Which tree has cones?",
+   "o": [
+    "An apple tree",
+    "A palm tree",
+    "A maple tree",
+    "A pine tree"
+   ],
+   "a": 3,
+   "fact": "Pine trees stay green all year.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-12",
+   "band": "4-6",
+   "q": "What do we call a little hill of dirt that ants build?",
+   "o": [
+    "An anthill",
+    "A nest of feathers",
+    "An igloo",
+    "A cave"
+   ],
+   "a": 0,
+   "fact": "One ant colony can have thousands of ants.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-13",
+   "band": "4-6",
+   "q": "What is the wet stuff on grass in the early morning?",
+   "o": [
+    "Dew",
+    "Milk",
+    "Sand",
+    "Paint"
+   ],
+   "a": 0,
+   "fact": "Dew forms when the air cools down at night.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-46-14",
+   "band": "4-6",
+   "q": "Where do fish live?",
+   "o": [
+    "In trees",
+    "In sand dunes",
+    "In the sky",
+    "In water"
+   ],
+   "a": 3,
+   "fact": "Fish live in rivers, lakes and the ocean.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-01",
+   "band": "7-10",
+   "q": "What do plants use to make food from sunlight?",
+   "o": [
+    "Evaporation",
+    "Migration",
+    "Photosynthesis",
+    "Hibernation"
+   ],
+   "a": 2,
+   "fact": "Plants also make the oxygen that we breathe.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-02",
+   "band": "7-10",
+   "q": "Which tree is the tallest in the world?",
+   "o": [
+    "The coast redwood",
+    "The maple",
+    "The oak",
+    "The pine"
+   ],
+   "a": 0,
+   "fact": "Coast redwoods in California can grow taller than a 30-story building.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-03",
+   "band": "7-10",
+   "q": "What is it called when an animal sleeps through the cold winter?",
+   "o": [
+    "Migration",
+    "Hibernation",
+    "Camouflage",
+    "Evaporation"
+   ],
+   "a": 1,
+   "fact": "During hibernation an animal's heartbeat slows way down.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-04",
+   "band": "7-10",
+   "q": "What is it called when water rises into the air as vapor?",
+   "o": [
+    "Precipitation",
+    "Evaporation",
+    "Condensation",
+    "Erosion"
+   ],
+   "a": 1,
+   "fact": "The Sun's heat makes water evaporate from oceans and lakes.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-05",
+   "band": "7-10",
+   "q": "What do bees carry from flower to flower that helps plants make seeds?",
+   "o": [
+    "Sand",
+    "Salt",
+    "Dew",
+    "Pollen"
+   ],
+   "a": 3,
+   "fact": "Bees spread pollen as they visit flowers.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-06",
+   "band": "7-10",
+   "q": "What kind of rock forms when lava cools and hardens?",
+   "o": [
+    "Crystal rock",
+    "Igneous rock",
+    "Metamorphic rock",
+    "Sedimentary rock"
+   ],
+   "a": 1,
+   "fact": "Lava turns into solid rock as it cools.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-07",
+   "band": "7-10",
+   "q": "What do we call a tree that loses its leaves in the fall?",
+   "o": [
+    "An evergreen",
+    "A deciduous tree",
+    "A tropical tree",
+    "A cone tree"
+   ],
+   "a": 1,
+   "fact": "Maple, oak and birch trees are deciduous.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-08",
+   "band": "7-10",
+   "q": "What do we call the place where an animal lives and finds food?",
+   "o": [
+    "Its herd",
+    "Its habit",
+    "Its habitat",
+    "Its harvest"
+   ],
+   "a": 2,
+   "fact": "A pond, a forest and a desert are all habitats.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-09",
+   "band": "7-10",
+   "q": "Which insect chirps by rubbing its wings together?",
+   "o": [
+    "A ladybug",
+    "A cricket",
+    "A moth",
+    "An ant"
+   ],
+   "a": 1,
+   "fact": "Crickets chirp faster when the weather is warmer.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-10",
+   "band": "7-10",
+   "q": "What is a river of ice that moves very slowly called?",
+   "o": [
+    "An icicle",
+    "A snowflake",
+    "An iceberg",
+    "A glacier"
+   ],
+   "a": 3,
+   "fact": "Glaciers carved out many lakes and valleys in Canada and the northern U.S.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-11",
+   "band": "7-10",
+   "q": "What gas do plants take in from the air to make food?",
+   "o": [
+    "Steam",
+    "Helium",
+    "Oxygen",
+    "Carbon dioxide"
+   ],
+   "a": 3,
+   "fact": "People and animals breathe out carbon dioxide.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-12",
+   "band": "7-10",
+   "q": "What do baby frogs start out as?",
+   "o": [
+    "Tadpoles",
+    "Cubs",
+    "Pups",
+    "Chicks"
+   ],
+   "a": 0,
+   "fact": "Tadpoles grow legs and lose their tails as they become frogs.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-13",
+   "band": "7-10",
+   "q": "Which tree is the biggest in the world by volume?",
+   "o": [
+    "The birch",
+    "The apple",
+    "The maple",
+    "The giant sequoia"
+   ],
+   "a": 3,
+   "fact": "Some giant sequoias are more than 2,000 years old.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-710-14",
+   "band": "7-10",
+   "q": "What do we call a group of trees growing close together over a wide area?",
+   "o": [
+    "A desert",
+    "A pond",
+    "A forest",
+    "A meadow"
+   ],
+   "a": 2,
+   "fact": "Forests cover about one third of Earth's land.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-01",
+   "band": "11+",
+   "q": "What are the tiny openings in a leaf that let gases in and out?",
+   "o": [
+    "Roots",
+    "Petals",
+    "Veins",
+    "Stomata"
+   ],
+   "a": 3,
+   "fact": "A single leaf can have thousands of stomata.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-02",
+   "band": "11+",
+   "q": "What do we call all the living things in a place plus their surroundings?",
+   "o": [
+    "A fossil",
+    "A glacier",
+    "A season",
+    "An ecosystem"
+   ],
+   "a": 3,
+   "fact": "A pond is a small ecosystem.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-03",
+   "band": "11+",
+   "q": "Why do leaves change color in the fall?",
+   "o": [
+    "The green chlorophyll fades and other colors show",
+    "Insects paint them",
+    "Water freezes inside them",
+    "The Moon pulls the color out"
+   ],
+   "a": 0,
+   "fact": "The yellow and orange colors were in the leaf all summer, hidden by the green.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-04",
+   "band": "11+",
+   "q": "What is the thin outer layer of Earth that we live on called?",
+   "o": [
+    "The crust",
+    "The mantle",
+    "The core",
+    "The atmosphere"
+   ],
+   "a": 0,
+   "fact": "Compared to the whole planet, Earth's crust is thinner than an apple's skin is to an apple.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-05",
+   "band": "11+",
+   "q": "What is rock made from layers of sand and mud pressed together called?",
+   "o": [
+    "Metamorphic rock",
+    "Sedimentary rock",
+    "Volcanic rock",
+    "Igneous rock"
+   ],
+   "a": 1,
+   "fact": "Most fossils are found in sedimentary rock.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-06",
+   "band": "11+",
+   "q": "What do we call the huge northern forest of pines and spruces that spreads across Canada?",
+   "o": [
+    "A savanna",
+    "A rainforest",
+    "A wetland",
+    "The boreal forest"
+   ],
+   "a": 3,
+   "fact": "Canada has one of the largest boreal forests in the world.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-07",
+   "band": "11+",
+   "q": "What do we call a cold, treeless plain with frozen ground below?",
+   "o": [
+    "Savanna",
+    "Wetland",
+    "Tundra",
+    "Rainforest"
+   ],
+   "a": 2,
+   "fact": "The frozen ground under the tundra is called permafrost.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-08",
+   "band": "11+",
+   "q": "What is it called when water vapor cools into tiny droplets and forms clouds?",
+   "o": [
+    "Condensation",
+    "Migration",
+    "Evaporation",
+    "Erosion"
+   ],
+   "a": 0,
+   "fact": "You can see condensation on a cold glass on a warm day.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-09",
+   "band": "11+",
+   "q": "Which layer of the atmosphere do we live in?",
+   "o": [
+    "The thermosphere",
+    "The troposphere",
+    "The stratosphere",
+    "The mesosphere"
+   ],
+   "a": 1,
+   "fact": "Almost all of our weather happens in the troposphere.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-10",
+   "band": "11+",
+   "q": "What do we call animals that eat both plants and animals?",
+   "o": [
+    "Carnivores",
+    "Omnivores",
+    "Herbivores",
+    "Decomposers"
+   ],
+   "a": 1,
+   "fact": "Bears and people are omnivores.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-11",
+   "band": "11+",
+   "q": "In a food chain, what are plants that make their own food called?",
+   "o": [
+    "Scavengers",
+    "Consumers",
+    "Producers",
+    "Predators"
+   ],
+   "a": 2,
+   "fact": "Producers are the first link in most food chains.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-12",
+   "band": "11+",
+   "q": "How old can some bristlecone pine trees get?",
+   "o": [
+    "More than 4,000 years",
+    "About 1,000 years",
+    "About 400 years",
+    "About 100 years"
+   ],
+   "a": 0,
+   "fact": "Some bristlecone pines in California were alive when the pyramids were built.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-13",
+   "band": "11+",
+   "q": "What do we call trees that grow cones, like pine and spruce?",
+   "o": [
+    "Palms",
+    "Ferns",
+    "Conifers",
+    "Mosses"
+   ],
+   "a": 2,
+   "fact": "Most conifers keep their needles all year.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "nature-11-14",
+   "band": "11+",
+   "q": "What causes a rainbow?",
+   "o": [
+    "Sunlight bending and splitting in raindrops",
+    "Plants",
+    "Clouds moving fast",
+    "Cold air"
+   ],
+   "a": 0,
+   "fact": "Each raindrop acts like a tiny prism.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
@@ -17,12 +18,21 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
 import com.beeboentertainment.movie.BeeboApp
 import com.beeboentertainment.movie.R
+import com.beeboentertainment.movie.audio.AudioExtras
+import com.beeboentertainment.movie.audio.AudioKind
+import com.beeboentertainment.movie.audio.AudioPrefs
+import com.beeboentertainment.movie.audio.AudioStreamRules
+import com.beeboentertainment.movie.audio.SpokenSeek
 import com.beeboentertainment.movie.core.UrlUtils
+import com.google.common.collect.ImmutableList
 import com.beeboentertainment.movie.rtc.RemoteAccess
 import com.beeboentertainment.movie.rtc.Route
 import com.beeboentertainment.movie.ui.MainActivity
@@ -55,6 +65,8 @@ class MusicPlaybackService : MediaSessionService() {
         const val SESSION_ID = "beebo-music"
         private const val NOTIFICATION_ID = 0xBEEB
         private const val CHANNEL_ID = "beebo_music"
+        private const val SKIP_BACK = "beebo.audio.skipBack"
+        private const val SKIP_FORWARD = "beebo.audio.skipForward"
     }
 
     private var session: MediaSession? = null
@@ -82,6 +94,9 @@ class MusicPlaybackService : MediaSessionService() {
             )
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
+            // Skip buttons for audiobooks and podcasts (a headset's rewind / fast-forward key).
+            .setSeekBackIncrementMs(AudioPrefs.skipBackSeconds(this) * 1000L)
+            .setSeekForwardIncrementMs(AudioPrefs.skipForwardSeconds(this) * 1000L)
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this, streamDataSource())))
             .build()
         player.addListener(listener)
@@ -127,12 +142,21 @@ class MusicPlaybackService : MediaSessionService() {
         return ResolvingDataSource.Factory(OkHttpDataSource.Factory(app.api.okHttp)) { spec ->
             val url = spec.uri.toString()
             val base = UrlUtils.normalizeBaseUrl(app.session.baseUrl)
-            if (!MusicStreamRules.isMusicStream(url, base)) return@Factory spec
+            // Only this server's own audio addresses get the bearer token, whatever the kind.
+            val kind = AudioStreamRules.kindOf(url, base) ?: return@Factory spec
             val key = url.substringBefore('?')
             val target = resolved.getOrPut(key) {
-                val away = runCatching { RemoteAccess.currentRoute() is Route.Tunnel }.getOrDefault(false)
-                val quality = MusicStreamRules.qualityFor(away, MusicPrefs.homeQuality(this), MusicPrefs.awayQuality(this))
-                MusicStreamRules.withOptions(url, DeviceCodecs.list(), quality)
+                when (kind) {
+                    AudioKind.MUSIC -> {
+                        val away = runCatching { RemoteAccess.currentRoute() is Route.Tunnel }.getOrDefault(false)
+                        val quality = MusicStreamRules.qualityFor(away, MusicPrefs.homeQuality(this), MusicPrefs.awayQuality(this))
+                        MusicStreamRules.withOptions(url, DeviceCodecs.list(), quality)
+                    }
+                    // Audiobooks are converted only when this phone cannot decode the format.
+                    AudioKind.AUDIOBOOK -> MusicStreamRules.withOptions(url, DeviceCodecs.list(), "original")
+                    // Podcasts and radio are relayed as they are.
+                    AudioKind.PODCAST, AudioKind.RADIO -> url
+                }
             }
             val token = app.session.token
             spec.buildUpon()
@@ -173,9 +197,42 @@ class MusicPlaybackService : MediaSessionService() {
         player.volume = MusicGain.volumeFor(db)
     }
 
+    /**
+     * What is playing decides how the service behaves: spoken word asks the system for speech focus
+     * (a navigation prompt pauses it rather than talking over it) and gets skip back / forward
+     * buttons on the lock screen and in the shade; music keeps its own behaviour untouched.
+     */
+    private var currentKind: AudioKind? = null
+
+    private fun onKindChanged(item: MediaItem?) {
+        val kind = AudioKind.fromId(item?.mediaMetadata?.extras?.getString(AudioExtras.KIND))
+        if (kind == currentKind) return
+        currentKind = kind
+        exo?.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(if (kind.spoken) C.AUDIO_CONTENT_TYPE_SPEECH else C.AUDIO_CONTENT_TYPE_MUSIC)
+                .build(),
+            /* handleAudioFocus = */ true
+        )
+        session?.setCustomLayout(
+            if (kind.spoken && kind.seekable) ImmutableList.of(skipButton(SKIP_BACK), skipButton(SKIP_FORWARD)) else ImmutableList.of()
+        )
+    }
+
+    private fun skipButton(action: String): CommandButton {
+        val back = action == SKIP_BACK
+        return CommandButton.Builder()
+            .setDisplayName(if (back) "Back ${AudioPrefs.skipBackSeconds(this)} seconds" else "Forward ${AudioPrefs.skipForwardSeconds(this)} seconds")
+            .setIconResId(if (back) R.drawable.ic_audio_back else R.drawable.ic_audio_forward)
+            .setSessionCommand(SessionCommand(action, Bundle.EMPTY))
+            .build()
+    }
+
     private val listener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             session?.player?.let { trimResolved(it) }
+            onKindChanged(mediaItem)
             applyLevel()
         }
 
@@ -201,6 +258,30 @@ class MusicPlaybackService : MediaSessionService() {
 
     /** Items arrive from MusicPlayer (in this process) or from an outside controller. */
     private inner class Callback : MediaSession.Callback {
+        override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
+            val commands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                .add(SessionCommand(SKIP_BACK, Bundle.EMPTY))
+                .add(SessionCommand(SKIP_FORWARD, Bundle.EMPTY))
+                .build()
+            return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailableSessionCommands(commands)
+                .build()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle
+        ): ListenableFuture<SessionResult> {
+            when (customCommand.customAction) {
+                SKIP_BACK -> SpokenSeek.seekBy(session.player, -AudioPrefs.skipBackSeconds(this@MusicPlaybackService))
+                SKIP_FORWARD -> SpokenSeek.seekBy(session.player, AudioPrefs.skipForwardSeconds(this@MusicPlaybackService))
+                else -> return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,

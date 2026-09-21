@@ -16,6 +16,7 @@ import { search } from './screens/search.js'
 import { detail } from './screens/detail.js'
 import { player } from './screens/player.js'
 import { settings } from './screens/settings.js'
+import { movienight } from './screens/movienight.js'
 
 var CANVAS_W = 1920
 var CANVAS_H = 1080
@@ -114,7 +115,7 @@ function boot() {
 
   router = createRouter(document.getElementById('screens'), focus, {
     welcome: welcome, address: address, pair: pair, signin: signin,
-    home: home, library: library, search: search, detail: detail, player: player, settings: settings
+    home: home, library: library, search: search, detail: detail, player: player, settings: settings, movienight: movienight
   }, ctx)
   ctx.router = router
   // Xbox only: keep the shell's idea of "can the page use Back" current across every route change.

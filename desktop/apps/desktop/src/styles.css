@@ -335,3 +335,7 @@ button:not(.nav-btn):not(.subtab):not(.primary):not(.bare) { background-color:#1
 /* Big libraries (1,000+ posters in one grid): only the cards near the window are laid out and painted; the rest
    keep a remembered height, so the scrollbar stays put. An old PC opened a 2,000-card grid by building all of it. */
 .grid > .poster-card { content-visibility: auto; contain-intrinsic-block-size: auto 340px; }
+
+/* details page: the file's format badges (4K, Dolby Vision, HDR10+, Atmos, 7.1) */
+.md-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.md-badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; line-height: 20px; border: 1px solid var(--border, #262b35); background: var(--panel, transparent); color: var(--text, inherit); }

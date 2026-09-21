@@ -3,6 +3,7 @@
 const crypto = require('crypto')
 const path = require('path')
 const { toTicks, sendText, sendEmpty, pick } = require('./util')
+const classify = require('../mediaClassify') // VideoRangeType, AudioSpatialFormat
 
 const INFO_TTL_MS = 30 * 1000
 const PLAY_SESSION_CAP = 2000
@@ -121,17 +122,34 @@ function createPlayback({ host, ids, auth, catalog, mapper, services }) {
     const streams = []
     if (info && info.video) {
       const v = info.video
+      const dv = v.dolbyVision || null
+      // Jellyfin's VideoRangeType (SDR | HDR10 | HDR10Plus | HLG | DOVI | DOVIWithHDR10 | DOVIWithHLG | DOVIWithSDR | DOVIWithEL ...).
+      const rangeType = classify.jellyfinVideoRangeType({
+        hdr: !!v.hdr, hdr10Plus: !!v.hdr10Plus, dolbyVision: dv,
+        hdrBase: v.hdrBase || ((v.hdrFormats || []).includes('HDR10') ? 'PQ' : (v.hdrFormats || []).includes('HLG') ? 'HLG' : (v.hdr ? 'PQ' : 'SDR'))
+      })
+      const res = v.resolutionClass || (v.height ? v.height + 'p' : '')
+      const hdrWord = v.hdrType && v.hdrType !== 'SDR' ? (dv && dv.label ? 'Dolby Vision ' + dv.label + (v.hdrFormats && v.hdrFormats.includes('HDR10') ? ' / HDR10' : '') : v.hdrType) : ''
       streams.push({
-        Codec: v.codec, TimeBase: '1/1000', VideoRange: v.hdr ? 'HDR' : 'SDR', DisplayTitle: [v.height ? v.height + 'p' : '', String(v.codec || '').toUpperCase()].filter(Boolean).join(' '),
+        Codec: v.codec, TimeBase: '1/1000', VideoRange: v.hdr ? 'HDR' : 'SDR', VideoRangeType: rangeType,
+        DisplayTitle: [res, String(v.codec || '').toUpperCase(), hdrWord].filter(Boolean).join(' '),
         IsInterlaced: false, BitRate: info.bitrateKbps ? Math.round(info.bitrateKbps * 1000) : undefined, Height: v.height || undefined, Width: v.width || undefined,
         AverageFrameRate: v.fps || undefined, RealFrameRate: v.fps || undefined, IsDefault: true, IsForced: false, Type: 'Video', Index: 0,
-        IsExternal: false, IsTextSubtitleStream: false, SupportsExternalStream: false, PixelFormat: undefined, Level: 0
+        IsExternal: false, IsTextSubtitleStream: false, SupportsExternalStream: false, PixelFormat: undefined, Level: v.level || 0,
+        Profile: v.profile || undefined, BitDepth: v.bitDepth || undefined, ColorPrimaries: v.colorPrimaries || undefined, ColorTransfer: v.colorTransfer || undefined, ColorSpace: v.colorSpace || undefined,
+        ...(dv ? {
+          VideoDoViTitle: 'Dolby Vision Profile ' + (dv.label || dv.profile), DvVersionMajor: 1, DvVersionMinor: 0, DvProfile: dv.profile, DvLevel: dv.level || undefined,
+          RpuPresentFlag: 1, ElPresentFlag: dv.elPresent ? 1 : 0, BlPresentFlag: 1, DvBlSignalCompatibilityId: dv.compatId != null ? dv.compatId : undefined
+        } : {})
       })
     }
     for (const a of (info && info.audio) || []) {
       streams.push({
         Codec: a.codec, Language: lang3(a.language), DisplayTitle: a.label, Title: a.title || undefined, IsInterlaced: false, IsDefault: !!a.isDefault, IsForced: false,
-        Type: 'Audio', Index: a.streamIndex, Channels: a.channels || undefined, IsExternal: false, IsTextSubtitleStream: false, SupportsExternalStream: false
+        Type: 'Audio', Index: a.streamIndex, Channels: a.channels || undefined, IsExternal: false, IsTextSubtitleStream: false, SupportsExternalStream: false,
+        Profile: a.profile || undefined, ChannelLayout: a.layout || a.channelLayout || undefined,
+        // 'None' | 'DolbyAtmos' | 'DTSX' (Jellyfin 10.10): Atmos in E-AC-3 or TrueHD, DTS:X.
+        AudioSpatialFormat: a.spatialFormat || 'None'
       })
     }
     ;((info && info.subtitles) || []).forEach((s, i) => {
@@ -159,7 +177,8 @@ function createPlayback({ host, ids, auth, catalog, mapper, services }) {
       IsRemote: false,
       ETag: mapper.tagOf(entry.jid + '|src'),
       RunTimeTicks: info && info.durationSec ? toTicks(info.durationSec) : undefined,
-      ReadAtNativeFrameRate: false,
+      ReadAtNativeFramerate: false, // (sic: the public API spells it this way)
+      HasSegments: true, // the app may ask /MediaSegments/{id}; it answers with the intro/credits markers, or an empty list
       IgnoreDts: false,
       IgnoreIndex: false,
       GenPtsInput: false,

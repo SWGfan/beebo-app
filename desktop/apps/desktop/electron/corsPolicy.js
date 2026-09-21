@@ -33,7 +33,9 @@ const EXACT_ROUTES = new Set([
   '/api/ping', '/api/login', '/api/viewer-session', '/api/continue', '/api/recently-added',
   '/api/progress', '/api/markers', '/api/watch-session',
   // Read by the TV app itself (who am I, up next, next-episode context).
-  '/api/me', '/api/upnext', '/api/episode-context'
+  '/api/me', '/api/upnext', '/api/episode-context',
+  // Movie Night: the TV app asks whether it is available and starts a room (docs/MOVIE-NIGHT.md). Both need a Bearer token.
+  '/api/movie-night/status', '/api/movie-night/tv/create'
 ])
 // This path and anything beneath it (path + '/...').
 const TREE_ROUTES = ['/api/v1', '/api/tvshows', '/api/movies', '/api/playlists', '/api/playback']

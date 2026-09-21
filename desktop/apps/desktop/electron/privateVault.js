@@ -26,6 +26,15 @@ async function json(req, limit = 24000) {
 }
 function createPrivateVault({ store, getOwnerEmail = () => '', mailer, now = Date.now }) {
   const locks = new Set()
+  // A signed-in family member may store up to 10,000 files of 1 GB each here, and the folder is usually on the PC's own
+  // drive: every upload keeps the PC's free-space reserve (checked when it starts and on every chunk).
+  const DISK_RESERVE = 512 * 1024 * 1024
+  async function assertDiskRoom(dir, bytes) {
+    try {
+      const s = await fsp.statfs(dir)
+      if (s.bavail * s.bsize < bytes + DISK_RESERVE) throw failure(507, 'This PC is almost out of disk space, so the file was not saved.')
+    } catch (e) { if (e && e.status) throw e }
+  }
   const validEmail = x => typeof x === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x) && x.length < 254
   const ownerEmail = () => { const value = getOwnerEmail(); return validEmail(value) ? value.trim().toLowerCase() : '' }
   async function rootFor(user) {
@@ -116,6 +125,7 @@ function createPrivateVault({ store, getOwnerEmail = () => '', mailer, now = Dat
         const staging = path.join(dir, id + '.upload'); const pending = path.join(dir, id + '.pending')
         if (await fsp.stat(file).then(() => true).catch(() => false)) throw failure(409, 'That file was already saved.')
         if (offset === 0) {
+          await assertDiskRoom(dir, total)
           const entries = await fsp.readdir(dir)
           if (entries.filter(x => x.endsWith('.vault') || x.endsWith('.pending')).length >= 10000) throw failure(413, 'This folder has reached its file limit.')
           for (const old of entries.filter(x => /\.(upload|pending)$/.test(x))) {
@@ -134,6 +144,7 @@ function createPrivateVault({ store, getOwnerEmail = () => '', mailer, now = Dat
         const chunks = []; let received = 0
         for await (const chunk of req) { received += chunk.length; if (received > 512 * 1024) throw failure(413, 'Upload one small chunk at a time.'); chunks.push(chunk) }
         if (received < 1 || offset + received > total) throw failure(400, 'Invalid file chunk.')
+        await assertDiskRoom(dir, received)
         await fsp.appendFile(staging, Buffer.concat(chunks))
         const next = offset + received
         if (next === total) {

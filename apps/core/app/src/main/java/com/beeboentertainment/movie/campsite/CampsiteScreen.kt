@@ -52,6 +52,10 @@ fun CampsiteScreen(
     onOpenOther: () -> Unit = {},
     onOpenGuestGames: () -> Unit = {},
     onOpenSlides: () -> Unit = {},
+    // Family pack B (Songbook, Quiz): each entry only opens its own screen.
+    onOpenSongbook: () -> Unit = {},
+    onOpenQuiz: () -> Unit = {},
+    onOpenTripClock: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val state by CampsiteHost.state.collectAsState()
@@ -120,6 +124,18 @@ fun CampsiteScreen(
         Spacer(Modifier.height(12.dp))
 
         TripControlCard()
+        Spacer(Modifier.height(12.dp))
+
+        // ---- Family pack B: sing-along and quiz, both usable on this phone alone ----
+        com.beeboentertainment.movie.campsite.family.FamilyPackBEntryCards(onOpenSongbook, onOpenQuiz)
+        Spacer(Modifier.height(12.dp))
+        // Family Pack A: the trip clock, quiet hours and bedtime wind-down.
+        OutlinedButton(onClick = onOpenTripClock, modifier = Modifier.fillMaxWidth()) { Text("🚗 Are we there yet? (trip clock)") }
+        Spacer(Modifier.height(12.dp))
+        com.beeboentertainment.movie.campsite.quiet.QuietHoursCard()
+        Spacer(Modifier.height(12.dp))
+        com.beeboentertainment.movie.campsite.quiet.WindDownCard()
+        com.beeboentertainment.movie.campsite.quiet.QuietHoursPrompt(sessionRunning = state.running)
         Spacer(Modifier.height(12.dp))
 
         Button(onClick = onOpenSlides, modifier = Modifier.fillMaxWidth()) {

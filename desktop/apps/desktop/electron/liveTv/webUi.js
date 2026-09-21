@@ -5,7 +5,9 @@
 // with textContent, never as HTML.
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
-const json = (v) => JSON.stringify(v).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')
+// JSON for an inline <script>: < > & and the JS line separators U+2028/2029 written as escapes (older TV browsers
+// treat a raw separator inside a string literal as a syntax error).
+const { jsonForScript: json } = require('../httpSecurity')
 
 const SHARED_JS = `
 function api(method, sub, body) {

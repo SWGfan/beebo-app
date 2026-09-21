@@ -20,6 +20,11 @@ export function techBadges(row, info) {
     const a = (info.audio || []).find((t) => t.isDefault) || (info.audio || [])[0]
     const audio = a ? formatAudio(a.codec, a.profile, a.channels, a.layout) : ''
     if (audio) out.push({ key: 'audio', text: audio })
+    // Object audio in ANY track (Atmos, DTS:X) is worth its own badge unless the main track's label already says it.
+    for (const o of info.objectAudio || []) {
+      const word = o === 'DolbyAtmos' ? 'Atmos' : o === 'DTSX' ? 'DTS:X' : ''
+      if (word && !audio.includes(word)) out.push({ key: `obj-${o}`, text: word, strong: true })
+    }
     if (info.subCount > 0) out.push({ key: 'subs', text: `Subs ${info.subCount}`, title: formatList(info.subLangs) })
   }
   if (row.ext) out.push({ key: 'ext', text: String(row.ext).replace(/^\./, '').toUpperCase() })

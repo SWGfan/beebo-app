@@ -1,7 +1,22 @@
+// Node runs file reads, password hashing and DNS look-ups on four shared worker threads. A router that
+// swallows DNS questions can hold those for seconds; sixteen keeps sign-ins and file reads moving when
+// the internet is out (docs/OFFLINE-FIRST.md). Must be set before the first of them is used.
+if (!process.env.UV_THREADPOOL_SIZE) process.env.UV_THREADPOOL_SIZE = '16'
 const { app, BrowserWindow, ipcMain: rawIpcMain, shell, dialog, Tray, Menu, nativeImage, safeStorage, Notification, clipboard, session: electronSession } = require('electron')
 // First, before anything else can fail: the rolling log (userData/logs/main.log) and the crash
 // handlers, so a failure while loading the rest of this file is recorded and explained.
 const reliability = require('./reliability').early({ app, dialog, clipboard, shell })
+// Every fetch this process makes now has a wait limit and a short memory of "the internet is gone", so a dead
+// connection can never hold a page, a stream or start-up (electron/cloudFetch.js, docs/OFFLINE-FIRST.md).
+const cloudFetch = require('./cloudFetch').installGlobal({
+  // Hosts this computer already talks to, checked quietly (no request) at start-up and while the internet is out.
+  getProbeHosts: () => {
+    const hosts = []
+    try { if (store.get('tmdbApiKey') || process.env.TMDB_API_KEY) hosts.push('api.themoviedb.org') } catch (e) {}
+    try { if (license.getToken()) hosts.push(new URL(license.backendUrl()).hostname) } catch (e) {}
+    return hosts
+  }
+})
 const {
   checkForDesktopUpdate,
   fetchUpdateStatus,
@@ -31,6 +46,7 @@ const Store = require('electron-store')
 // every window denies window.open / navigation away from its own origin / <webview>, and the
 // session denies every permission the app does not use.
 const mainSecurity = require('./mainSecurity')
+const ipcPathGuard = require('./ipcPathGuard') // what a path sent over IPC may be used for (play / import / move)
 const appPolicy = mainSecurity.createPolicy({
   distIndex: path.join(__dirname, '..', 'dist', 'index.html'),
   devUrl: process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173',
@@ -749,7 +765,9 @@ function createWindow() {
     }
   })
 
-  if (process.env.VITE_DEV_SERVER_URL) {
+  // The dev-server address is honoured only by an unpackaged build (the same rule mainSecurity's policy applies): an
+  // environment variable must never point the installed app's privileged window at another address.
+  if (!app.isPackaged && process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else if (!app.isPackaged) {
     win.loadURL('http://localhost:5173')
@@ -852,6 +870,7 @@ app.whenReady().then(() => {
   // Before the window loads, so it can show "Updated to 0.1.xx" straight away.
   bindPrefStore(store)
   try { handleUpdateStartup() } catch (e) { console.warn('[updater] startup bookkeeping skipped') }
+  try { if (cloudFetch && cloudFetch.probe) cloudFetch.probe.start() } catch (e) {}
   // Deny every permission request the app does not use, and send a report-only CSP with the app's
   // own page (before the first window loads).
   try { mainSecurity.installSessionPolicy(electronSession.defaultSession, { policy: appPolicy, log: (m) => console.warn('[security] ' + m) }) } catch (e) { console.warn('[security] session policy not installed: ' + (e && e.message)) }
@@ -1068,10 +1087,13 @@ app.whenReady().then(() => {
 
   // License re-validation: refresh the signed token so a renewed, canceled,
   // or revoked subscription is reflected within a day. No-op while disabled.
+  // Retried sooner after a network failure and skipped when signed out (electron/revalidateSchedule.js).
   if (license.config.enabled) {
-    const revalidateNow = () => { try { license.revalidate().catch(() => {}) } catch (_) {} }
-    setTimeout(revalidateNow, 8000)
-    setInterval(revalidateNow, 12 * 60 * 60 * 1000)
+    require('./revalidateSchedule').createRevalidateSchedule({
+      run: () => license.revalidate(),
+      hasToken: () => { try { return !!license.getToken() } catch (e) { return false } },
+      log: (m) => { try { console.log(m) } catch (e) {} }
+    }).start()
   }
 
   // Certificates are strictly background work: the window is already up, the
@@ -1443,8 +1465,12 @@ ipcMain.handle('movies:scan', async () => {
 ipcMain.handle('movies:setVersionChoice', (_e, group, fileName) =>
   movieVersionsDesktop.setChoice(group, fileName, { store, auth, encodeId: catalog.encodeId }))
 
+// shell.openPath launches whatever it is given (an .exe, .lnk or .bat too), so the window may only name
+// a video file that sits inside the Movies / TV Shows folders (electron/ipcPathGuard.js).
 ipcMain.handle('movies:play', (_e, filePath) => {
-  shell.openPath(filePath)
+  const file = ipcPathGuard.playableVideoPath(filePath, [...getAllMoviesDirs(), ...getAllTvShowsDirs()])
+  if (!file) return false
+  shell.openPath(file)
   return true
 })
 
@@ -1519,7 +1545,11 @@ async function getVideoQualityBatch(filePaths) {
   const result = {}
   let cacheDirty = false
 
-  for (const filePath of filePaths || []) {
+  // Only files inside the library folders are probed: a path from the window must not make this process touch an
+  // arbitrary file, or a network share (a UNC path would send this PC's Windows credentials to that server).
+  const libraryRoots = [...getAllMoviesDirs(), ...getAllTvShowsDirs()]
+  for (const filePath of (Array.isArray(filePaths) ? filePaths : []).slice(0, 20000)) {
+    if (!ipcPathGuard.insideRoots(filePath, libraryRoots)) { result[filePath] = 'unknown'; continue }
     let stat
     try {
       stat = fs.statSync(filePath)
@@ -1740,7 +1770,9 @@ ipcMain.handle('license:signOut', () => {
 ipcMain.handle('license:refresh', async () => { const r = await license.revalidate(); try { if (remoteHost) remoteHost.start() } catch (e) {} ; return r })
 
 // Settings > Quality & subtitles: live conversion switches + the owner's OpenSubtitles account.
-try { require('./playbackSettingsIpc').register({ ipcMain, store, getTranscode: () => (streamServerInfo && streamServerInfo.transcode) || null }) } catch (e) { console.log('[playback] settings unavailable:', e && e.message) }
+try { require('./playbackSettingsIpc').register({ ipcMain, store, getTranscode: () => (streamServerInfo && streamServerInfo.transcode) || null, getUsers: () => require('./auth').getUsers(store) }) } catch (e) { console.log('[playback] settings unavailable:', e && e.message) }
+// Settings > Playback > Cinema: the pre-show before films (electron/cinemaIpc.js, docs/CINEMA-MODE.md).
+try { require('./cinemaIpc').register({ ipcMain, dialog, shell, store, app, getMainWindow: () => mainWindow, getApi: () => titleMatch.createTmdbApi(store.get('tmdbApiKey') || process.env.TMDB_API_KEY), getCacheDir: getTmdbCacheDir, log: (m) => console.log(m) }) } catch (e) { console.log('[cinema] settings unavailable:', e && e.message) }
 // Settings > Add-ons (optional downloads such as the local AI Speech Pack): electron/addonsIpc.js, docs/ADDONS.md.
 try { require('./addonsIpc').register({ ipcMain, getMainWindow: () => mainWindow, getSpeechPack: () => (streamServerInfo && streamServerInfo.speechPack) || null, log: (m) => console.log('[addons]', m) }) } catch (e) { console.log('[addons] unavailable:', e && e.message) }
 
@@ -1839,6 +1871,11 @@ try {
 try {
   require('./watchTogetherIpc').register({ ipcMain, BrowserWindow, clipboard, store, auth, getStreamPort: () => (streamServerInfo && streamServerInfo.port) || getStreamPort(), log: (m) => console.log(m) })
 } catch (e) { console.log('[watch-together] unavailable:', e && e.message) }
+
+// Movie Night: the details page's "Start Movie Night" button and its Settings section (movieNightIpc.js).
+try {
+  require('./movieNightIpc').register({ ipcMain, BrowserWindow, store, auth, getStreamPort: () => (streamServerInfo && streamServerInfo.port) || getStreamPort(), log: (m) => console.log(m) })
+} catch (e) { console.log('[movie-night] unavailable:', e && e.message) }
 
 // Used for the "🗑 Delete this copy" action on duplicate episodes/movies —
 // only allows deleting a file that's actually inside one of the app's own
@@ -2198,7 +2235,8 @@ ipcMain.handle('library:moveToTvShows', (_e, items) => {
   const failed = []
   for (const item of list) {
     const srcPath = item?.path
-    const showName = (item?.showName || '').trim()
+    // The show name becomes a folder under TV Shows: one safe segment only, never "..\\..\\x" (electron/ipcPathGuard.js).
+    const showName = ipcPathGuard.showFolderName(item?.showName)
     if (typeof srcPath !== 'string' || !srcPath || !showName) {
       failed.push({ path: srcPath, error: 'invalid_item' })
       continue
@@ -2579,10 +2617,15 @@ function recordUploadEntry({ fileName, kind, showName, destPath, uploadedBy }) {
 // desktop app) into the right library folder, and records it. Never
 // deletes/moves the source.
 function importUploadedFile(srcPath, originalName, uploadedBy) {
+  if (typeof originalName !== 'string') return { ok: false, fileName: String(originalName), error: 'not_a_video_file' }
   const plan = planUploadDest(originalName)
   if (!plan.ok) return { ok: false, fileName: originalName, error: plan.error }
+  // The name says "video", so the file it is copied from has to be a video too; otherwise any private file
+  // could be copied into the library (and then streamed) just by giving it a video name.
+  const source = ipcPathGuard.importableVideoSource(srcPath)
+  if (!source) return { ok: false, fileName: originalName, error: 'not_a_video_file' }
   try {
-    fs.copyFileSync(srcPath, plan.destPath)
+    fs.copyFileSync(source, plan.destPath)
     recordUploadEntry({ fileName: originalName, kind: plan.kind, showName: plan.showName, destPath: plan.destPath, uploadedBy })
     return { ok: true, fileName: originalName, kind: plan.kind, showName: plan.showName, destPath: plan.destPath }
   } catch (err) {
@@ -2592,7 +2635,7 @@ function importUploadedFile(srcPath, originalName, uploadedBy) {
 
 ipcMain.handle('upload:importFiles', (_e, files, uploadedBy) => {
   if (!Array.isArray(files)) return []
-  return files.map((f) => importUploadedFile(f.path, f.name, uploadedBy))
+  return files.slice(0, 500).map((f) => importUploadedFile(f && f.path, f && f.name, uploadedBy))
 })
 
 // --- The old "New files drop folder" ----------------------------------------
@@ -4206,6 +4249,9 @@ require('./accountSecurityIpc').register({
   },
 })
 
+// Settings > Jellyfin apps (electron/jellyfinIpc.js): Quick Connect approval, signed-in apps, app passwords, self-check. Owner-only.
+require('./jellyfinIpc').register({ ipcMain, getServerInfo: () => streamServerInfo })
+
 function pushRemoteMembers() {
   try {
     const rm = require('./remoteMembers')
@@ -4417,6 +4463,7 @@ ipcMain.handle('convert:forget', (_e, id) => convert.forgetEntry(store, id))
 // restricted to the managed folders since the path comes from a stored entry.
 ipcMain.handle('convert:playFile', (_e, filePath) => {
   if (!isInManagedFolders(filePath)) return { ok: false, error: 'outside_managed_folders' }
+  if (!ipcPathGuard.hasPlayableExt(filePath)) return { ok: false, error: 'not_a_video_file' }
   const resolved = path.resolve(filePath)
   if (!fs.existsSync(resolved)) return { ok: false, error: 'file_missing' }
   shell.openPath(resolved)
@@ -4850,6 +4897,7 @@ ipcMain.handle('subtitles:sweepStatus', () => {
 // copy of the current settings first, never touches media files).
 const BACKUP_SAFETY_DIR = () => path.join(app.getPath('userData'), 'safety-backups')
 const backupPreviews = new Map() // previewId -> { opened, filePath, at }
+const backupPickedPaths = new Set() // paths the file dialog returned (the only ones backup:preview will re-read)
 
 ipcMain.handle('backup:export', async (_e, { includeSecrets = false, passphrase = '' } = {}) => {
   // Refuse a bad passphrase before asking where to save.
@@ -4877,7 +4925,10 @@ ipcMain.handle('backup:export', async (_e, { includeSecrets = false, passphrase 
 
 // Pick (or re-use) a file, validate it and summarise what a restore would change. Writes nothing.
 ipcMain.handle('backup:preview', async (_e, { filePath = '', passphrase = '', skipSecrets = false } = {}) => {
+  // A path is re-used only when it is one this main process got from the file dialog earlier (a retry with a
+  // passphrase); the window can never make it read a file of its own choosing (or a network share).
   let chosen = String(filePath || '')
+  if (chosen && !backupPickedPaths.has(path.resolve(chosen))) chosen = ''
   if (!chosen) {
     const res = await dialog.showOpenDialog({
       title: 'Choose a Beebo Entertainment backup file to restore',
@@ -4886,6 +4937,7 @@ ipcMain.handle('backup:preview', async (_e, { filePath = '', passphrase = '', sk
     })
     if (res.canceled || !res.filePaths[0]) return { ok: false, error: 'canceled' }
     chosen = res.filePaths[0]
+    backupPickedPaths.add(path.resolve(chosen))
   }
   try {
     if (fs.statSync(chosen).size > backup.MAX_BACKUP_BYTES) return { ok: false, filePath: chosen, error: backup.errorText({ code: 'too_large' }) }

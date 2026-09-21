@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "camp",
+ "title": "Camp Skills",
+ "questions": [
+  {
+   "id": "camp-46-01",
+   "band": "4-6",
+   "q": "Where do you sleep at a campsite?",
+   "o": [
+    "In a tent",
+    "In a pool",
+    "On a slide",
+    "On a bicycle"
+   ],
+   "a": 0,
+   "fact": "Some tents fold down small enough to fit in a backpack.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-02",
+   "band": "4-6",
+   "q": "What helps you see in the dark at camp?",
+   "o": [
+    "A spoon",
+    "A flashlight",
+    "A comb",
+    "A pillow"
+   ],
+   "a": 1,
+   "fact": "A headlamp lets you keep your hands free.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-03",
+   "band": "4-6",
+   "q": "What zips up around you when you sleep outside?",
+   "o": [
+    "A hat",
+    "A sleeping bag",
+    "A backpack",
+    "A shoe"
+   ],
+   "a": 1,
+   "fact": "A sleeping bag helps you stay cozy on cool nights.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-04",
+   "band": "4-6",
+   "q": "What sweet treat do people toast on a stick?",
+   "o": [
+    "Lettuce",
+    "Marshmallows",
+    "Soup",
+    "Ice cream"
+   ],
+   "a": 1,
+   "fact": "S'mores are made with marshmallows, chocolate and graham crackers.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-05",
+   "band": "4-6",
+   "q": "What do we call the spot where you set up your tent?",
+   "o": [
+    "A playground",
+    "A garage",
+    "A kitchen",
+    "A campsite"
+   ],
+   "a": 3,
+   "fact": "Many campsites have a picnic table.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-06",
+   "band": "4-6",
+   "q": "What is good to wear on your feet for a hike?",
+   "o": [
+    "Flippers",
+    "Hiking boots",
+    "High heels",
+    "Roller skates"
+   ],
+   "a": 1,
+   "fact": "Comfy shoes make a long walk more fun.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-07",
+   "band": "4-6",
+   "q": "What do you carry your things in on a hike?",
+   "o": [
+    "A bucket",
+    "A backpack",
+    "A kite",
+    "A pillow"
+   ],
+   "a": 1,
+   "fact": "A backpack is easier to carry when the heavy things sit close to your back.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-08",
+   "band": "4-6",
+   "q": "What do you use to pound tent pegs into the ground?",
+   "o": [
+    "A mallet",
+    "A spoon",
+    "A comb",
+    "A whisk"
+   ],
+   "a": 0,
+   "fact": "Tent pegs help keep your tent from blowing away.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-09",
+   "band": "4-6",
+   "q": "What do we call a path through the woods for walking?",
+   "o": [
+    "A highway",
+    "A runway",
+    "A trail",
+    "A river"
+   ],
+   "a": 2,
+   "fact": "Trails are often marked with painted signs or stripes.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-10",
+   "band": "4-6",
+   "q": "What twinkles in the night sky when you are far from city lights?",
+   "o": [
+    "Sand",
+    "Grass",
+    "Stars",
+    "Rocks"
+   ],
+   "a": 2,
+   "fact": "Away from city lights, you can see many more stars.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-11",
+   "band": "4-6",
+   "q": "Which of these could you sit on around a campfire?",
+   "o": [
+    "A log or a camp chair",
+    "A washing machine",
+    "A trampoline",
+    "A snowboard"
+   ],
+   "a": 0,
+   "fact": "Camp chairs fold up flat to fit in the car.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-12",
+   "band": "4-6",
+   "q": "What do you look at to find your way on a hike?",
+   "o": [
+    "A mixer",
+    "A mirror",
+    "A mug",
+    "A map"
+   ],
+   "a": 3,
+   "fact": "A map is a picture of a place as seen from above.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-13",
+   "band": "4-6",
+   "q": "What is a good thing to do with your trash at camp?",
+   "o": [
+    "Hide it in a bush",
+    "Toss it in the lake",
+    "Leave it on the ground",
+    "Put it in a trash bag or bin"
+   ],
+   "a": 3,
+   "fact": "Keeping the outdoors clean helps everyone enjoy it.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-46-14",
+   "band": "4-6",
+   "q": "What goes over a tent like an umbrella to keep out rain?",
+   "o": [
+    "A sock",
+    "A rainfly",
+    "A doormat",
+    "A pillowcase"
+   ],
+   "a": 1,
+   "fact": "The rainfly goes over the top of the tent and hangs down the sides.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-01",
+   "band": "7-10",
+   "q": "In which direction does the Sun rise?",
+   "o": [
+    "West",
+    "North",
+    "South",
+    "East"
+   ],
+   "a": 3,
+   "fact": "The Sun sets in the west.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-02",
+   "band": "7-10",
+   "q": "What tool shows you which way is north?",
+   "o": [
+    "A ruler",
+    "A thermometer",
+    "A compass",
+    "A stopwatch"
+   ],
+   "a": 2,
+   "fact": "A compass needle is a little magnet that lines up with Earth's magnetic field.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-03",
+   "band": "7-10",
+   "q": "What is a map's key or legend for?",
+   "o": [
+    "It explains what the symbols mean",
+    "It shows the weather",
+    "It locks the map",
+    "It measures speed"
+   ],
+   "a": 0,
+   "fact": "A key tells you what each little picture on the map stands for.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-04",
+   "band": "7-10",
+   "q": "What is a painted mark on a tree that shows a trail called?",
+   "o": [
+    "A label",
+    "A brand",
+    "A badge",
+    "A blaze"
+   ],
+   "a": 3,
+   "fact": "Blazes are often painted stripes on trees or rocks.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-05",
+   "band": "7-10",
+   "q": "Which star helps people find north in the Northern Hemisphere?",
+   "o": [
+    "Sirius",
+    "Polaris, the North Star",
+    "Rigel",
+    "Betelgeuse"
+   ],
+   "a": 1,
+   "fact": "Polaris stays almost still while the other stars seem to circle around it.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-06",
+   "band": "7-10",
+   "q": "What does it mean to pitch a tent?",
+   "o": [
+    "To paint it",
+    "To throw it",
+    "To set it up",
+    "To pack it away"
+   ],
+   "a": 2,
+   "fact": "Pitching a tent means getting it ready to sleep in.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-07",
+   "band": "7-10",
+   "q": "Why do campers often use a sleeping pad?",
+   "o": [
+    "It catches fish",
+    "It cushions and warms you from the ground",
+    "It keeps bugs away",
+    "It plays music"
+   ],
+   "a": 1,
+   "fact": "The ground is cooler than the air, so a pad adds a layer between you and it.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-08",
+   "band": "7-10",
+   "q": "What does GPS stand for?",
+   "o": [
+    "Ground Pointer System",
+    "Global Positioning System",
+    "General Packing Set",
+    "Great Path Signal"
+   ],
+   "a": 1,
+   "fact": "GPS uses signals from satellites orbiting Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-09",
+   "band": "7-10",
+   "q": "What is a trailhead?",
+   "o": [
+    "The top of a mountain",
+    "A kind of tent",
+    "A ranger's hat",
+    "The place where a trail begins"
+   ],
+   "a": 3,
+   "fact": "Trailheads often have a sign or a map.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-10",
+   "band": "7-10",
+   "q": "What is a switchback on a mountain trail?",
+   "o": [
+    "A type of boot",
+    "A river crossing",
+    "A zigzag turn that makes a climb easier",
+    "A broken bridge"
+   ],
+   "a": 2,
+   "fact": "Switchbacks make steep hills gentler to climb.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-11",
+   "band": "7-10",
+   "q": "What does a thermometer measure?",
+   "o": [
+    "Distance",
+    "Temperature",
+    "Time",
+    "Wind direction"
+   ],
+   "a": 1,
+   "fact": "Temperature is measured in degrees Celsius or Fahrenheit.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-12",
+   "band": "7-10",
+   "q": "What do we call a shelter made of branches leaning against a frame?",
+   "o": [
+    "A skyscraper",
+    "A lighthouse",
+    "A lean-to",
+    "An igloo"
+   ],
+   "a": 2,
+   "fact": "A lean-to has a slanted roof and an open front.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-13",
+   "band": "7-10",
+   "q": "What is dusk?",
+   "o": [
+    "The time in the evening when daylight is fading",
+    "The time just after lunch",
+    "The middle of the night",
+    "Sunrise"
+   ],
+   "a": 0,
+   "fact": "Dawn is the same kind of soft light, but in the morning.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-710-14",
+   "band": "7-10",
+   "q": "What is the band of stars you might see from a dark campsite called?",
+   "o": [
+    "The Milky Way",
+    "A satellite",
+    "A comet trail",
+    "A rainbow"
+   ],
+   "a": 0,
+   "fact": "The Milky Way is our own galaxy seen from the inside.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-01",
+   "band": "11+",
+   "q": "What does the scale on a map help you figure out?",
+   "o": [
+    "The age of the trail",
+    "Real distances",
+    "The height of the trees",
+    "The weather"
+   ],
+   "a": 1,
+   "fact": "A map scale can say, for example, that one inch is one mile.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-02",
+   "band": "11+",
+   "q": "What do contour lines on a topographic map show?",
+   "o": [
+    "Where the roads are",
+    "Where the campsites are",
+    "How high the land is",
+    "Where the rivers freeze"
+   ],
+   "a": 2,
+   "fact": "When lines are close together, the ground is steep.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-03",
+   "band": "11+",
+   "q": "What do we call hiking with your gear on your back and staying out overnight?",
+   "o": [
+    "Backpacking",
+    "Kayaking",
+    "Snorkeling",
+    "Cycling"
+   ],
+   "a": 0,
+   "fact": "Backpackers try to carry as little weight as they can.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-04",
+   "band": "11+",
+   "q": "What does elevation mean on a trail sign?",
+   "o": [
+    "Number of hikers",
+    "Time to walk it",
+    "Length of the trail",
+    "Height above sea level"
+   ],
+   "a": 3,
+   "fact": "Sea level is the average height of the ocean's surface.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-05",
+   "band": "11+",
+   "q": "What is a cairn?",
+   "o": [
+    "A pile of stacked stones marking a path",
+    "A type of tent",
+    "A hiking boot",
+    "A trail snack"
+   ],
+   "a": 0,
+   "fact": "Cairns help hikers find the path above the treeline.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-06",
+   "band": "11+",
+   "q": "What do we call a large area set aside to protect wild land and animals?",
+   "o": [
+    "A national park",
+    "A shopping mall",
+    "A stadium",
+    "A parking lot"
+   ],
+   "a": 0,
+   "fact": "Parks help keep wild places and their animals around for the future.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-07",
+   "band": "11+",
+   "q": "If you face east, which direction is behind you?",
+   "o": [
+    "North",
+    "East",
+    "West",
+    "South"
+   ],
+   "a": 2,
+   "fact": "Facing the morning sun means you are facing east.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-08",
+   "band": "11+",
+   "q": "How many degrees are in a full circle on a compass?",
+   "o": [
+    "360",
+    "100",
+    "180",
+    "90"
+   ],
+   "a": 0,
+   "fact": "North is 0 degrees, east is 90, south is 180 and west is 270.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-09",
+   "band": "11+",
+   "q": "What do we call the shimmering lights in the far northern sky?",
+   "o": [
+    "A rainbow",
+    "An eclipse",
+    "The aurora borealis",
+    "A meteor shower"
+   ],
+   "a": 2,
+   "fact": "Auroras happen when particles from the Sun hit Earth's atmosphere.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-10",
+   "band": "11+",
+   "q": "What is orienteering?",
+   "o": [
+    "Setting up a tent",
+    "Tying knots",
+    "Cooking outdoors",
+    "Finding your way with a map and compass"
+   ],
+   "a": 3,
+   "fact": "Orienteering began as military training in Sweden.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-11",
+   "band": "11+",
+   "q": "What is the treeline on a tall mountain?",
+   "o": [
+    "A hiking path",
+    "The line of trees along a road",
+    "A rope for hanging things",
+    "The height above which trees cannot grow"
+   ],
+   "a": 3,
+   "fact": "Above the treeline it is too cold and windy for trees.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-12",
+   "band": "11+",
+   "q": "Which planet is often seen as a bright evening star near sunset?",
+   "o": [
+    "Pluto",
+    "Mars",
+    "Neptune",
+    "Venus"
+   ],
+   "a": 3,
+   "fact": "Venus is the brightest planet in our night sky.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-13",
+   "band": "11+",
+   "q": "What is the Big Dipper's shape?",
+   "o": [
+    "A big ladle or spoon",
+    "A crown",
+    "A circle",
+    "A triangle"
+   ],
+   "a": 0,
+   "fact": "Two stars at the end of the Big Dipper's bowl point toward the North Star.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "camp-11-14",
+   "band": "11+",
+   "q": "What mostly causes ocean tides?",
+   "o": [
+    "Fish swimming",
+    "Wind only",
+    "The Moon's gravity",
+    "Boats"
+   ],
+   "a": 2,
+   "fact": "Most coasts have two high tides and two low tides each day.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

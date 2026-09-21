@@ -107,7 +107,7 @@ async function fixture({ compat = true, extra = {}, prepare, serverExtra = {}, w
     await new Promise((r) => info.close(r))
     await fs.rm(root, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 }).catch(() => {}) // Windows: ffmpeg/Defender can hold a file for a moment after the server stops
   }
-  return { server, auth, store, data, base, jf, login, signIn, tokens, close, enc, moviesDir, tvDir, parental, root, cacheDir }
+  return { server, info, auth, store, data, base, jf, login, signIn, tokens, close, enc, moviesDir, tvDir, parental, root, cacheDir }
 }
 
 module.exports = { fixture, enc, localRequire, appRoot }

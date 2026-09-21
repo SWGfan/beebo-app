@@ -102,6 +102,8 @@ The remaining answers are given only to someone holding a **valid** house token:
 | 403    | `guest_not_supported`     | The token is a shared-library guest. Not supported here.                                             |
 | 403    | `admin_requires_password` | A household member who is an administrator: use the account owner's approval, or a password sign-in. |
 | 403    | `private_profile_sign_in` | A private profile: it must be opened with its own username and password.                             |
+| 403    | `two_factor_sign_in`      | The person has two-factor on. A TV cannot type a code, so they sign in with username, password and code. |
+| 403    | `two_factor_setup_required` | The owner requires two-factor for admins and this admin has not set it up yet.                     |
 | 405    | `method_not_allowed`      | Only `POST`.                                                                                         |
 | 413    | `too_large`               | Body over 2 KB.                                                                                      |
 | 429    | `locked`                  | Too many failures from this address, or this address is locked out of signing in. Wait `Retry-After` seconds (`minutesRemaining` too). |

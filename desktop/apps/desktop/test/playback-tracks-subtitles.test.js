@@ -33,7 +33,11 @@ test('parseTracks: video, audio and subtitle lists with plain-English labels and
   const t = tracks.parseTracks(PROBE)
   assert.equal(t.durationSec, 7200.5)
   assert.equal(t.bitrateKbps, 40000)
-  assert.deepEqual({ ...t.video }, { streamIndex: 0, codec: 'hevc', profile: null, width: 3840, height: 2160, fps: 23.976, pixFmt: 'yuv420p10le', hdr: true, bitrateKbps: null })
+  const v = t.video
+  assert.deepEqual({ streamIndex: v.streamIndex, codec: v.codec, profile: v.profile, width: v.width, height: v.height, fps: v.fps, pixFmt: v.pixFmt, hdr: v.hdr, bitrateKbps: v.bitrateKbps },
+    { streamIndex: 0, codec: 'hevc', profile: null, width: 3840, height: 2160, fps: 23.976, pixFmt: 'yuv420p10le', hdr: true, bitrateKbps: null })
+  // and the precise picture facts ride along (mediaClassify.js)
+  assert.equal(v.hdrType, 'HDR10'); assert.equal(v.bitDepth, 10); assert.equal(v.resolutionClass, '4K')
   assert.deepEqual(t.audio.map((a) => [a.ordinal, a.streamIndex, a.label, a.isDefault]), [
     [0, 2, 'English · 7.1 · Dolby TrueHD (Atmos)', true],
     [1, 3, 'French · 5.1 · Dolby Digital', false],
@@ -74,8 +78,24 @@ test('track prober caches by file version and uses ffprobe once', async () => {
   const execFileFn = (exe, args, opts, cb) => { calls++; setImmediate(() => cb(null, JSON.stringify(PROBE))) }
   const p = tracks.createTrackProber({ ffprobePath: () => 'ffprobe', execFileFn })
   const [a, b] = await Promise.all([p.probe(file), p.probe(file)])
-  assert.equal(calls, 1)
+  // This picture is HEVC with a PQ transfer, so one tiny extra read of its first frames looks for HDR10+ metadata.
+  assert.equal(calls, 2)
   assert.equal(a, b)
+  await p.probe(file)
+  assert.equal(calls, 2, 'cached: no further ffprobe')
+  // An ordinary SDR file is read exactly once.
+  const sdr = path.join(dir, 'b.mkv')
+  fs.writeFileSync(sdr, 'y')
+  let sdrCalls = 0
+  const sdrProbe = { streams: [{ index: 0, codec_type: 'video', codec_name: 'h264', width: 1920, height: 1080, pix_fmt: 'yuv420p', color_transfer: 'bt709' }], format: { duration: '60' } }
+  const p2 = tracks.createTrackProber({ ffprobePath: () => 'ffprobe', execFileFn: (exe, args, opts, cb) => { sdrCalls++; setImmediate(() => cb(null, JSON.stringify(sdrProbe))) } })
+  await p2.probe(sdr)
+  assert.equal(sdrCalls, 1)
+  // The frame read finding HDR10+ metadata upgrades the classification
+  let n = 0
+  const p3 = tracks.createTrackProber({ ffprobePath: () => 'ffprobe', execFileFn: (exe, args, opts, cb) => { n++; setImmediate(() => cb(null, JSON.stringify(args.includes('-show_frames') ? { frames: [{ side_data_list: [{ side_data_type: 'HDR Dynamic Metadata SMPTE2094-40 (HDR10+)' }] }] } : PROBE))) } })
+  const plus = await p3.probe(file)
+  assert.equal(n, 2); assert.equal(plus.video.hdrType, 'HDR10+'); assert.equal(plus.video.hdr10Plus, true)
   assert.equal(await p.probe(path.join(dir, 'missing.mkv')), null)
   assert.equal(await tracks.createTrackProber({ ffprobePath: () => null }).probe(file), null)
   fs.rmSync(dir, { recursive: true, force: true })

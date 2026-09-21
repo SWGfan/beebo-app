@@ -200,6 +200,6 @@ test('the host closes a session that has stopped moving while the viewer waits',
   assert.match(fn, /lastMoveAt/, 'it measures when bytes last moved')
   assert.match(fn, /closeSession\(viewerId\)/, 'and closes the stalled one')
   // Bytes going out and messages coming in both count as movement.
-  assert.match(src, /sentBytes \+= CH; session\.lastMoveAt = Date\.now\(\)/)
+  assert.match(src, /sentBytes \+= buf\.length - headLen;\s*session\.lastMoveAt = Date\.now\(\)/)
   assert.match(src, /function onHttpMessage\(session, channel, data\) \{\s*\r?\n\s*session\.lastMoveAt = Date\.now\(\)/)
 })

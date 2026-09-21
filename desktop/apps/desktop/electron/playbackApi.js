@@ -18,6 +18,11 @@
 //                                        (info() lists a film's `versions` + `preferredVersionId`); '' forgets
 //   GET  /playback/speedtest?kb=         random bytes, for Auto to time over the real path
 //   GET  /playback/status                encoder + running conversions
+//   POST /playback/negotiate             {kind,id, deviceProfile?, client?, audio?, quality?, subtitle?, maxBitrateKbps?} -> the plan
+//                                        (DirectPlay | DirectStream | Transcode, per-stream actions, machine-readable reasons) and the
+//                                        URL that plays it (homeTheater.js / playbackDecision.js / hlsRemux.js). /playback/info carries
+//                                        the same plan for the calling device as `homeTheater`, plus badges (4K, HDR10+, Atmos, 7.1).
+//   GET  /playback/hometheater           the calling device's profile + the effective Home theater settings for this person
 //   GET  /playback/trickplay/info?kind=&id=        seek-bar preview availability + thumb url
 //   GET  /subtitles/online?kind=&id=&lang=         OpenSubtitles search (owner's key)
 //   POST /subtitles/online/download      {kind,id,fileId,lang,hearingImpaired,forced}
@@ -54,6 +59,7 @@ const subtitleStyle = require('./subtitleStyle')
 const trickplayCache = require('./trickplayCache')
 const trickplayJob = require('./trickplayJob')
 const movieVersions = require('./movieVersions')
+const homeTheaterModule = require('./homeTheater') // device profiles, direct play / direct stream / transcode decision, HDR-preserving remux
 // Household plan -> away-from-home quality cap (pure; same module streamServer.js's own
 // enforcement uses). This module only ever ADVISES the client so it can explain/self-limit
 // itself - the real enforcement for direct/"Original" file requests lives in streamServer.js's
@@ -435,6 +441,16 @@ function createPlaybackApi({
     })
   }
   const transcodeEnabled = () => setting('transcodeEnabled', true) !== false
+  // Direct play / direct stream / transcode negotiation and the HDR-preserving remux. Kept in its own module.
+  const homeTheater = homeTheaterModule.createHomeTheater({
+    store, log, fileAndTracks, sign, hls,
+    startTranscode: (body, userId) => start(body, userId),
+    getFfmpeg, getFfprobe, tmpRoot,
+    audioEncoders: async () => { try { return (await encoder()).audio || null } catch { return null } },
+    awayQualityCapHeight,
+    ...(spawnFn ? { spawnFn } : {}),
+    ...(managerOptions && managerOptions.remux ? { remuxOptions: managerOptions.remux } : {})
+  })
 
   // ---------------------------------------------------------------- prefs
   const prefsKey = (userId, profile) => (profile ? `${userId}:${String(profile).slice(0, 64)}` : String(userId))
@@ -506,7 +522,7 @@ function createPlaybackApi({
     return { filePath, tracks }
   }
 
-  async function info(kind, id, userId, profile) {
+  async function info(kind, id, userId, profile, req) {
     const { filePath, tracks, error } = await fileAndTracks(kind, id)
     if (error) return { status: 404, body: { ok: false, error } }
     const mt = sign(id)
@@ -541,7 +557,13 @@ function createPlaybackApi({
         kind, id,
         durationSec: tracks ? tracks.durationSec : 0,
         bitrateKbps: tracks ? (tracks.bitrateKbps || (tracks.video && tracks.video.bitrateKbps) || null) : null,
-        video: tracks && tracks.video ? { codec: tracks.video.codec, width: tracks.video.width, height: tracks.video.height, fps: tracks.video.fps, hdr: tracks.video.hdr } : null,
+        video: tracks && tracks.video ? {
+          codec: tracks.video.codec, width: tracks.video.width, height: tracks.video.height, fps: tracks.video.fps, hdr: tracks.video.hdr,
+          // Precise picture facts (mediaClassify.js): HDR10 / HDR10+ / HLG / Dolby Vision, the profile, bit depth, colour.
+          profile: tracks.video.profile, level: tracks.video.level, hdrType: tracks.video.hdrType, hdrFormats: tracks.video.hdrFormats, hdr10Plus: tracks.video.hdr10Plus,
+          dolbyVision: tracks.video.dolbyVision ? { profile: tracks.video.dolbyVision.profile, label: tracks.video.dolbyVision.label, level: tracks.video.dolbyVision.level, compatId: tracks.video.dolbyVision.compatId, baseLooksLike: tracks.video.dolbyVision.baseLooksLike, elPresent: tracks.video.dolbyVision.elPresent } : null,
+          bitDepth: tracks.video.bitDepth, resolutionClass: tracks.video.resolutionClass, colorPrimaries: tracks.video.colorPrimaries, colorTransfer: tracks.video.colorTransfer, colorSpace: tracks.video.colorSpace, hdrBase: tracks.video.hdrBase, badges: tracks.video.badges
+        } : null,
         original: { label: originalLabel(tracks), height: tracks && tracks.video ? tracks.video.height : null },
         direct: directVerdicts(tracks, ext),
         qualities: hls.qualitiesFor(tracks && tracks.video),
@@ -559,7 +581,9 @@ function createPlaybackApi({
         },
         audio: ((tracks && tracks.audio) || []).map((a) => ({
           ordinal: a.ordinal, streamIndex: a.streamIndex, label: a.label, language: a.language, codec: a.codec, channels: a.channels, title: a.title, isDefault: a.isDefault,
-          channelLayout: a.channelLayout || null, profile: a.profile || null, playsAs: hlsAudio.describeSourceTrack(a)
+          channelLayout: a.channelLayout || null, profile: a.profile || null, playsAs: hlsAudio.describeSourceTrack(a),
+          // What the track is (mediaClassify.js): "Dolby TrueHD + Dolby Atmos", 7.1, lossless, object audio.
+          formatName: a.formatName || null, family: a.family || null, layout: a.layout || null, lossless: !!a.lossless, objectAudio: a.objectAudio || null, spatialFormat: a.spatialFormat || 'None'
         })),
         audioOptions: {
           modes: hlsAudio.AUDIO_MODES,
@@ -579,6 +603,8 @@ function createPlaybackApi({
         // sheet. streamServer.js's /file and /tvfile routes enforce the real cap independently.
         awayQualityCapHeight: awayQualityCapHeight(),
         ...(markers ? { markers } : {}),
+        // Badges, precise format and the plan (direct play / direct stream / transcode, with reasons) for THIS device.
+        homeTheater: homeTheater.infoBlock({ tracks, filePath, userId, headers: req && req.headers }),
         ...(ver ? { versions: ver.versions, preferredVersionId: ver.preferredVersionId } : {})
       }
     }
@@ -707,7 +733,20 @@ function createPlaybackApi({
       const kind = url.searchParams.get('kind') === 'tv' ? 'tv' : 'movie'
       const id = url.searchParams.get('id') || ''
       if (!id) { send(400, { ok: false, error: 'bad_request' }); return true }
-      reply(await info(kind, id, userId, profile))
+      reply(await info(kind, id, userId, profile, req))
+      return true
+    }
+    if (p === '/playback/negotiate' && method === 'POST') {
+      const body = await readJsonBody(req)
+      if (!body) { send(400, { ok: false, error: 'bad_request' }); return true }
+      const r = await homeTheater.negotiate(body, { userId, headers: req.headers })
+      if (r.status === 503 && r.body && r.body.retryAfterSec) res.setHeader('Retry-After', String(r.body.retryAfterSec))
+      reply(r)
+      return true
+    }
+    if (p === '/playback/hometheater' && method === 'GET') {
+      const prof = homeTheater.profileFor({ headers: req.headers })
+      send(200, { ok: true, profile: { client: prof.client, source: prof.source, summary: require('./deviceProfile').describeProfile(prof) }, settings: homeTheater.settings.forUser(userId), remux: { available: !!getFfmpeg() && !!getFfprobe() } })
       return true
     }
     if (p === '/playback/start' && method === 'POST') {
@@ -720,6 +759,7 @@ function createPlaybackApi({
       const body = await readJsonBody(req)
       const t = body && hls.readTicket(verify, body.ticket)
       if (t && String(t.fields.u) === String(userId)) {
+        if (t.fields.rx) homeTheater.close(t.sessionKey)
         manager.close(t.sessionKey)
         manager.leaveLine(String(userId), `${t.fields.k === 'tv' ? 'tv' : 'movie'}|${t.fields.i}`)
       }
@@ -777,7 +817,7 @@ function createPlaybackApi({
   }
 
   // ------------------------------------------------ ticket / token routes
-  const HLS_RE = /^\/hls\/([A-Za-z0-9_.-]{10,2048})\/(index\.m3u8|seg-(\d{1,6})\.ts)$/
+  const HLS_RE = /^\/hls\/([A-Za-z0-9_.-]{10,2048})\/(index\.m3u8|master\.m3u8|init\.mp4|seg-(\d{1,6})\.(?:ts|m4s))$/
   const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Range, Content-Type', 'Access-Control-Expose-Headers': 'Content-Length' }
 
   /** Returns true when it answered the request. Called before the login gate. */
@@ -799,6 +839,10 @@ function createPlaybackApi({
       const t = m ? hls.readTicket(verify, m[1]) : null
       if (!t) { res.writeHead(403, { 'Content-Type': 'text/plain', ...corsHeaders }); res.end('Forbidden'); return true }
       const f = t.fields
+      // A direct-stream ticket (fragmented MP4, picture copied): hlsRemux.js through homeTheater.js.
+      if (f.rx) return homeTheater.handleRemux(req, res, t, m[2], corsHeaders)
+      // The live conversion only makes index.m3u8 and .ts pieces.
+      if (m[2] === 'master.m3u8' || m[2] === 'init.mp4' || m[2].endsWith('.m4s')) { res.writeHead(404, corsHeaders); res.end('Not found'); return true }
       const kind = f.k === 'tv' ? 'tv' : 'movie'
       let session = manager.get(t.sessionKey)
       if (!session) {
@@ -925,6 +969,8 @@ function createPlaybackApi({
     setPrefs,
     encoder,
     manager,
+    // Direct play / direct stream / transcode negotiation (homeTheater.js): settings store, remux sessions, plan builder.
+    homeTheater,
     // Settings > Hardware acceleration and the dashboard's "Transcode load" read these.
     encoderService: encoders,
     transcodeLoad: () => manager.load(),
@@ -938,7 +984,7 @@ function createPlaybackApi({
     onlineDownload,
     startTrickplaySweep,
     trickplayStatus,
-    close: () => { clearTimeout(warm); trickplayQueue.stop(); if (trickplaySweep) trickplaySweep.stop(); manager.closeAll() }
+    close: () => { clearTimeout(warm); trickplayQueue.stop(); if (trickplaySweep) trickplaySweep.stop(); manager.closeAll(); homeTheater.closeAll() }
   }
 }
 

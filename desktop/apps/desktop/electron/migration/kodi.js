@@ -86,7 +86,9 @@ function idsOf(root) {
 /** A bare address as the whole content of an .nfo: "https://www.themoviedb.org/movie/603". */
 function idsFromUrlOnly(text) {
   const ids = {}
-  const s = String(text || '')
+  // An address is short. The thetvdb patterns below are lazy scans that restart at every "thetvdb.com/", so on a
+  // megabyte of them they were quadratic (about a minute); nothing real needs more than the first 2000 characters.
+  const s = String(text || '').trim().slice(0, 2000)
   let m = /themoviedb\.org\/(?:movie|tv)\/(\d{1,9})/i.exec(s)
   if (m) ids.tmdb = String(Number(m[1]))
   m = /imdb\.com\/title\/(tt\d{6,10})/i.exec(s)

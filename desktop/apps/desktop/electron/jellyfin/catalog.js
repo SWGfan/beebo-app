@@ -6,6 +6,7 @@ const idsLib = require('./ids')
 const SNAPSHOT_TTL_MS = 30 * 1000
 const EPISODES_TTL_MS = 60 * 1000
 const MUSIC_TTL_MS = 60 * 1000
+const PLAYLISTS_TTL_MS = 5 * 1000
 const REGISTRY_CAP = 40000
 const USER_CACHE_CAP = 50
 
@@ -31,8 +32,22 @@ function lru(cap) {
 
 // Builds one signed-in person's view of the library out of Beebo's OWN api answers, fetched in-process
 // as that person. Whatever Beebo's parental gate hides from them never gets an entry here.
-function createCatalog({ host, ids, now = Date.now }) {
+// A stable number for a music genre name (music genres have no TMDB id): 2^31 + crc32, so it can never meet a TMDB genre id.
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256)
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0 }
+  return t
+})()
+function musicGenreNumber(name) {
+  let c = 0xffffffff
+  const buf = Buffer.from(String(name || '').trim().toLowerCase(), 'utf8')
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8)
+  return 2147483648 + ((c ^ 0xffffffff) >>> 0)
+}
+
+function createCatalog({ host, ids, firstSeen, now = Date.now }) {
   const userCaches = lru(USER_CACHE_CAP)
+  const noteSeen = (entries) => { try { if (firstSeen) firstSeen.note(entries) } catch {} }
 
   const viewId = (name) => ids.encode('view', VIEW_NUMBER[name])
 
@@ -140,6 +155,7 @@ function createCatalog({ host, ids, now = Date.now }) {
     const genres = [...genreNames.entries()].map(([id, name]) => ({ id, name, jid: ids.encode('genre', id) }))
     const byId = new Map()
     for (const e of [...movieEntries, ...seriesEntries, ...boxsets]) byId.set(e.jid, e)
+    noteSeen([...movieEntries.slice().sort((a, b) => a.addedRank - b.addedRank).map((e, i) => ({ jid: e.jid, rank: e.addedRank < 1e9 ? e.addedRank : movieEntries.length + i })), ...seriesEntries.map((e) => ({ jid: e.jid })), ...boxsets.map((e) => ({ jid: e.jid, rank: e.addedRank }))])
     return { at: now(), movies: movieEntries, shows: seriesEntries, boxsets, genres, byId }
   }
 
@@ -194,6 +210,7 @@ function createCatalog({ host, ids, now = Date.now }) {
       }
     }
     const value = { seasons, episodes }
+    noteSeen([...seasons, ...episodes].map((e) => ({ jid: e.jid })))
     c.episodes.set(series.showKey, { at: now(), value })
     for (const e of [...seasons, ...episodes]) c.registry.set(e.jid, e)
     return value
@@ -258,6 +275,7 @@ function createCatalog({ host, ids, now = Date.now }) {
       const music = await getMusic(user, realReq)
       return music.byId.get(normalized) || null
     }
+    if (kind === 'playlist') return (await getPlaylists(user, realReq)).find((p) => p.jid === normalized) || null
     return null
   }
 
@@ -277,18 +295,22 @@ function createCatalog({ host, ids, now = Date.now }) {
         }))
         const albums = (okBody(al) || { items: [] }).items.map((x) => ({
           type: 'MusicAlbum', kind: 'music', jid: ids.encode('album', x.id), beeboId: x.id, title: x.title, artist: x.artist, artistId: x.artistId,
-          artistJid: x.artistId ? ids.encode('artist', x.artistId) : null, year: x.year || null, genres: x.genre ? [x.genre] : [], genreIds: [],
+          artistJid: x.artistId ? ids.encode('artist', x.artistId) : null, year: x.year || null, genres: x.genre ? [x.genre] : [], genreIds: x.genre ? [musicGenreNumber(x.genre)] : [],
           trackCount: x.trackCount, duration: x.duration || 0, cover: x.cover || null, addedAt: x.addedAt || 0
         }))
         const tracks = (okBody(t) || { items: [] }).items.map((x) => ({
           type: 'Audio', kind: 'music', jid: ids.encode('audio', x.id), beeboId: x.id, title: x.title, artist: x.artist, album: x.album, albumArtist: x.albumArtist,
           albumId: x.albumId, albumJid: x.albumId ? ids.encode('album', x.albumId) : null, artistId: x.artistId, artistJid: x.artistId ? ids.encode('artist', x.artistId) : null,
-          number: x.trackNo || null, disc: x.discNo || null, year: x.year || null, genres: x.genre ? [x.genre] : [], genreIds: [], duration: x.duration || 0,
+          number: x.trackNo || null, disc: x.discNo || null, year: x.year || null, genres: x.genre ? [x.genre] : [], genreIds: x.genre ? [musicGenreNumber(x.genre)] : [], duration: x.duration || 0,
           codec: x.codec || '', bitrate: x.bitrate || 0, sampleRate: x.sampleRate || 0, channels: x.channels || 0, cover: x.cover || null
         }))
         const byId = new Map()
         for (const e of [...artists, ...albums, ...tracks]) byId.set(e.jid, e)
-        const music = { artists, albums, tracks, byId }
+        const genreMap = new Map()
+        for (const e of [...albums, ...tracks]) e.genres.forEach((g, i) => { if (!genreMap.has(e.genreIds[i])) genreMap.set(e.genreIds[i], g) })
+        const genres = [...genreMap.entries()].map(([number, name]) => ({ number, name, jid: ids.encode('genre', number) }))
+        noteSeen([...albums.slice().sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)).map((e, i) => ({ jid: e.jid, rank: i })), ...artists.map((e) => ({ jid: e.jid })), ...tracks.map((e) => ({ jid: e.jid }))])
+        const music = { artists, albums, tracks, byId, genres }
         c.music = music
         c.musicAt = now()
         return music
@@ -297,9 +319,44 @@ function createCatalog({ host, ids, now = Date.now }) {
     return c.musicBuilding
   }
 
+  // Beebo's playlists (the person's own and shared ones, exactly what /api/playlists answers for them) as Jellyfin playlists.
+  async function getPlaylists(user, realReq) {
+    const c = cacheFor(user.id)
+    if (c.playlists && now() - c.playlistsAt < PLAYLISTS_TTL_MS) return c.playlists
+    const r = await host.api(user.id, 'GET', '/api/playlists', undefined, realReq)
+    const rows = (okBody(r) || { playlists: [] }).playlists || []
+    const list = rows.filter((p) => p && p.id).map((p) => ({
+      type: 'Playlist', kind: 'playlist', jid: ids.encode('playlist', p.id), beeboId: p.id, title: p.name || 'Playlist', itemCount: Number(p.itemCount) || 0,
+      genres: [], genreIds: [], year: null, overview: null, rating: null, poster: null, backdrop: null
+    }))
+    noteSeen(list.map((e) => ({ jid: e.jid })))
+    c.playlists = list
+    c.playlistsAt = now()
+    for (const e of list) c.registry.set(e.jid, e)
+    return list
+  }
+
+  async function getPlaylistItems(user, playlist, realReq) {
+    const r = await host.api(user.id, 'GET', '/api/playlists/' + encodeURIComponent(playlist.beeboId), undefined, realReq)
+    const body = okBody(r)
+    const rows = (body && body.items) || []
+    const snap = await getSnapshot(user, realReq)
+    const out = []
+    let music = null
+    for (const row of rows) {
+      if (!row || row.available === false) continue
+      let entry = null
+      if (row.type === 'movie') entry = snap.byId.get(ids.encode('movie', row.id)) || null
+      else if (row.type === 'episode') entry = await episodeByBeeboId(user, row.id, realReq)
+      else if (row.type === 'track') { music = music || (await getMusic(user, realReq)); entry = music.byId.get(ids.encode('audio', row.id)) || null }
+      if (entry) out.push(entry)
+    }
+    return out
+  }
+
   function forget(userId) { userCaches.delete(userId) }
 
-  return { viewId, getSnapshot, getEpisodes, getAllEpisodes, episodeByBeeboId, resolve, getMusic, seasonJid, forget, cacheFor }
+  return { getPlaylists, getPlaylistItems, viewId, getSnapshot, getEpisodes, getAllEpisodes, episodeByBeeboId, resolve, getMusic, seasonJid, forget, cacheFor }
 }
 
 module.exports = { createCatalog }

@@ -45,6 +45,7 @@ object TvFeatures {
         "starchart" to "Star Chart",
         "nearby" to "Nearby",
         "scavengerhunt" to "Scavenger Hunt",
+        "tripclock" to "Trip Clock",
         "spacesaver" to "Space Saver",
     )
 

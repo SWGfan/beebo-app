@@ -1,6 +1,7 @@
 # Jellyfin-compatible API mode - plan and gap map
 
-Status: Phase A (this document) and Phase B (implementation in `electron/jellyfin/`).
+Status: Phase A (this document) and Phase B (implementation in `electron/jellyfin/`); hardening pass 2026-09-21 (conformance suite, WebSocket,
+app passwords, tracked sessions, Settings panel). Per-client call lists, status and the public compatibility table: `docs/JELLYFIN-CLIENT-MATRIX.md`.
 Setting: `jellyfinCompat` (owner toggle, default OFF). Labelled in the UI as "Jellyfin-compatible API".
 
 ## 0. Legal and honesty posture
@@ -14,19 +15,18 @@ Setting: `jellyfinCompat` (owner toggle, default OFF). Labelled in the UI as "Je
   `ProductName` is `Beebo Entertainment`. Clients gate on `Version`, so the server reports
   `COMPAT_API_VERSION` (see `electron/jellyfin/constants.js`) and additionally returns a
   Beebo-specific `BeeboCompat` object in `/System/Info/Public` saying what it is.
-- Spec fetch note: `https://api.jellyfin.org/openapi/jellyfin-openapi-stable.json` was reachable
-  but the fetch tool returned only the first part of the document (paths up to
-  `/Audio/{itemId}/stream.{container}`, no `components.schemas`). Everything below is therefore
-  built from the documented endpoint list plus the client behaviour observed in public client
-  documentation, and is verified against tests written from that shape, NOT against a real client.
+- Spec: the first version of this mode was written from documentation because the fetch tool returned only part of the OpenAPI
+  document. Since 2026-09-21 the complete public description (12.1.0) is a test fixture
+  (`test/fixtures/jellyfin-openapi-12.1.0.json`, trimmed to the routes Beebo serves by `tools/jellyfin-openapi-trim.js`), and
+  `test/jellyfin-conformance.test.js` validates every answer against it. The per-client call lists and the honest status of each app are in
+  `docs/JELLYFIN-CLIENT-MATRIX.md`. No real app has been run against Beebo: every app is UNTESTED.
 
-### Version value (decision)
+### Version value (decision, revised 2026-09-21)
 
-Recent client SDKs (Android TV, Findroid, Swiftfin) refuse or warn on servers reporting a version
-older than their baseline (10.8 to 10.10 depending on the client). The API surface implemented is
-the 10.9/10.10 shape (`/UserViews`, `/UserItems/...`, `/UserPlayedItems`, `/MediaSegments` returning
-nothing). So `Version` is reported as `10.10.7` and `BeeboCompat.api` says `10.9-style subset`.
-Change one constant to move it.
+Clients gate on `Version`: Jellyfin Web and the TypeScript SDK 1.0 need 10.10+, Android TV's development branch and Findroid 1.0 need 10.11+,
+and the Kotlin SDK's development branch wants 12.0+. The newest stable Jellyfin is 12.1 and the conformance suite checks against its
+description, so `Version` is reported as `12.1.0` and `BeeboCompat.api` says `12.1-level subset`. The older routes those clients still use
+(`/Users/{id}/Items`, the `/emby` prefix) and every legacy token form stay served. Change one constant (`COMPAT_API_VERSION`) to move it.
 
 ## 1. What Beebo has (read from the code, not assumed)
 
@@ -91,6 +91,15 @@ Writes (`played`, `favourite`, progress) go through Beebo's API routes so their 
   the compat routes: Beebo's `/api` rejects it (its userId would be `jf.<id>`), and Beebo bearer tokens are not
   accepted by the compat routes (must carry the `jf.` prefix). It dies the same moment the Beebo token does
   (revocation, deletion, privacy change).
+- Every sign-in is a **tracked session** (`authSessions`, method `jellyfin`, `app password` or `quick connect`): it is listed in the person's
+  device list and in Settings > Jellyfin apps, and "Sign out" (from the app's Logout, `DELETE /Auth/Keys/{own token}`, the owner's
+  Settings, or Beebo's own device list) removes the record, so it survives a restart. The old in-memory revocation set stays as a second lock.
+- **Two-factor accounts** cannot use the password sign-in (unchanged: the password alone is never a sign-in, and these apps have no place for a
+  code). The 401 says what to do instead: the owner makes an **app password** for that app in Settings > Jellyfin apps
+  (`electron/jellyfin/appPasswords.js`): 16 characters in four groups (80 bits), shown once, stored only as a SHA-256, per person and per app,
+  accepted only by `POST /Users/AuthenticateByName` on these routes, throttled (8 misses per address and per person per 15 minutes) on top of Beebo's
+  own lockout, recorded in the security log, deletable at any time. The session it opens is an ordinary restricted-by-policy Jellyfin session.
+- Missing `Client` or `DeviceId` in the Authorization header (Apple-style clients omit them) never fails a request.
 - Token sources, in order: `Authorization: MediaBrowser Client="..", Device="..", DeviceId="..", Version="..", Token=".."`,
   `X-Emby-Authorization` (same syntax), `X-MediaBrowser-Token`, `X-Emby-Token`, `?api_key=` / `?ApiKey=`.
   Device info is parsed for the sessions list only; it is never trusted for anything security relevant.
@@ -100,6 +109,8 @@ Writes (`played`, `favourite`, progress) go through Beebo's API routes so their 
   device then signs in as THAT user), `POST /Users/AuthenticateWithQuickConnect {Secret}`. Wrong-code attempts by
   a signed-in user are limited (10 per 5 minutes). Restricted profiles stay restricted: the new device receives
   a token for the authorising user only, exactly the access that user has.
+  The **owner can approve from the desktop** (Settings > Jellyfin apps): the pending list shows code, app and device (never the secret) with
+  an Approve button, or a code can be typed and a person chosen; the device then signs in as that person. Wrong codes are throttled the same way.
 - `/Users/Public` returns `[]` (no user enumeration for anonymous callers).
 
 ## 4. Id scheme
@@ -147,10 +158,14 @@ bytes 1..15   HMAC-SHA256(serverKey, tag || 0x00 || canonicalKey) truncated to 1
 | Playback progress | `/api/watch-session` + `/api/progress`, session id kept in memory per play session |
 | Image types | Primary = cached TMDB poster; Backdrop = TMDB backdrop (302 to the CDN with size picked from `maxWidth`); Logo/Thumb/Banner/Disc = none (empty `ImageTags`, 404) |
 
-Left unsupported and answered safely (empty lists / 204 / 404 - never a crash): Live TV, Channels, Plugins, Packages,
+Also mapped since 2026-09-21: Beebo playlists -> `Playlist` items and a Playlists view (read only), Beebo's preview frames -> `Trickplay` tile
+sheets, intro/credits markers -> `Intro`/`Outro` media segments, ffprobe chapters -> `Chapters` (names and times only), music genres (a stable id from
+the genre name), Instant Mix, Suggestions, Similar, and a persisted "date added" (first time the mode saw the item, `jellyfinFirstSeen`) for `DateCreated`.
+
+Left unsupported and answered safely (empty lists / 204 / 403 / 404 - never a crash): Live TV, Channels, Plugins, Packages,
 SyncPlay, Devices admin, Scheduled tasks, Library management, Startup wizard, Notifications, all admin endpoints
-(`/System/Restart`, `/System/Shutdown`, `/Users` create/delete, `/Auth/Keys`, ...), Collections/Playlists write,
-trickplay (`Trickplay` info left empty), media segments (empty), lyrics (empty), item updates/deletes (403).
+(`/System/Restart`, `/System/Shutdown`, `/Users` create/delete, `/Auth/Keys` create, ...), Collections/Playlists write,
+remote control of another app, lyrics (404), item updates/deletes (403).
 
 ## 6. Minimum endpoint set per target client
 
@@ -192,11 +207,18 @@ All paths are case-insensitive, accept an optional `/emby` or `/mediabrowser` pr
 | GET /Genres | S | TMDB genres present in the library |
 | GET /Search/Hints | S | movies, series, albums, artists, songs |
 | GET /Artists, /Artists/AlbumArtists | S | Music library |
-| GET /Persons, /Studios, /MusicGenres, /Years, /Trailers, /Channels, /Devices, /Playlists, /Collections, /Playlists/{id}/Items, /Suggestions, /Movies/Recommendations, /Library/MediaFolders | T | empty (`/Playlists` and `/Collections` only in canonical case, because Beebo owns `/playlists`) |
+| GET /Persons, /Studios, /Years, /Trailers, /Channels, /Devices, /Collections, /Movies/Recommendations, /Library/MediaFolders | T | empty (`/Playlists...` and `/Collections` only in canonical case, because Beebo owns `/playlists`) |
+| GET /Items/Suggestions (and /Users/{id}/Suggestions), /Items/{id}/Similar (+ Movies, Shows, Albums, Artists forms) | S | unwatched films and shows, seeded per hour; genre-overlap similar |
+| GET /MusicGenres, /Items/{id}/InstantMix (+ Songs, Albums, Artists, Playlists, MusicGenres forms), /Items/{id}/File | S | genres from the person's albums and tracks; a run of tracks from the seed; the file with Range |
+| GET /Playlists/{id}, /Playlists/{id}/Items, Items?IncludeItemTypes=Playlist, a Playlists view | P | the person's Beebo playlists, read only; POST/DELETE answer 403 |
+| GET,POST /UserItems/{id}/UserData | S | POST honours `Played` and `IsFavorite` only |
+| GET /Playback/BitrateTest, DELETE /Videos/ActiveEncodings, POST /Users/Configuration, POST /Devices/Options, DELETE /Auth/Keys/{own token} | S | random bytes up to 10 MB; the rest 204 / own token only |
 | GET /Plugins, /Packages, /ScheduledTasks, /Library/VirtualFolders, /Localization/*, /Notifications/Services, /Repositories | T | empty arrays |
 | /LiveTv/* | T | disabled, empty |
-| GET /Items/{id}/Images/{type}[/{index}] | P | Primary (cached poster or cover, served by Beebo's own image route), Backdrop (302 to the TMDB CDN, size from `maxWidth`); Logo, Thumb, Banner, Disc are 404. No resizing (Beebo has no image resizer; posters are already w300) |
-| GET /Items/{id}/Ancestors, Similar, Intros, LocalTrailers, SpecialFeatures, ThemeMedia, /MediaSegments/{id} | T | empty |
+| GET /Items/{id}/Images/{type}[/{index}] | P | Primary (cached poster or cover, served by Beebo's own image route; an episode's Primary is the show's backdrop because Beebo has no episode stills), Backdrop and Thumb (302 to the TMDB CDN, size from `maxWidth`); Logo, Banner, Disc are 404. No resizing of cached art (posters are already w300). With the item's `tag` the answer is cacheable for a year and answers `If-None-Match` with 304 |
+| GET /Items/{id}/Ancestors, Intros, LocalTrailers, SpecialFeatures, ThemeMedia, ThemeSongs, ThemeVideos | T | empty |
+| GET /MediaSegments/{id} | S | `Intro` and `Outro` from viewer-set and auto-detected markers (`includeSegmentTypes` honoured); `HasSegments` on the media source |
+| BaseItemDto.Trickplay, GET /Videos/{id}/Trickplay/{width}/{index}.jpg, tiles.m3u8 | S | 10 x 10 tile sheets built from Beebo's preview frames with the bundled ffmpeg (kept in a small memory cache); present once Beebo has made the frames |
 | GET /Items/{id}/Download | U | 403 |
 | POST,GET /Items/{id}/PlaybackInfo | S | DeviceProfile aware direct play, otherwise an HLS `TranscodingUrl`; bedtime and daily limit answer `NotAllowed` |
 | GET /Videos/{id}/master.m3u8, main.m3u8 | S | starts a Beebo HLS ticket (H.264/AAC, 1080p/720p/480p); honours AudioStreamIndex, burnt-in picture subtitles, bitrate |
@@ -205,20 +227,22 @@ All paths are case-insensitive, accept an optional `/emby` or `/mediabrowser` pr
 | GET /Audio/{id}/stream, /universal | S | Beebo's music stream route (transcodes to AAC/Opus when the client cannot decode the codec) |
 | POST /Sessions/Playing, /Progress, /Stopped, /Ping | S | mapped to `/api/watch-session` + `/api/progress`; runtime from the probe |
 | POST /Sessions/Capabilities, /Capabilities/Full | T | 204 |
-| GET /Sessions | P | only the caller's own session |
-| POST /Sessions/Logout | P | revokes the token until the server restarts |
+| GET /Sessions | P | only the caller's own apps, with `NowPlayingItem` and `PlayState` while they report playback |
+| POST /Sessions/Logout | S | ends the tracked session (persists over restarts) |
 | POST,DELETE /UserPlayedItems/{id}, /Users/{id}/PlayedItems/{id} | S | movies, episodes, seasons, series |
 | POST,DELETE /UserFavoriteItems/{id}, /Users/{id}/FavoriteItems/{id} | S | movies, episodes, series |
 | GET /UserItems/{id}/UserData | S | |
 | GET,POST /DisplayPreferences/{id} | P | kept in memory per person |
-| WebSocket /socket, SyncPlay, remote control, admin and management endpoints | U | not implemented (clients retry quietly) |
+| WebSocket /socket | S | RFC 6455 without a dependency (`electron/jellyfin/websocket.js`): token from `api_key`/`ApiKey`/header, `ForceKeepAlive` then `KeepAlive`, `SessionsStart/Stop` (own sessions), `UserDataChanged` pushes to the same person's sockets; 64 KB frames, 8 sockets per person, 100 in all, dropped after 3 minutes of silence or when signed out. No `Play`/`Playstate`/`GeneralCommand`, no `LibraryChanged` |
+| SyncPlay, remote control of another app, admin and management endpoints | U | not implemented |
 
 ## 8. Known limits and honest caveats
 
 - Not verified against a real Jellyfin app: no such client could be run here (see the final report). The tests speak the protocol the way the public documentation and client behaviour describe it.
-- No WebSocket: apps that rely on it for live "now playing" or remote control show it as unavailable.
-- No trickplay, chapters, intro/credits segments, lyrics, theme media, live TV, downloads, sync play.
+- The WebSocket carries keep-alive, the person's own session list and item-mark changes only: no remote control, no library-changed nudges.
+- No lyrics, theme media, live TV, downloads, sync play; chapter thumbnails are not made.
+- Some apps' setup libraries refuse a server whose product name is not Jellyfin's (`docs/JELLYFIN-CLIENT-MATRIX.md` section 5): an open owner decision.
 - Item ids are stable across restarts as long as the `jellyfinIdKey` setting is kept (it is part of a backup); restoring an older backup changes them and apps re-sync their library on next sign-in.
-- Logout revocation is in memory: a signed-out token works again after a server restart until the person changes their password or privacy setting (Beebo's own token rules). Tokens are valid 365 days like the phone app's.
+- Sign-out is a tracked Beebo session record, so it survives a restart. Tokens are valid 365 days like the phone app's, and every one is listed under Settings > Jellyfin apps and can be ended there. Tokens issued by an older build of this mode (before 2026-09-21) carry no session record and end only with "sign out everywhere"; the apps simply sign in again.
 - The catalog is refreshed at most every 30 seconds (episodes 60 seconds): a file that was just added can take up to that long to appear.
 - The compat token appears in `api_key=` query strings that the apps build (Jellyfin's own convention); Beebo redacts `api_key` in its logs.

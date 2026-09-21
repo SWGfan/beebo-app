@@ -12,12 +12,12 @@ files listed under each section.
 
 | Component | What it is | Bundled OSS | License risk |
 |---|---|---|---|
-| **Beebo Entertainment Desktop** | The Windows app your customers install (library, player, server) | Electron 31.7.7 + 81 npm packages + FFmpeg | None — all permissive; FFmpeg under LGPL (kept as a separate program) |
+| **Beebo Entertainment Desktop** | The Windows app your customers install (library, player, server) | Electron 44.4.3 + 81 npm packages + FFmpeg | None — all permissive; FFmpeg under LGPL (kept as a separate program) |
 | **Beebo Entertainment for Android** | The phone / Android Auto client | ~20 library groups (Jetpack, Media3, OkHttp, Coil, WebRTC, Kotlin) | None — Apache-2.0 and BSD-3-Clause |
 
 ## Desktop app — full notices: `desktop-THIRD-PARTY.txt`
 
-Runtime: **Electron 31.7.7** (MIT), which bundles the Chromium engine
+Runtime: **Electron 44.4.3** (MIT), which bundles the Chromium engine
 (BSD-3-Clause and others) and Node.js (MIT). Electron's own `LICENSE` and
 `LICENSES.chromium.html` are placed in the installed app folder automatically
 by the packager.

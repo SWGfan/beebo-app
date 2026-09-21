@@ -28,6 +28,7 @@ const crypto = require('crypto')
 const { spawn } = require('child_process')
 const { readJsonSafe, writeJsonAtomic } = require('./safeJson')
 const feedLib = require('./podcastFeed')
+const { sanitizeHtml } = require('./htmlSanitize')
 const { inputArgs } = require('./ffmpegArgs')
 const xmlLite = require('./xmlLite')
 const { readId3Chapters } = require('./id3Chapters')
@@ -249,7 +250,9 @@ function createPodcasts({ store, dir, fetcher, searchFetcher, now = Date.now, lo
       hasChapters: !!(ep.chaptersUrl || (ep.chapters && ep.chapters.length) || dl),
       stream: streamPath(key)
     }
-    if (notes) { out.notesHtml = ep.notesHtml || ''; out.transcripts = ep.transcripts || [] }
+    // The desktop page sets these notes as innerHTML. They were sanitized when the feed was read, but the episode
+    // file is only data on disk (an older build, a restored backup), so it goes through the sanitizer again on the way out.
+    if (notes) { out.notesHtml = sanitizeHtml(ep.notesHtml || ''); out.transcripts = ep.transcripts || [] }
     return out
   }
 

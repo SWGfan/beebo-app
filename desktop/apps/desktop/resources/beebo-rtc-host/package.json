@@ -1,1 +1,1 @@
-{ "name": "beebo-rtc-host", "version": "1.0.0", "private": true, "main": "beebo-rtc-host.js", "dependencies": { "werift": "^0.20.0" } }
+{"name":"beebo-rtc-host","version":"1.0.0","private":true,"main":"beebo-rtc-host.js","dependencies":{"werift":"0.24.4"}}

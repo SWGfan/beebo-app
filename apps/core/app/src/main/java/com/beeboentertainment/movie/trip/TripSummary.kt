@@ -42,10 +42,19 @@ internal data class TripSummary(
     val badges: List<Badge>,
     val packing: PackingSummary?,
     val thisOrThatRounds: Int,
+    /** Finished plate and sign hunts (Family Pack A), in the order they ended. */
+    val tallies: List<TripMoment> = emptyList(),
+    /** Stops the parent added on the Trip Clock, in time order. */
+    val stops: List<TripMoment> = emptyList(),
+    /** When the Trip Clock arrived, or 0. */
+    val arrivedAt: Long = 0L,
+    /** Nights quiet hours were kept while Campsite ran during this trip (Family Pack A). */
+    val quietNights: Int = 0,
 ) {
     val name: String get() = trip.name
     val isEmpty: Boolean
-        get() = gameCount == 0 && stories.isEmpty() && hunt.isEmpty() && badges.isEmpty() && packing == null
+        get() = gameCount == 0 && stories.isEmpty() && hunt.isEmpty() && badges.isEmpty() && packing == null &&
+            tallies.isEmpty() && stops.isEmpty() && arrivedAt == 0L && quietNights == 0
 }
 
 internal object TripSummaryBuilder {
@@ -57,6 +66,7 @@ internal object TripSummaryBuilder {
         earnedBadgesNow: Set<String>,
         thisOrThatRounds: Int = 0,
         now: Long = System.currentTimeMillis(),
+        quietNights: Int = 0,
     ): TripSummary {
         val window = TripQueries.window(trip, now)
         val inWindow = TripQueries.matchesIn(window, matches)
@@ -84,6 +94,10 @@ internal object TripSummaryBuilder {
             packing = if (depart.total == 0 && trip.packingAtReturn == null) null
             else PackingSummary(depart, trip.packingAtReturn, depart.items.filterNot { it.checked }.map { it.text }),
             thisOrThatRounds = thisOrThatRounds,
+            tallies = trip.moments.filter { it.kind == MomentKind.TALLY },
+            stops = trip.moments.filter { it.kind == MomentKind.STOP }.sortedBy { it.at },
+            arrivedAt = trip.moments.firstOrNull { it.kind == MomentKind.ARRIVED }?.at ?: 0L,
+            quietNights = quietNights,
         )
     }
 

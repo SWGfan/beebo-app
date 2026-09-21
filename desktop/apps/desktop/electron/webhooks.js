@@ -26,6 +26,7 @@ const http = require('http')
 const https = require('https')
 const net = require('net')
 const auth = require('./auth')
+const { embeddedIPv4 } = require('./ipEmbedded')
 const parental = require('./parentalControls')
 const viewingPrivacy = require('./viewingPrivacy')
 const titleRequests = require('./titleRequests')
@@ -83,7 +84,7 @@ const LAN = new net.BlockList()
 for (const [addr, bits] of [['0.0.0.0', 8], ['169.254.0.0', 16], ['192.0.0.0', 24], ['198.18.0.0', 15], ['224.0.0.0', 4], ['240.0.0.0', 4]]) BLOCKED.addSubnet(addr, bits, 'ipv4')
 for (const [addr, bits] of [['::', 128], ['fe80::', 10], ['ff00::', 8], ['fd00:ec2::', 32]]) BLOCKED.addSubnet(addr, bits, 'ipv6')
 for (const [addr, bits] of [['127.0.0.0', 8], ['10.0.0.0', 8], ['172.16.0.0', 12], ['192.168.0.0', 16], ['100.64.0.0', 10]]) LAN.addSubnet(addr, bits, 'ipv4')
-for (const [addr, bits] of [['::1', 128], ['fc00::', 7]]) LAN.addSubnet(addr, bits, 'ipv6')
+for (const [addr, bits] of [['::1', 128], ['fc00::', 7], ['fec0::', 10]]) LAN.addSubnet(addr, bits, 'ipv6')
 
 // 8 sixteen-bit groups for an IPv6 literal (handles :: and a trailing dotted quad), or null.
 function expandIpv6(ip) {
@@ -110,6 +111,9 @@ function classifyAddress(ip) {
   if (family === 6) {
     const g = expandIpv6(ip)
     if (!g) return 'blocked'
+    // The shared reader also knows the SIIT form (::ffff:0:a.b.c.d) that the checks below do not.
+    const wrapped = embeddedIPv4(ip)
+    if (wrapped) return classifyAddress(wrapped)
     // An IPv4 address wearing an IPv6 coat (::ffff:a.b.c.d, ::a.b.c.d, NAT64) is judged as the IPv4 it carries.
     const v4 = () => `${g[6] >> 8}.${g[6] & 255}.${g[7] >> 8}.${g[7] & 255}`
     const first5Zero = g.slice(0, 5).every((x) => x === 0)

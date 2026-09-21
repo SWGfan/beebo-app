@@ -188,6 +188,12 @@ async function connectViewer(base, opts = {}) {
   for (const cand of early) await post(base, '/rtc/candidate', { to: 'host', viewerId, token: login.body.token, candidate: cand })
   let open = false
   dc.stateChanged.subscribe((s) => { if (s === 'open') open = true })
+  // Like the browser page and the phone app: the host trickles candidates BEFORE it posts its
+  // answer, and a browser refuses a candidate until the remote description is set (werift
+  // queues them itself), so hold them back until the answer is in.
+  let remoteReady = false
+  const pendingCands = []
+  const addCand = (c) => pc.addIceCandidate(c).catch(() => {})
   const timer = setInterval(async () => {
     try {
       const r = await fetch(`${base}/rtc/poll?box=${viewerId}`)
@@ -196,12 +202,17 @@ async function connectViewer(base, opts = {}) {
         if (m.type === 'answer') {
           if (opts.onAnswer) opts.onAnswer(m)
           let a = m.sdp
-          if (opts.acceptCandidate) a = a.split(/\r?\n/).filter((l) => !/^a=candidate/.test(l)).join('\r\n')
+          // Strip end-of-candidates too: an SDP with no candidates that still says "that is all
+          // of them" tells werift 0.24 (correctly) the host has nothing to try, and it gives up.
+          if (opts.acceptCandidate) a = a.split(/\r?\n/).filter((l) => !/^a=(candidate|end-of-candidates)/.test(l)).join('\r\n')
           await pc.setRemoteDescription({ type: 'answer', sdp: a })
+          remoteReady = true
+          for (const c of pendingCands.splice(0)) await addCand(c)
         } else if (m.type === 'candidate' && m.candidate) {
           if (opts.seen) opts.seen.push(m.candidate)
           if (opts.acceptCandidate && !opts.acceptCandidate(m.candidate)) continue
-          await pc.addIceCandidate(m.candidate).catch(() => {})
+          if (remoteReady) await addCand(m.candidate)
+          else pendingCands.push(m.candidate)
         }
       }
     } catch { /* next tick */ }
@@ -363,7 +374,7 @@ test('host agent streams byte-exact with seeking, over a signed mailbox', { skip
 test('protocol 2 (the phone app): hello, headers, inline and chunked request bodies, cookies across a reconnect', { skip, timeout: 90000 }, async () => {
   const w = await startWorker()
   const media = await startMedia()
-  const agent = startAgent({ BEEBO_HOST_URL: w.base, BEEBO_HOST_TOKEN: await w.token(), BEEBO_LOCAL_URL: media.base, BEEBO_AGENT_SECRET: AGENT_SECRET, BEEBO_MAX_BODY: String(512 * 1024) })
+  const agent = startAgent({ BEEBO_HOST_URL: w.base, BEEBO_HOST_TOKEN: await w.token(), BEEBO_LOCAL_URL: media.base, BEEBO_AGENT_SECRET: AGENT_SECRET, BEEBO_MAX_BODY: String(128 * 1024) })
   let viewer = null
   try {
     await waitFor(() => /registered as e2ehouse\.beebo\.tv/.test(agent.out.text), 20000, 'agent registration')
@@ -371,7 +382,7 @@ test('protocol 2 (the phone app): hello, headers, inline and chunked request bod
     const hi = await viewer.hello()
     assert.equal(hi.proto, 2)
     for (const f of ['headers', 'body-chunks', 'set-cookies', 'resp-headers']) assert.ok(hi.features.includes(f), 'feature ' + f)
-    assert.equal(hi.maxBody, 512 * 1024)
+    assert.equal(hi.maxBody, 128 * 1024)
 
     // Headers pass through; the ones the agent vouches for can't be forged.
     const echo = async (r) => ({ head: r.head, j: JSON.parse(r.body.toString('utf8')) })
@@ -405,7 +416,7 @@ test('protocol 2 (the phone app): hello, headers, inline and chunked request bod
     assert.equal(r.j.sha, crypto.createHash('sha256').update(form).digest('hex'))
 
     // A big body in 16 KB binary frames, byte-exact.
-    const big = crypto.randomBytes(300 * 1024 + 7)
+    const big = crypto.randomBytes(100 * 1024 + 7)
     r = await echo(await viewer.request2('/echo', { method: 'PUT', body: big, ctype: 'application/octet-stream', chunk: 16384 }))
     assert.equal(r.j.method, 'PUT')
     assert.equal(r.j.blen, big.length)
@@ -413,8 +424,8 @@ test('protocol 2 (the phone app): hello, headers, inline and chunked request bod
 
     // Over the cap: refused with 413 before the local server sees it.
     const seenBefore = media.seen.length
-    await assert.rejects(viewer.request2('/echo', { method: 'POST', body: crypto.randomBytes(600 * 1024), chunk: 16384 }), /err 413/)
-    await assert.rejects(viewer.request2('/echo', { method: 'POST', body: crypto.randomBytes(513 * 1024) }), /err 413/)
+    await assert.rejects(viewer.request2('/echo', { method: 'POST', body: crypto.randomBytes(200 * 1024), chunk: 16384 }), /err 413/)
+    await assert.rejects(viewer.request2('/echo', { method: 'POST', body: crypto.randomBytes(150 * 1024) }), /err 413/)
     assert.equal(media.seen.length, seenBefore, 'refused bodies never reach the server')
 
     // Cookies: every Set-Cookie comes back, and the connection's jar replays them.

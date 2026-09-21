@@ -76,9 +76,33 @@ class TripStore(
         return true
     }
 
+    /** Whether a plate or sign hunt was kept (false when no trip is running). */
+    fun recordTally(tally: TallyResult): Boolean {
+        if (active() == null) return false
+        change { TripLogic.recordTally(it, tally, clock()) }
+        return true
+    }
+
+    fun recordArrival() {
+        if (active() == null) return
+        change { TripLogic.recordArrival(it, clock()) }
+    }
+
+    fun recordStop(stop: StopResult) {
+        if (active() == null) return
+        change { TripLogic.recordStop(it, stop, clock()) }
+    }
+
     fun recordHunt(finds: List<HuntFind>) {
         if (active() == null) return
         change { TripLogic.recordHunt(it, finds, clock()) }
+    }
+
+    /** Family pack B: whether the sung-songs entry was kept (false when no trip is running). */
+    fun recordSongs(sessionId: String, titles: List<String>, names: List<String>): Boolean {
+        if (active() == null) return false
+        change { TripLogic.recordSongs(it, sessionId, titles, names, clock()) }
+        return true
     }
 
     fun setSaveLocation(on: Boolean) { change { TripLogic.setSaveLocation(it, on) } }

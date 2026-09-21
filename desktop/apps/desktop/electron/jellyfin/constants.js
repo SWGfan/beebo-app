@@ -3,7 +3,11 @@
 const SETTING_KEY = 'jellyfinCompat'
 const ID_KEY_SETTING = 'jellyfinIdKey'
 
-const COMPAT_API_VERSION = '10.10.7'
+// The API level reported to apps: the current stable line, the one the conformance tests check against (docs/JELLYFIN-CLIENT-MATRIX.md).
+// Clients gate on it: Jellyfin Web and the TypeScript SDK 1.0 need 10.10+, Android TV master and Findroid 1.0 need 10.11+, and
+// the Kotlin SDK on Android TV's development branch needs 12.0+. The older routes those clients still use are all served too, and
+// every kind of token (Authorization header, api_key, ApiKey) is accepted. One constant to change.
+const COMPAT_API_VERSION = '12.1.0'
 const PRODUCT_NAME = 'Beebo Entertainment'
 const TOKEN_PREFIX = 'jf.'
 const TICKS_PER_SECOND = 10000000
@@ -22,12 +26,13 @@ const TYPE_TAG = Object.freeze({
   album: 0x0b,
   audio: 0x0c,
   playlist: 0x0d,
-  studio: 0x0e
+  studio: 0x0e,
+  segment: 0x0f
 })
 
 const NUMERIC_KINDS = new Set(['person', 'genre', 'boxset', 'view', 'studio'])
 
-const VIEW_NUMBER = Object.freeze({ movies: 1, tvshows: 2, music: 3, boxsets: 4 })
+const VIEW_NUMBER = Object.freeze({ movies: 1, tvshows: 2, music: 3, boxsets: 4, playlists: 5 })
 
 module.exports = {
   SETTING_KEY,

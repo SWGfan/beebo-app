@@ -23,6 +23,7 @@ const http = require('http')
 const https = require('https')
 const dns = require('dns')
 const net = require('net')
+const { embeddedIPv4 } = require('../ipEmbedded')
 
 const DEFAULT_TIMEOUT_MS = 25000
 const DEFAULT_MAX_BYTES = 48 * 1024 * 1024
@@ -49,13 +50,16 @@ function classifyAddress(ip) {
   }
   if (net.isIPv6(ip)) {
     const low = ip.toLowerCase()
-    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(low)
-    if (mapped) return classifyAddress(mapped[1])
+    // An IPv4 address inside an IPv6 one (::ffff:a9fe:a9fe is how a URL parser writes ::ffff:169.254.169.254,
+    // also ::a9fe:a9fe, NAT64, 6to4) is judged as the IPv4 address it carries.
+    const inner = embeddedIPv4(low)
+    if (inner) return classifyAddress(inner)
     if (low === '::' || low === '::0') return 'blocked'
     if (low === '::1') return 'loopback'
     if (/^fe[89ab]/.test(low)) return 'blocked' // link-local
     if (/^ff/.test(low)) return 'blocked' // multicast
     if (/^f[cd]/.test(low)) return low.startsWith('fd00:ec2') ? 'blocked' : 'private' // unique local; AWS metadata
+    if (/^fe[c-f]/.test(low)) return 'private' // the old site-local range
     return 'public'
   }
   return 'blocked'

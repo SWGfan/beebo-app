@@ -60,6 +60,8 @@ internal object CampsiteGameCatalog {
         NatureBingoGame,
         CampfireStoriesGame,
         ClassicBingoGame,
+        // Family pack A (Sep 21)
+        com.beeboentertainment.movie.campsite.platehunt.PlateHuntGame,
     )
 
     // Solo puzzles (Sep 16)

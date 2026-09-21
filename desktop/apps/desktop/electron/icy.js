@@ -119,9 +119,15 @@ function icyHeaders(h) {
 function parsePlaylist(text) {
   const s = String(text || '').slice(0, 64 * 1024)
   if (/#EXT-X-(?:STREAM-INF|TARGETDURATION|MEDIA-SEQUENCE|VERSION)/i.test(s)) return { error: 'hls_not_supported' }
-  const pls = /^\s*File\d*\s*=\s*(\S+)\s*$/im.exec(s)
-  if (pls && /^https?:\/\//i.test(pls[1])) return { url: pls[1] }
-  for (const line of s.split(/\r?\n/)) {
+  // Line by line. The playlist is whatever a station's server sends: a single "^\s*File\d*=...$" regex with the
+  // m flag was quadratic on a long run of blank lines (about six seconds for 64 KB), and this reader runs in
+  // the server's main thread.
+  const lines = s.split(/\r\n|\r|\n/)
+  for (const line of lines) {
+    const pls = /^File\d*\s*=\s*(\S+)$/i.exec(line.trim())
+    if (pls && /^https?:\/\//i.test(pls[1])) return { url: pls[1] }
+  }
+  for (const line of lines) {
     const l = line.trim()
     if (!l || l.startsWith('#')) continue
     if (/^https?:\/\/\S+$/i.test(l)) return { url: l }

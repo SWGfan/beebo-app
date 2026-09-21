@@ -63,6 +63,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.beeboentertainment.movie.data.SessionStore
 import com.beeboentertainment.movie.party.PartyScreen
 import com.beeboentertainment.movie.party.rememberParty
+import com.beeboentertainment.movie.watchtogether.WatchTogetherBanner
+import com.beeboentertainment.movie.watchtogether.WatchTogetherPanel
+import com.beeboentertainment.movie.watchtogether.WtClient
+import com.beeboentertainment.movie.watchtogether.WtHandoff
+import com.beeboentertainment.movie.watchtogether.WtProtocol
+import com.beeboentertainment.movie.watchtogether.WtSession
+import com.beeboentertainment.movie.watchtogether.WtStart
 import com.beeboentertainment.movie.ui.theme.BeeboEntertainmentTheme
 import com.beeboentertainment.movie.webrtc.WebRtcConnector
 import com.beeboentertainment.movie.BeeboApp
@@ -357,6 +364,7 @@ class PlayerActivity : AppCompatActivity() {
         setupTransportButtons()
         setupPip()
         setupPartyOverlay()
+        setupWatchTogether()
         setupRemoteStreamOverlay()
         setupTvRemote()
     }
@@ -663,6 +671,8 @@ class PlayerActivity : AppCompatActivity() {
             // auto-skip must not jump us somewhere of its own accord.
             viewerChosePosition = true
 
+            // A title change is not the person pressing play: keep it out of the watch-together room.
+            wt?.noteProgrammaticChange()
             c.setMediaItem(mediaItem, 0L)
             c.prepare()
             c.play()
@@ -675,6 +685,86 @@ class PlayerActivity : AppCompatActivity() {
         b.partyOverlay.visibility = if (show) View.VISIBLE else View.GONE
         if (show && app.session.hubToken.isNullOrBlank()) {
             toast("Sign in to the hub (Settings) to host or join a watch party.")
+        }
+    }
+
+    /* ------------------- watch together (rooms on this Beebo) ------------------- */
+
+    /** The room session, once there is one (joined from an invite, or started from the panel). */
+    private var wt: WtSession? = null
+    private val wtSession = mutableStateOf<WtSession?>(null)
+    private val wtPanelOpen = mutableStateOf(false)
+    private val wtStart = mutableStateOf<WtStart?>(null)
+
+    private fun setupWatchTogether() {
+        b.wtButton.setOnClickListener { openWtPanel(!wtPanelOpen.value) }
+        b.wtBanner.setContent {
+            BeeboEntertainmentTheme {
+                val s = wtSession.value
+                if (s != null) WatchTogetherBanner(s)
+            }
+        }
+        b.wtOverlay.setContent {
+            BeeboEntertainmentTheme {
+                val s = wtSession.value
+                if (s != null && wtPanelOpen.value) WatchTogetherPanel(s, wtStart.value) { openWtPanel(false) }
+            }
+        }
+    }
+
+    private fun openWtPanel(open: Boolean) {
+        if (open) {
+            ensureWtSession() ?: return
+            wtStart.value = if (!surfMode && WtProtocol.isMediaKind(kind) && WtProtocol.isSafeMediaId(itemId) && localPath.isNullOrBlank()) WtStart(kind, itemId, title) else null
+        }
+        wtPanelOpen.value = open
+        b.wtOverlay.visibility = if (open) View.VISIBLE else View.GONE
+    }
+
+    /** One session per player screen: attached to the same controller the picture is drawn from. */
+    private fun ensureWtSession(): WtSession? {
+        wt?.let { return it }
+        val c = controller ?: return null
+        val s = WtSession(WtClient.get())
+        s.attach(c)
+        // The host changed title: open it the same way a watch-party host change is followed.
+        s.setOnMedia { media -> followHostToVideo(media.id) }
+        wt = s
+        wtSession.value = s
+        return s
+    }
+
+    /**
+     * Called once the controller is connected. A player opened from an invite joins straight away; any
+     * other player only shows the Room button if this computer supports Watch together.
+     */
+    private fun onWatchTogetherPlayerReady() {
+        if (surfMode) return
+        val invite = WtHandoff.take()
+        if (invite != null) {
+            val s = ensureWtSession() ?: return
+            b.wtButton.visibility = View.VISIBLE
+            lifecycleScope.launch {
+                try {
+                    val joined = s.join(invite)
+                    toast("Joined the room")
+                    // The room may have moved to another title since the invite was looked up.
+                    val roomId = joined.room.media.id
+                    if (WtProtocol.isSafeMediaId(roomId) && roomId != itemId) followHostToVideo(roomId)
+                } catch (e: com.beeboentertainment.movie.data.UnauthorizedException) {
+                    toast("Your sign-in ended.")
+                } catch (e: com.beeboentertainment.movie.server.ServerException) {
+                    toast(WtProtocol.message(e.code, e.message))
+                } catch (e: Exception) {
+                    toast("Couldn't join the room.")
+                }
+            }
+            return
+        }
+        if (!localPath.isNullOrBlank() || app.session.isGuest) return
+        lifecycleScope.launch {
+            val supported = runCatching { WtClient.get().ping(System.currentTimeMillis().toDouble()).ok }.getOrDefault(false)
+            if (supported && !isFinishing) b.wtButton.visibility = View.VISIBLE
         }
     }
 
@@ -839,7 +929,7 @@ class PlayerActivity : AppCompatActivity() {
 
     /** True while a Compose sheet (watch party, remote stream) is up and owns the keys. */
     private fun tvOverlayUp(): Boolean =
-        b.partyOverlay.visibility == View.VISIBLE || b.webrtcOverlay.visibility == View.VISIBLE
+        b.partyOverlay.visibility == View.VISIBLE || b.webrtcOverlay.visibility == View.VISIBLE || b.wtOverlay.visibility == View.VISIBLE
 
     private fun setupTvRemote() {
         if (!isTv) return
@@ -971,6 +1061,7 @@ class PlayerActivity : AppCompatActivity() {
             updateKeepScreenOn()
             // Hand the live player to the party sheet (same instance the host drives).
             partyPlayer.value = c
+            onWatchTogetherPlayerReady()
             onControllerReady()
         }, ContextCompat.getMainExecutor(this))
     }
@@ -2288,6 +2379,10 @@ class PlayerActivity : AppCompatActivity() {
         runCatching { webRtcConnector.value?.close() }
         webRtcConnector.value = null
         partyPlayer.value = null
+        // Leaves the watch-together room (if in one) and stops following it.
+        runCatching { wt?.close() }
+        wt = null
+        wtSession.value = null
         runCatching { unregisterReceiver(pipReceiver) }
         runCatching { castSessionWatch?.close() }
         castSessionWatch = null

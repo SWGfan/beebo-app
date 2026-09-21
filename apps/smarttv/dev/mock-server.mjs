@@ -123,6 +123,9 @@ async function api(req, res, url) {
   if (auth !== 'Bearer ' + TOKEN) return send(res, 401, { ok: false, error: 'unauthorized' })
 
   if (p === '/api/me') return send(res, 200, { ok: true, user: { id: 'u1', name: 'Demo <b>User</b>', isAdmin: false } })
+  // Movie Night (the real server draws the TV page; the mock only answers the two calls the tile makes)
+  if (p === '/api/movie-night/status') return send(res, 200, { ok: true, enabled: true, available: true, reason: null, message: '' })
+  if (p === '/api/movie-night/tv/create' && method === 'POST') return send(res, 200, { ok: true, code: 'K7M2QX', ticket: 'mockmockmockmockmockmockmockmock', tvPath: '/movie-night/tv', hash: 'k=mockmockmockmockmockmockmockmock', poolCount: 12 })
   if (p.indexOf('/api/v1/') === 0) {
     if (LEGACY) return send(res, 404, { ok: false, error: 'not_found' })
     if (p === '/api/v1/library/movies') return send(res, 200, paged(movies, url, movieOut))
@@ -222,6 +225,7 @@ http.createServer(async function (req, res) {
       return res.end(posterSvg(pid, label))
     }
     if (p.indexOf('/hls/') === 0 || p === '/file' || p === '/tvfile') { res.writeHead(302, { Location: VIDEO }); return res.end() }
+    if (p === '/movie-night/tv') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); return res.end('<!doctype html><meta charset="utf-8"><body style="background:#0b0d12;color:#fff;font:32px system-ui;text-align:center;padding-top:20vh">Movie Night (mock page). Press Back to return.') }
     if (p === '/subtitles/file') { res.writeHead(200, Object.assign({ 'Content-Type': 'text/vtt; charset=utf-8' }, corsHeaders())); return res.end(VTT) }
     // static app
     var rel = p === '/' ? '/index.html' : p

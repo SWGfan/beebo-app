@@ -164,7 +164,38 @@ object RemoteAccess : TunnelRouter {
         data class SignedIn(val name: String) : SignInResult()
         /** Signed in at beebo.tv, but the tunnel isn't open yet; [message] says why. It keeps trying. */
         data class NotConnected(val name: String, val message: String, val showConnectionTest: Boolean) : SignInResult()
-        data class Refused(val message: String) : SignInResult()
+        /**
+         * [secondStepChallenge] set: the password was right but a two-factor code is needed. The
+         * sign-in screen asks for it and finishes with [completeSecondStep].
+         */
+        data class Refused(val message: String, val secondStepChallenge: String? = null) : SignInResult()
+    }
+
+    /**
+     * Finishes an away-from-home sign-in that stopped at "enter your code": sends the challenge
+     * and the code to the home computer over the tunnel that sign-in already opened.
+     */
+    suspend fun completeSecondStep(challenge: String, code: String): SignInResult = withContext(Dispatchers.IO) {
+        val connection = active ?: return@withContext SignInResult.Refused(RemoteMessages.SIGNED_OUT)
+        val name = connection.name
+        try {
+            when (val result = RemoteProfileSignIn.secondStep(name, challenge, code) { request ->
+                if (active !== connection) throw IOException(RemoteMessages.SIGNED_OUT)
+                connection.client.execute(request)
+            }) {
+                is RemoteProfileSignIn.Result.SignedIn -> {
+                    if (active !== connection || session.baseUrl != "https://$name.beebo.tv") {
+                        SignInResult.Refused(RemoteMessages.SIGNED_OUT)
+                    } else {
+                        session.saveLogin(result.login.token!!, result.login.user)
+                        SignInResult.SignedIn(name)
+                    }
+                }
+                is RemoteProfileSignIn.Result.Refused -> SignInResult.Refused(result.message, result.secondStepChallenge)
+            }
+        } catch (e: IOException) {
+            SignInResult.NotConnected(name, e.message ?: RemoteMessages.noAnswer(name), false)
+        }
     }
 
     /**
@@ -294,7 +325,7 @@ object RemoteAccess : TunnelRouter {
                         SignInResult.SignedIn(name)
                     }
                 }
-                is RemoteProfileSignIn.Result.Refused -> SignInResult.Refused(result.message)
+                is RemoteProfileSignIn.Result.Refused -> SignInResult.Refused(result.message, result.secondStepChallenge)
             }
         } catch (e: IOException) {
             SignInResult.NotConnected(name, e.message ?: RemoteMessages.noAnswer(name), false)

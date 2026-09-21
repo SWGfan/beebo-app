@@ -57,7 +57,7 @@ export default function ConnectionDoctor({ onClose }) {
   // still come from lib/connectionDoctor.js in English.
   const fails = (checks || []).filter((c) => c.status === 'fail')
   const warns = (checks || []).filter((c) => c.status === 'warn')
-  const headline = !sum ? '' : fails.length ? t('doctor.headlineProblems', { count: fails.length, title: fails[0].title })
+  const headline = !sum ? '' : sum.onlyOffline ? sum.headline : fails.length ? t('doctor.headlineProblems', { count: fails.length, title: fails[0].title })
     : warns.length ? t('doctor.headlineWarnings', { count: warns.length, title: warns[0].title }) : t('doctor.headlineGood')
   const advice = checks ? phoneAdvice(checks) : []
 
@@ -85,7 +85,7 @@ export default function ConnectionDoctor({ onClose }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700 }}>{c.title}</div>
                 <div style={{ color: '#cfd6e4', fontSize: 14, marginTop: 2 }}>{c.summary}</div>
-                {c.detail && (c.status === 'fail' || c.status === 'warn' || c.id === 'lan') && <div style={{ ...FR.small, marginTop: 4 }}>{c.detail}</div>}
+                {c.detail && (c.status === 'fail' || c.status === 'warn' || c.id === 'lan' || c.offline) &&<div style={{ ...FR.small, marginTop: 4 }}>{c.detail}</div>}
                 {c.fix && (c.status === 'fail' || c.status === 'warn' || (c.status === 'skip' && c.id === 'internet')) && confirm !== c.fix.id && (
                   <div style={FR.row}>
                     <button type="button" style={{ ...(c.status === 'skip' ? FR.btnGhost : FR.btn), opacity: fixing ? 0.6 : 1 }} disabled={!!fixing || busy} onClick={() => askFix(c.fix)}>

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101c32">
+<meta name="color-scheme" content="dark">
+<title>Roadside Quiz - Beebo</title>
+<style>
+/* One self-contained page: no external fonts, images or scripts. The host serves it with a policy that forbids any. */
+:root{--bg:#080b14;--panel:#101c32;--raised:#152540;--line:#2c3e5d;--text:#f2f3ff;--muted:#acb6cf;--gold:#d4af37;--purple:#7950cf;--ok:#3fbf78;--okbg:#123a29;--bad:#e8615c;--badbg:#3a1f2a}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:radial-gradient(ellipse at 100% 0,#162d4d 0,transparent 55%),var(--bg);color:var(--text);font:16px/1.45 system-ui,'Segoe UI',Roboto,sans-serif;min-height:100vh;min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(24px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+[hidden]{display:none!important}
+a{color:#c5afff}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+:where(button,a):focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar a{text-decoration:none;font-size:14px;padding:10px 4px}
+.bar b{flex:1;font-size:16px}
+.bar .me{font-size:13px;color:var(--muted);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{max-width:640px;margin:0 auto;padding:16px}
+.card{background:linear-gradient(155deg,var(--raised),#101827);border:1px solid var(--line);border-radius:18px;padding:18px;margin:0 0 16px}
+.eyebrow{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(26px,7vw,34px);line-height:1.2;margin:8px 0 16px;overflow-wrap:anywhere}
+h2{font-size:20px;margin:0 0 10px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:14px}
+.timer{height:10px;border-radius:99px;background:#0b1528;overflow:hidden;margin:12px 0 4px}
+.timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--purple),var(--gold));transform-origin:left}
+.timer-text{font-size:13px;color:var(--muted);text-align:right;min-height:1.2em}
+.opts{display:grid;gap:12px;margin:0}
+.opt{display:flex;align-items:center;gap:14px;width:100%;min-height:64px;padding:12px 16px;text-align:left;font-size:20px;line-height:1.25;background:#0f1d36;border:2px solid #3b4d70;border-radius:16px;cursor:pointer}
+.opt:disabled{cursor:default}
+.opt .k{flex:0 0 38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#22355a;font-weight:800;font-size:18px}
+.opt .t{flex:1;overflow-wrap:anywhere}
+.opt .flag{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.opt.mine{border-color:var(--gold);background:#2a2740}
+.opt.right{border-color:var(--ok);background:var(--okbg)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.status{margin:14px 0 0;font-size:15px;color:var(--muted)}
+.fact{border-color:#4c5f88}
+.fact .eyebrow{color:#9ed0ff}
+.fact p{font-size:18px;margin:6px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{min-height:56px;padding:10px 18px;border-radius:14px;background:#0f1d36;border:2px solid #3b4d70;font-size:18px;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{border-color:var(--gold);background:#2a2740}
+.board{width:100%;border-collapse:collapse;font-size:17px}
+.board td{padding:9px 6px;border-top:1px solid var(--line)}
+.board tr:first-child td{border-top:0}
+.board td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
+.board .tag{font-size:12px;color:var(--muted);font-weight:600;margin-left:6px}
+.board .yes{color:var(--ok)}
+.board .no{color:var(--muted)}
+.big{font-size:clamp(24px,6.5vw,32px);font-weight:800;margin:0 0 6px}
+#notice{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));padding:12px 14px;border-radius:12px;background:var(--badbg);border:1px solid #8a3b4a;color:#ffd9de;font-size:15px;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="bar"><a href="/library" aria-label="Back to the campsite">&larr; Camp</a><b>Roadside Quiz</b><span class="me" id="me"></span></div>
+<main id="view" aria-live="polite"></main>
+<div id="notice" role="alert" hidden></div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LETTER = ['A', 'B', 'C', 'D'];
+  var GLYPH = ['▲', '●', '■', '★'];   // triangle, circle, square, star: colour is never the only cue
+  var st = null, recvAt = 0, sig = '', busy = false, backoff = 0, joinAt = 0, noticeTimer = 0;
+  var sending = false;
+
+  function api(method, body) {
+    var opt = { method: method, headers: { 'X-Beebo-Quiz': '1' }, credentials: 'same-origin', cache: 'no-store' };
+    if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch('/api/quiz', opt).then(function (r) { return r.json().then(function (j) { j.__status = r.status; return j; }); });
+  }
+  function say(text) {
+    var n = $('notice'); n.textContent = text; n.hidden = false;
+    clearTimeout(noticeTimer); noticeTimer = setTimeout(function () { n.hidden = true; }, 3500);
+  }
+  function apply(j) {
+    if (!j) return;
+    if (j.ok === false) { if (j.error) say(j.error); if (j.__status === 429) backoff = 3000; return; }
+    backoff = 0; st = j; recvAt = performance.now();
+    render();
+  }
+  function poll() {
+    if (busy || document.hidden) return;
+    busy = true;
+    api('GET').then(function (j) {
+      apply(j);
+      // A quiz exists and we are not in it yet: join (at most once every 5 s; a phone-only quiz refuses, which is fine).
+      if (j && j.ok !== false && j.phase && j.phase !== 'idle' && !j.me && j.mode === 'phones' && j.phase !== 'done' && Date.now() - joinAt > 5000) {
+        joinAt = Date.now();
+        return api('POST', { action: 'join' }).then(apply);
+      }
+    }).catch(function () { }).then(function () { busy = false; });
+  }
+  function act(body) {
+    if (sending) return;
+    sending = true;
+    api('POST', body).then(apply).catch(function () { say('Could not reach your host. Check your Wi-Fi.'); }).then(function () { sending = false; });
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function card(cls) { return el('section', 'card' + (cls ? ' ' + cls : '')); }
+  function teamLabel(i) { return GLYPH[i] + ' ' + st.teamNames[i]; }
+
+  function board() {
+    var c = card();
+    var reveal = st.phase === 'revealed';
+    if (st.teams && st.teams.length) {
+      c.appendChild(el('h2', '', 'Teams'));
+      var t = el('table', 'board');
+      st.teams.slice().sort(function (a, b) { return b.score - a.score || a.index - b.index; }).forEach(function (team) {
+        var r = el('tr'); var n = el('td', '', teamLabel(team.index));
+        n.appendChild(el('span', 'tag', team.members + (team.members === 1 ? ' player' : ' players')));
+        r.appendChild(n); r.appendChild(el('td', '', String(team.score))); t.appendChild(r);
+      });
+      c.appendChild(t);
+    }
+    var ps = (st.players || []).slice().sort(function (a, b) { return b.score - a.score; });
+    if (ps.length) {
+      c.appendChild(el('h2', '', st.teams && st.teams.length ? 'Players' : 'Scores'));
+      var t2 = el('table', 'board');
+      ps.forEach(function (p) {
+        var r = el('tr'); var n = el('td', '', p.name);
+        if (st.teams && st.teams.length && p.team >= 0) n.appendChild(el('span', 'tag', teamLabel(p.team)));
+        if (reveal && p.right !== undefined) n.appendChild(el('span', 'tag ' + (p.right ? 'yes' : 'no'), p.right ? 'Right!' : (p.answered ? 'Not this time' : 'No answer')));
+        r.appendChild(n); r.appendChild(el('td', '', String(p.score))); t2.appendChild(r);
+      });
+      c.appendChild(t2);
+    }
+    return c;
+  }
+
+  function render() {
+    var view = $('view');
+    if (!st) return;
+    $('me').textContent = st.me ? st.me.name : '';
+    var copy = {}; for (var k in st) if (k !== 'remainingMs') copy[k] = st[k];
+    var s = JSON.stringify(copy);
+    if (s !== sig) { sig = s; build(view); }
+    timerTick();
+  }
+
+  function build(view) {
+    while (view.firstChild) view.removeChild(view.firstChild);
+    var p = st.phase;
+    if (p === 'idle') {
+      var c = card(); c.appendChild(el('h1', '', 'No quiz yet'));
+      c.appendChild(el('p', 'muted', 'Your host has not started a quiz. This page will fill in by itself when they do.'));
+      view.appendChild(c); return;
+    }
+    var watching = !st.me;
+    if (p === 'lobby') {
+      var lc = card(); lc.appendChild(el('span', 'eyebrow', 'Roadside Quiz'));
+      lc.appendChild(el('h1', '', watching ? 'This quiz is played on the host’s phone' : 'You are in!'));
+      lc.appendChild(el('p', 'muted', watching ? 'Watch along here when it starts.' : 'Waiting for your host to start. ' + st.total + ' questions.'));
+      view.appendChild(lc);
+      if (!watching && st.teamNames && st.teamNames.length) {
+        var tc = card(); tc.appendChild(el('h2', '', 'Pick your team'));
+        var chips = el('div', 'chips');
+        st.teamNames.forEach(function (n, i) {
+          var b = el('button', 'chip', GLYPH[i] + ' ' + n); b.type = 'button';
+          b.setAttribute('aria-pressed', st.me.team === i ? 'true' : 'false');
+          b.addEventListener('click', function () { act({ action: 'team', team: i }); });
+          chips.appendChild(b);
+        });
+        tc.appendChild(chips); view.appendChild(tc);
+      }
+      view.appendChild(board()); return;
+    }
+    if (p === 'asking' || p === 'revealed') {
+      var q = card();
+      var meta = el('div', 'meta'); meta.appendChild(el('span', '', 'Question ' + st.number + ' of ' + st.total));
+      meta.appendChild(el('span', '', st.pack)); q.appendChild(meta);
+      if (p === 'asking' && st.remainingMs >= 0) {
+        var tm = el('div', 'timer'); tm.setAttribute('aria-hidden', 'true'); tm.appendChild(el('i')); q.appendChild(tm);
+        q.appendChild(el('div', 'timer-text')).id = 'timer-text';
+      }
+      q.appendChild(el('h1', '', st.prompt));
+      var opts = el('div', 'opts');
+      var choice = st.me ? st.me.choice : -1;
+      st.options.forEach(function (text, i) {
+        var b = el('button', 'opt'); b.type = 'button';
+        var cls = 'opt', flag = '';
+        if (p === 'revealed') {
+          if (i === st.correct) { cls += ' right'; flag = 'Correct'; }
+          else if (i === choice) { cls += ' wrong'; flag = 'Your pick'; }
+          b.disabled = true;
+        } else {
+          if (i === choice) { cls += ' mine'; flag = 'Your pick'; }
+          b.disabled = watching;
+        }
+        b.className = cls;
+        b.appendChild(el('span', 'k', LETTER[i])); b.appendChild(el('span', 't', text));
+        if (flag) b.appendChild(el('span', 'flag', flag));
+        b.setAttribute('aria-label', 'Answer ' + LETTER[i] + ': ' + text + (flag ? '. ' + flag : ''));
+        if (p === 'asking' && !watching) b.addEventListener('click', function () { act({ action: 'answer', q: st.number, choice: i }); });
+        opts.appendChild(b);
+      });
+      q.appendChild(opts);
+      var status = el('p', 'status');
+      if (p === 'asking') {
+        status.textContent = watching ? 'Watching the host’s phone. ' + st.answered + ' answered.' :
+          (choice >= 0 ? 'Locked in. You can change your answer until the answer is shown. ' : 'Tap an answer. ') + st.answered + ' of ' + st.expected + ' answered.';
+      } else {
+        status.textContent = 'Waiting for your host to go on.';
+      }
+      q.appendChild(status); view.appendChild(q);
+      if (p === 'revealed') {
+        var f = card('fact'); f.appendChild(el('span', 'eyebrow', 'Did you know?')); f.appendChild(el('p', '', st.fact)); view.appendChild(f);
+      }
+      view.appendChild(board()); return;
+    }
+    if (p === 'done') {
+      var d = card(); d.appendChild(el('span', 'eyebrow', 'All done'));
+      var win = st.winners || [];
+      d.appendChild(el('p', 'big', win.length === 0 ? 'Great playing, everybody!' : (win.length === 1 ? win[0] + ' wins!' : 'A tie: ' + win.join(' and ') + '!')));
+      d.appendChild(el('p', 'muted', 'Thanks for playing. Everyone knows a bit more than before.'));
+      view.appendChild(d); view.appendChild(board());
+    }
+  }
+
+  function timerTick() {
+    if (!st || st.phase !== 'asking' || st.remainingMs < 0) return;
+    var left = Math.max(0, st.remainingMs - (performance.now() - recvAt));
+    var bar = document.querySelector('.timer i'), txt = $('timer-text');
+    if (bar && st.timerSeconds > 0) bar.style.transform = 'scaleX(' + Math.min(1, left / (st.timerSeconds * 1000)) + ')';
+    if (txt) txt.textContent = Math.ceil(left / 1000) + ' s';
+  }
+
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  (function loop() { poll(); setTimeout(loop, 1000 + backoff); })();
+  setInterval(function () { timerTick(); }, 250);
+})();
+</script>
+</body>
+</html>

@@ -44,8 +44,21 @@ import java.io.IOException
  *  - `set-cookies`: `head.setcookies`, every Set-Cookie as a list.
  *  - `resp-headers`: `head.headers`, a short allowlist of response headers.
  *
- * A single data-channel message must stay under the host's SCTP max-message-size (werift
- * advertises 65536), which is why an inline body is capped well below it.
+ * ## Newer hosts (desktop 0.1.58 and later), all optional and all ignored by older apps
+ *  - `big-frames`: response frames of up to 64 KiB instead of 16 KiB, always within THIS phone's
+ *    SCTP max-message-size (the host reads it from our offer). Nothing to do here: every frame is
+ *    read whole whatever its size. The hello's `frame` says how big they will be.
+ *  - `stripe`: the hello's `stripes` is how many EXTRA connections one viewer may add to a big
+ *    download. Each is an ordinary connection (own offer, own SCTP association and so its own
+ *    congestion window); its first message is `hello(stripeOf = <primary's viewerId>)`, and the
+ *    answer's `stripeOf` says the host took it in. Over a path with delay and a little loss the
+ *    speed grows about with the number of connections. See [TunnelStripe] and
+ *    docs/TUNNEL-THROUGHPUT.md.
+ *  - `bodyChunk` is 32 KiB (an old host said 16 KiB): what an upload is cut into, capped here at 60000.
+ *
+ * A single data-channel message must stay under the host's SCTP max-message-size (a version 2
+ * host built on werift 0.20 advertises 65536, a newer one 262144), which is why an inline body is
+ * capped well below it.
  */
 object TunnelProtocol {
 
@@ -72,9 +85,17 @@ object TunnelProtocol {
         val features: Set<String>,
         val maxBody: Long,
         val bodyChunk: Int,
+        /** Payload bytes of the largest response frame this host will send us; 0 = not said (old host). */
+        val frame: Int = 0,
+        /** How many EXTRA connections the host lets one viewer add to a download; 0 = none / not said. */
+        val stripes: Int = 0,
     ) {
         val headers: Boolean get() = "headers" in features
         val bodyChunks: Boolean get() = "body-chunks" in features
+        /** Response frames up to 64 KiB (an older host sends 16 KiB ones). Nothing to do for a client. */
+        val bigFrames: Boolean get() = "big-frames" in features
+        /** The host will treat connections that say `stripeOf` as extra connections of one download. */
+        val stripe: Boolean get() = "stripe" in features && stripes > 0
         val isLegacy: Boolean get() = proto < PROTO
 
         companion object {
@@ -91,7 +112,17 @@ object TunnelProtocol {
     class BodyTooLargeException(val size: Long, val max: Long) :
         IOException("That upload is too large to send to your home computer (${size / 1024} KB, limit ${max / 1024} KB).")
 
-    fun hello(): String = buildJsonObject { put("kind", "hello"); put("proto", PROTO) }.toString()
+    /**
+     * The first message on a channel. [stripeOf] is set only on an EXTRA connection of a download
+     * (see [TunnelStripe]): the `viewerId` of the primary connection it belongs to. A host that
+     * doesn't know about stripes ignores the field, and its answer then lacks `stripeOf`, which is
+     * how the caller knows the extra connection is not part of anything and should be closed.
+     */
+    fun hello(stripeOf: String? = null): String = buildJsonObject {
+        put("kind", "hello")
+        put("proto", PROTO)
+        if (stripeOf != null) put("stripeOf", stripeOf)
+    }.toString()
 
     fun abort(id: String): String = buildJsonObject { put("kind", "abort"); put("id", id) }.toString()
 
@@ -236,8 +267,24 @@ object TunnelProtocol {
         val features = (obj["features"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }?.toSet().orEmpty()
         val maxBody = obj.num("maxBody")?.takeIf { it > 0 } ?: DEFAULT_MAX_BODY
         val chunk = obj.num("bodyChunk")?.toInt()?.takeIf { it in 1024..60_000 } ?: DEFAULT_BODY_CHUNK
-        return HostFeatures(proto, features, maxBody, chunk)
+        // Newer hosts only. Anything outside a sane range is treated as "not said".
+        val frame = obj.num("frame")?.toInt()?.takeIf { it in 1024..1_048_576 } ?: 0
+        val stripes = obj.num("stripes")?.toInt()?.takeIf { it in 0..MAX_HOST_STRIPES } ?: 0
+        return HostFeatures(proto, features, maxBody, chunk, frame, stripes)
     }
+
+    /** More extra connections than this in a hello are not believed. */
+    const val MAX_HOST_STRIPES = 16
+
+    /** `stripeOf` and `stripeError` of a hello answer to [hello] with a `stripeOf`; null for any other message. */
+    fun parseStripeAnswer(text: String): StripeAnswer? {
+        val obj = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull() ?: return null
+        if (obj.str("kind") != "hello") return null
+        return StripeAnswer(obj.str("stripeOf"), obj.str("stripeError"))
+    }
+
+    /** [joined] is the primary's id when the host took this connection into the group. */
+    data class StripeAnswer(val joined: String?, val error: String?)
 
     internal fun parseHead(obj: JsonObject): ResponseHead {
         val status = obj.num("status")?.toInt()?.takeIf { it in 100..599 } ?: 502

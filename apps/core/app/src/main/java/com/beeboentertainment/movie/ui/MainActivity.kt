@@ -81,6 +81,7 @@ import com.beeboentertainment.movie.core.BrowseLogic
 import com.beeboentertainment.movie.core.LibrarySection
 import com.beeboentertainment.movie.core.NavTip
 import com.beeboentertainment.movie.music.musicRoutes
+import com.beeboentertainment.movie.server.newSectionRoutes
 import com.beeboentertainment.movie.ui.screens.BrowseScreen
 import com.beeboentertainment.movie.ui.screens.ContinueMode
 import com.beeboentertainment.movie.ui.screens.MoreScreen
@@ -484,6 +485,7 @@ fun BeeboAppRoot(
                                 "profiles" -> "Switch profile"
                                 "shared" -> "Shared with you"
                                 else -> com.beeboentertainment.movie.music.MusicRoutes.screenName(currentRoute)
+                                    ?: com.beeboentertainment.movie.audio.AudioRoutes.screenName(currentRoute)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
@@ -741,11 +743,17 @@ fun BeeboAppRoot(
                                 onOpenOther = { goToTab(Tab.Play) },
                                 onOpenGuestGames = { navController.navigate("guest-games") },
                                 onOpenSlides = { navController.navigate("campsite-slides") },
+                                onOpenSongbook = { navController.navigate("songbook") },
+                                onOpenQuiz = { navController.navigate("roadsidequiz") },
+                                onOpenTripClock = { navController.navigate("tripclock") },
                             )
                         } }
                         composable("campsite-slides") {
                             com.beeboentertainment.movie.campsite.CampsiteSlidesScreen(onOpenCampsite = { navController.navigate("campsite") })
                         }
+                        // Family pack B: both work on this phone alone, so they are not phone-only routes.
+                        composable("songbook") { com.beeboentertainment.movie.campsite.songbook.SongbookHostScreen() }
+                        composable("roadsidequiz") { com.beeboentertainment.movie.campsite.quiz.QuizHostScreen() }
                         composable("starchart") { PhoneOnly("starchart") { com.beeboentertainment.movie.campsite.StarChartScreen() } }
                         composable("nearby") { PhoneOnly("nearby") { com.beeboentertainment.movie.campsite.NearbyScreen() } }
                         composable("badges") { com.beeboentertainment.movie.badges.BadgesScreen() }
@@ -764,6 +772,9 @@ fun BeeboAppRoot(
                         composable("packing") { com.beeboentertainment.movie.checklist.PackingChecklistScreen() }
                         composable("campfire") { com.beeboentertainment.movie.party.campfire.CampfireScreen() }
                         composable("scavengerhunt") { PhoneOnly("scavengerhunt") { com.beeboentertainment.movie.campsite.ScavengerHuntScreen() } }
+                        // Family Pack A: the back-seat trip clock and the quiet-hours / bedtime wind-down page.
+                        composable("tripclock") { PhoneOnly("tripclock") { com.beeboentertainment.movie.campsite.tripclock.TripClockScreen(onOpenGames = { navController.navigate("guest-games") }) } }
+                        composable("quiethours") { com.beeboentertainment.movie.campsite.quiet.QuietHoursScreen() }
 
                         // Room-synced party games. Each is a self-contained screen that
                         // finds its own RoomMessenger, so they need nothing passed in.
@@ -830,6 +841,9 @@ fun BeeboAppRoot(
                         }
                         // Music: album, artist and Now Playing (com.beeboentertainment.movie.music).
                         musicRoutes(navController, onUnauthorized)
+                        // Audiobooks, podcasts, radio, Live TV, account security and joining a
+                        // Watch together room (each hides itself on a server that lacks it).
+                        newSectionRoutes(navController, onUnauthorized)
                         composable("delete-account") {
                             Column(
                                 Modifier
@@ -851,8 +865,8 @@ fun BeeboAppRoot(
                 }
                 // Music playing: a strip with the song, play/pause and skip, under whatever screen
                 // is open and above the bottom bar. Tapping it opens Now Playing.
-                com.beeboentertainment.movie.music.MusicMiniPlayer(currentRoute) {
-                    navController.navigate(com.beeboentertainment.movie.music.MusicRoutes.NOW_PLAYING) { launchSingleTop = true }
+                com.beeboentertainment.movie.music.MusicMiniPlayer(currentRoute) { kind ->
+                    navController.navigate(com.beeboentertainment.movie.audio.AudioRoutes.nowPlaying(kind)) { launchSingleTop = true }
                 }
                 com.beeboentertainment.movie.music.MusicNavEffects(navController)
                 }

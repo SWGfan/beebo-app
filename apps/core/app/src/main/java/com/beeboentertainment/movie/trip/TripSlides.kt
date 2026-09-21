@@ -20,7 +20,7 @@ internal class NameMask private constructor(private val allowed: Set<String>?) {
     }
 }
 
-internal enum class SlideKind { COVER, GAMES, RESULTS, STORY, HUNT, BADGES, PACKING, PHOTO, VIDEO }
+internal enum class SlideKind { COVER, GAMES, RESULTS, STORY, HUNT, BADGES, PACKING, PHOTO, VIDEO, ROAD }
 
 /**
  * One screen of the slideshow, as plain data. Present mode draws it with Compose and the MP4 export
@@ -58,6 +58,7 @@ internal object TripSlides {
         addAll(games(summary, mask))
         addAll(stories(summary, mask))
         hunt(summary, mask)?.let { add(it) }
+        road(summary, now)?.let { add(it) }
         badges(summary)?.let { add(it) }
         packing(summary)?.let { add(it) }
         media.forEach { add(Slide(if (it.video) SlideKind.VIDEO else SlideKind.PHOTO, media = it)) }
@@ -150,6 +151,17 @@ internal object TripSlides {
                 if (by.isEmpty()) h.title else "${h.title} · found by $by"
             },
         )
+    }
+
+    /** "On the road": the Trip Clock's stops and arrival, and the plate and sign hunts. Counts only. */
+    private fun road(summary: TripSummary, now: Long): Slide? {
+        if (summary.tallies.isEmpty() && summary.stops.isEmpty() && summary.arrivedAt == 0L && summary.quietNights == 0) return null
+        val lines = mutableListOf<String>()
+        summary.tallies.take(4).forEach { lines += it.text.ifBlank { it.title } }
+        summary.stops.take(6).forEach { lines += "Stop: " + it.title }
+        if (summary.arrivedAt > 0L) lines += "Arrived " + TripFormat.dateRange(summary.arrivedAt, summary.arrivedAt, now)
+        if (summary.quietNights > 0) lines += "Quiet hours kept: " + plural(summary.quietNights, "night")
+        return Slide(SlideKind.ROAD, title = "On the road", subtitle = "", lines = lines)
     }
 
     private fun badges(summary: TripSummary): Slide? {

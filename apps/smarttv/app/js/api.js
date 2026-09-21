@@ -10,6 +10,7 @@
 
 import { routes, routeUrl, buildUrl, redactUrl } from './util/urls.js'
 import { safeText } from './util/escape.js'
+import { movieNightRoutes, normalizeStatus, tvUrlFromReply } from './util/movienight.js'
 import {
   normalizeMovie, normalizeShow, normalizeList, normalizeContinue, normalizeRecent, normalizeEpisodes,
   normalizePlaybackInfo, normalizePlaybackStart, normalizeNeighbour, normalizeUser
@@ -224,6 +225,17 @@ export function createClient(deps) {
         function (r) { return normalizeNeighbour(r.body && r.body.next) },
         function () { return null }
       )
+    },
+    // Movie Night (docs/MOVIE-NIGHT.md): is it available, and start a room whose shared screen this TV then opens.
+    movieNightStatus: function () {
+      return get(movieNightRoutes.status(), { timeout: TIMEOUT_MS.quick }).then(function (r) { return normalizeStatus(r.body) })
+    },
+    movieNightStart: function () {
+      return post(movieNightRoutes.create(), {}, { timeout: TIMEOUT_MS.normal }).then(function (r) {
+        var t = tvUrlFromReply(origin(), r.body)
+        if (!t.ok) throw makeError('bad_response', r.status, '/api/movie-night/tv/create')
+        return t
+      })
     },
     /** Plain-text GET (subtitle files). Same auth-free media token in the URL as the server issued. */
     getText: function (relPath) {

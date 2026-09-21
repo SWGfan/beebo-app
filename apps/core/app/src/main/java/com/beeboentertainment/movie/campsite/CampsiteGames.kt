@@ -79,6 +79,9 @@ internal class CampsiteGames(
      * default, like [history], so the engine stays testable with no Android context.
      */
     private val trip: TripMomentSink = TripMomentSink.None,
+    /** Where a finished Plate & Sign Hunt round's badge counters go. Nowhere by default, like [trip]. */
+    private val plates: com.beeboentertainment.movie.campsite.platehunt.PlateBadgeSink =
+        com.beeboentertainment.movie.campsite.platehunt.PlateBadgeSink.None,
 ) {
     data class Reply(val status: Int, val body: JsonObject)
 
@@ -568,6 +571,17 @@ internal class CampsiteGames(
         val result = match.result() ?: return
         save(room.game, match.players, result, room.startedAt, now(), "", "")
         if (room.game.id == CampfireStoriesGame.id && result.note == CampfireStoriesGame.FINISHED_NOTE) keepStory(match)
+        if (result.outcome != Outcome.VOID) (match as? com.beeboentertainment.movie.campsite.platehunt.PlateHuntReporting)?.let { keepPlates(it, match) }
+    }
+
+    /** A finished plate or sign hunt: one tally on the running trip (if any) and the badge counters. Never fails the round. */
+    private fun keepPlates(round: com.beeboentertainment.movie.campsite.platehunt.PlateHuntReporting, match: GameMatch) {
+        runCatching {
+            val summary = round.plateSummary()
+            val humans = match.players.filter { it !in bots }.map { playerName(it) }
+            com.beeboentertainment.movie.campsite.platehunt.PlateHuntRecords.tally(id().take(12), summary, humans)?.let { trip.tally(it) }
+            plates.finished(summary)
+        }
     }
 
     /** A story the leader finished goes to the running trip (a story that just stalled does not). */

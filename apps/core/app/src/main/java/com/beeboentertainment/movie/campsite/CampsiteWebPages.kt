@@ -8,7 +8,7 @@ internal object CampsiteWebPages {
     private fun brand(): String = """<a class="beebo-brand" href="/library" aria-label="Beebo campsite library"><span class="beebo-mark" aria-hidden="true">b</span><span class="beebo-wordmark">beebo<small>ENTERTAINMENT</small></span></a>"""
 
     private fun navigation(active: String): String {
-        val links = listOf(Triple("all", "/library", "All videos"), Triple("movie", "/library?kind=movie", "Movies"), Triple("tv", "/library?kind=tv", "TV episodes"), Triple("games", "/games", "Guest games"), Triple("music", "/music", "Music together"), Triple("slides", "/slides", "Shared photos & videos"))
+        val links = listOf(Triple("all", "/library", "All videos"), Triple("movie", "/library?kind=movie", "Movies"), Triple("tv", "/library?kind=tv", "TV episodes"), Triple("games", "/games", "Guest games"), Triple("music", "/music", "Music together"), Triple("slides", "/slides", "Shared photos & videos"), Triple("clock", "/clock", "Are we there yet?"), Triple("songbook", "/songbook", "Campfire songbook"), Triple("quiz", "/quiz", "Roadside quiz"))
         return """<aside class="beebo-sidebar" id="beebo-navigation" aria-label="Campsite navigation">
           ${brand()}<button class="beebo-dismiss" type="button" aria-label="Close navigation">×</button>
           <div class="beebo-nav-label">CAMPSITE LIBRARY</div><nav aria-label="Videos">${links.joinToString("") { (key, href, label) ->

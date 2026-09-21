@@ -117,10 +117,18 @@ function loadConfig() {
     logRequests: String(process.env.BEEBO_LOG_REQUESTS || file.logRequests || '') === '1',
     registerEveryMs: Number(process.env.BEEBO_REGISTER_MS || file.registerEveryMs || 60000),
     pollEveryMs: Number(process.env.BEEBO_POLL_MS || file.pollEveryMs || 8000),
-    chunkBytes: Number(process.env.BEEBO_CHUNK || file.chunkBytes || 16384),
-    // Kept small on purpose: everything shares one data channel, so a big backlog
-    // delays the viewer's own "stop that" and "give me this instead" messages too.
-    maxBuffered: Number(process.env.BEEBO_MAX_BUFFERED || file.maxBuffered || 256 * 1024),
+    // The size of one response frame. 0 (the default) = as big as the viewer's data channel
+    // takes, up to FRAME_MAX (see frameLimit); a number forces exactly that, still never more
+    // than the viewer's own limit.
+    chunkBytes: Number(process.env.BEEBO_CHUNK || file.chunkBytes || 0),
+    // What the hello tells a viewer to cut an UPLOAD body into (bodyChunk).
+    bodyChunk: Number(process.env.BEEBO_BODY_CHUNK || file.bodyChunk || 32768),
+    // How much may wait in the send queue before a response stops reading the local server. 0
+    // (the default) = follow the connection's speed: about BUFFER_SECONDS of it, between
+    // BUFFER_MIN and BUFFER_MAX (see bufferTarget). Kept small on purpose: everything shares one
+    // data channel, so a big backlog delays the viewer's own "stop that" and "give me this
+    // instead" messages and the next film position, too. A number pins it.
+    maxBuffered: Number(process.env.BEEBO_MAX_BUFFERED || file.maxBuffered || 0),
     verbose: String(process.env.BEEBO_VERBOSE || file.verbose || '1') !== '0',
   };
 }
@@ -324,11 +332,19 @@ async function pickIcePort(addrs) {
   return 0;
 }
 
+// The largest single data-channel message THIS end accepts (a=max-message-size in
+// the answer): 256 KiB, what Chrome, Firefox and the phone app's libwebrtc offer
+// and accept. werift 0.20 advertised 64 KiB but never enforced it either way;
+// 0.24 enforces the peer's advertised size on every send, so what a viewer may send
+// (an inline request body, a chunked-body frame) is bounded by THIS number, and
+// what this end may send by the viewer's (see sendLimit).
+const RECV_MAX_MESSAGE = 256 * 1024;
+
 // werift's own config check refuses min === max, but its port finder handles a
 // one-port range fine, and the transport reads the config only when the offer
 // arrives. So the range is set after construction, before setRemoteDescription.
 function peerConfig(addrs, port, ownRelay) {
-  const cfg = { iceServers: ownRelay ? iceServers.concat([ownRelay]) : iceServers };
+  const cfg = { iceServers: ownRelay ? iceServers.concat([ownRelay]) : iceServers, maxMessageSize: RECV_MAX_MESSAGE };
   if (port) {
     cfg.iceInterfaceAddresses = addrs.v6 ? { udp4: addrs.v4, udp6: addrs.v6 } : { udp4: addrs.v4 };
   }
@@ -723,15 +739,26 @@ function meterCount(session, conn, len) {
   meterPending[prov].packets += hops;
 }
 
+// The ICE connection's "send one datagram" method is `sendTo` in werift 0.20 and
+// `send` from 0.24 (both take the already-encrypted datagram). Wrap whichever the
+// installed werift has: a meter that silently counted only what was RECEIVED (as it
+// did on 0.24 before this) under-bills a relay by roughly the whole film.
+function meterSendName(conn) {
+  if (conn && typeof conn.sendTo === 'function') return 'sendTo';
+  if (conn && typeof conn.send === 'function') return 'send';
+  return '';
+}
+
 function attachMeter(session, pc) {
   let transports = [];
   try { transports = pc.iceTransports || []; } catch {}
   for (const t of transports) {
     const conn = t && t.connection;
-    if (!conn || conn.__beeboMeter || typeof conn.sendTo !== 'function') continue;
+    const name = meterSendName(conn);
+    if (!conn || conn.__beeboMeter || !name) continue;
     Object.defineProperty(conn, '__beeboMeter', { value: true });
-    const send = conn.sendTo.bind(conn);
-    conn.sendTo = (data) => { try { meterCount(session, conn, data ? data.length : 0); } catch {} return send(data); };
+    const send = conn[name].bind(conn);
+    conn[name] = (data) => { try { meterCount(session, conn, data ? data.length : 0); } catch {} return send(data); };
     try { conn.onData.subscribe((data) => { try { meterCount(session, conn, data ? data.length : 0); } catch {} }); } catch {}
   }
 }
@@ -978,6 +1005,9 @@ function sweepStalledSessions() {
 function releaseStreamLease(session) {
   if (!session || !session.streamLeaseActive) return;
   session.streamLeaseActive = false;
+  // An extra connection of a striped download shares its primary's lease: it must not give it
+  // back while the primary is still streaming (the lease simply expires if the primary is gone).
+  if (session.leaseId && session.leaseId !== session.viewerId) return;
   api('/rtc/stream-lease', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ viewerId: session.viewerId, action: 'release' }), timeoutMs: 5000,
@@ -988,6 +1018,7 @@ function closeSession(viewerId) {
   if (!s) return;
   sessions.delete(viewerId);
   releaseStreamLease(s);
+  if (s.stripeOf) { const p = sessions.get(s.stripeOf); if (p && p.stripes) p.stripes.delete(viewerId); }
   for (const ctrl of s.inflight.values()) { try { ctrl.abort(); } catch {} }
   if (s.uploads) s.uploads.clear();
   if (s.gameSockets) { for (const sock of s.gameSockets.values()) { try { sock.destroy(); } catch {} } s.gameSockets.clear(); }
@@ -1066,6 +1097,11 @@ function verifyViewerToken(token, opts = {}) {
 //                  does. Anything over MAX_BODY_BYTES is refused with err 413.
 //   "set-cookies"  head.setcookies: every Set-Cookie, not one folded string.
 //   "resp-headers" head.headers: a short allowlist of response headers.
+//   "big-frames"   response frames may be up to FRAME_MAX (64 KiB) instead of 16 KiB, always
+//                  within the viewer's own a=max-message-size. Nothing for a client to do:
+//                  every client already reads a frame of any size. The hello says what this
+//                  connection will get (`frame`, payload bytes) and bodyChunk is now 32 KiB
+//                  (what a client may cut an upload into; clients cap it at 60000).
 //
 // Cookies: this agent keeps a jar per viewer connection and replays it (the
 // browser page relies on that: its service worker can't read HttpOnly cookies).
@@ -1073,8 +1109,41 @@ function verifyViewerToken(token, opts = {}) {
 // so has a new connection with an empty jar here; the two are merged by name,
 // this connection's jar winning.
 const PROTO = 2;
-const FEATURES = ['headers', 'body-chunks', 'set-cookies', 'resp-headers'];
+const FEATURES = ['headers', 'body-chunks', 'set-cookies', 'resp-headers', 'big-frames', 'stripe'];
 const MAX_BODY_BYTES = Number(process.env.BEEBO_MAX_BODY || 8 * 1024 * 1024);
+
+// Striping ("stripe"). One WebRTC connection is one SCTP association with one congestion
+// window, and on a path with delay and a little loss (a phone on mobile data, a friend's Wi-Fi)
+// that window, not the CPU, sets the speed: it is cut in half at every loss and grows back by one
+// packet per round trip. A viewer that wants a big download quickly can therefore open a few
+// EXTRA connections (each is just another viewer as far as signalling goes) and fetch different
+// byte ranges of the file on each; measured in docs/TUNNEL-THROUGHPUT.md, the speed then
+// grows about with the number of connections. This is what an extra connection has to say, on
+// its data channel, before it is treated as part of a session:
+//   {kind:"hello", proto:2, stripeOf:"<viewerId of the primary connection>"}
+// Rules, all checked here and never taken on trust:
+//  - the primary must exist, be a primary itself, and belong to the SAME signed-in viewer (the
+//    Worker-signed viewer token this agent already verified for both offers, compared whole:
+//    a member, the owner, a guest of a share). No signed viewer, no stripes.
+//  - at most MAX_STRIPES extra connections per primary.
+//  - an extra connection counts against the away-stream limit as its primary does: one
+//    stream lease per download, not one per connection (session.leaseId).
+// The two connections still only see what that viewer could always see: every request on either
+// carries the viewer's own identity and goes through the same local-server checks.
+const MAX_STRIPES = 4;
+function joinStripeGroup(session, primaryId) {
+  if (typeof primaryId !== 'string' || !primaryId || primaryId.length > 64) return { ok: false, error: 'bad_group' };
+  if (session.stripeOf) return primaryId === session.stripeOf ? { ok: true } : { ok: false, error: 'already_grouped' };
+  const primary = sessions.get(primaryId);
+  if (!primary || primary === session || primary.stripeOf) return { ok: false, error: 'no_such_primary' };
+  if (!session.viewer || !primary.viewer || JSON.stringify(session.viewer) !== JSON.stringify(primary.viewer)) return { ok: false, error: 'not_same_viewer' };
+  const group = primary.stripes || (primary.stripes = new Set());
+  if (group.size >= MAX_STRIPES) return { ok: false, error: 'too_many' };
+  group.add(session.viewerId);
+  session.stripeOf = primaryId;
+  session.leaseId = primary.leaseId || primary.viewerId;
+  return { ok: true };
+}
 
 // Request headers a viewer may not set: hop-by-hop ones, what the bridge sets
 // itself (range, content-type, cookie come from their own fields), and the
@@ -1183,20 +1252,125 @@ function bufferedAmount(channel) {
   } catch { return 0; }
 }
 
-async function waitForDrain(channel, signal) {
-  // Flow control so a fast disk read can't outrun the SCTP send buffer.
-  // Abort-aware: stop waiting the instant the viewer seeks (aborts this request),
-  // so the new position isn't stuck behind the old stream. Stale-gauge-aware:
-  // werift's bufferedAmount only falls on far-end acks, so if it hasn't moved in
-  // 2s we proceed rather than freezing.
-  let waited = 0, stuck = 0, last = bufferedAmount(channel);
-  while (bufferedAmount(channel) > CFG.maxBuffered && waited < 30000) {
-    if (signal && signal.aborted) return;
-    await new Promise((r) => setTimeout(r, 15));
-    waited += 15;
-    const now = bufferedAmount(channel);
-    if (now < last) { stuck = 0; last = now; } else { stuck += 15; if (stuck >= 2000) return; }
+// ---------------------------------------------------------------------------
+// Sending a response quickly: frame size, how much to queue, when to wake up
+// ---------------------------------------------------------------------------
+// What limited the tunnel (measured on loopback, docs/TUNNEL-THROUGHPUT.md): the host slept
+// in 15 ms steps whenever its queue was full, so the send queue ran dry between wake-ups
+// (the host sat idle about half the time); every frame was copied twice; and frames were
+// 16 KB whatever the far end could take.
+
+// The largest response frame (header included) this agent will build. A data-channel message
+// this size is cut into SCTP packets of 1200 bytes by werift anyway, so bigger frames only
+// save per-message work; 64 KiB is the most every browser and phone takes without asking.
+const FRAME_MAX = 64 * 1024;
+const FRAME_MIN = 1024;
+// The peer's own limit when it says nothing (a=max-message-size absent, RFC 8841), and what
+// werift 0.20, which does not expose the peer's value, is assumed to have.
+const PEER_MAX_DEFAULT = 64 * 1024;
+
+// The largest single message the viewer on `pc` says it accepts.
+function peerMaxMessage(pc) {
+  try {
+    const m = pc && pc.sctp && pc.sctp.remoteMaxMessageSize;
+    if (m === 0) return FRAME_MAX;                    // "no limit" in the SDP: stay at our own
+    if (Number.isFinite(m) && m >= FRAME_MIN) return m;
+  } catch {}
+  return PEER_MAX_DEFAULT;
+}
+
+// The payload bytes one response frame may carry for request `id` on this connection.
+function frameLimit(pc, id, forced = CFG.chunkBytes) {
+  const header = 2 + Buffer.byteLength(String(id || ''), 'utf8');
+  const cap = Math.min(FRAME_MAX, peerMaxMessage(pc));
+  const want = forced > 0 ? Math.min(forced + header, cap) : cap;
+  return Math.max(512, want - header);
+}
+
+// How much may wait in the channel's send queue, from the connection's recent speed: about
+// BUFFER_SECONDS of it. Not less than BUFFER_MIN (enough to keep the SCTP window full between
+// wake-ups) and not more than BUFFER_MAX (a second film position would wait behind it).
+const BUFFER_SECONDS = 0.15;
+const BUFFER_MIN = 128 * 1024;
+const BUFFER_MAX = 1024 * 1024;
+const BUFFER_START = 256 * 1024;
+function bufferTarget(bytesPerSecond, pinned = CFG.maxBuffered) {
+  if (pinned > 0) return pinned;
+  if (!(bytesPerSecond > 0)) return BUFFER_START;
+  return Math.max(BUFFER_MIN, Math.min(BUFFER_MAX, Math.round(bytesPerSecond * BUFFER_SECONDS)));
+}
+
+// Bytes/second this connection is sending, smoothed; fed by every frame sent.
+function noteSent(session, n, now = Date.now()) {
+  const r = session.rate || (session.rate = { at: now, bytes: 0, bps: 0 });
+  r.bytes += n;
+  const dt = now - r.at;
+  if (dt >= 250) {
+    const inst = (r.bytes * 1000) / dt;
+    r.bps = r.bps > 0 ? r.bps * 0.6 + inst * 0.4 : inst;
+    r.at = now;
+    r.bytes = 0;
   }
+  return r.bps;
+}
+
+// Resolves when the channel's queue falls below its low-water mark (werift's
+// `bufferedamountlow`), the request is aborted, or `ms` pass: whichever is first. Without
+// the event (an older werift) it just waits a few milliseconds.
+function lowOrTimeout(channel, signal, ms) {
+  return new Promise((resolve) => {
+    let sub = null, timer = null;
+    const done = () => {
+      if (timer) clearTimeout(timer);
+      if (sub) { try { sub.unSubscribe(); } catch {} }
+      if (signal) signal.removeEventListener('abort', done);
+      resolve();
+    };
+    const ev = channel && channel.bufferedAmountLow;
+    if (ev && typeof ev.subscribe === 'function') { try { sub = ev.subscribe(done); } catch {} }
+    timer = setTimeout(done, sub ? ms : Math.min(ms, 5));
+    if (signal) {
+      if (signal.aborted) return done();
+      signal.addEventListener('abort', done, { once: true });
+    }
+  });
+}
+
+// Flow control so a fast disk read can't outrun the SCTP send buffer: returns once the queue
+// is below `limit` (or it gives up). Woken by the channel's own low-water event, not a timer,
+// so the queue is refilled the moment it drains. Abort-aware: stops waiting the instant the
+// viewer seeks (aborts this request), so the new position isn't stuck behind the old stream.
+// Stale-gauge-aware: if the queue hasn't fallen in 2 s it proceeds rather than freezing.
+const DRAIN_SLICE_MS = 250, DRAIN_STALE_MS = 2000, DRAIN_MAX_MS = 30000;
+async function waitForDrain(channel, signal, limit = CFG.maxBuffered || BUFFER_START, opts = {}) {
+  if (bufferedAmount(channel) <= limit) return;
+  const sliceMs = opts.sliceMs || DRAIN_SLICE_MS, staleMs = opts.staleMs || DRAIN_STALE_MS, maxMs = opts.maxMs || DRAIN_MAX_MS;
+  try { channel.bufferedAmountLowThreshold = Math.floor(limit / 2); } catch {}
+  let waited = 0, stuck = 0, last = bufferedAmount(channel);
+  while (bufferedAmount(channel) > limit && waited < maxMs) {
+    if (signal && signal.aborted) return;
+    const t0 = Date.now();
+    await lowOrTimeout(channel, signal, sliceMs);
+    const dt = Math.max(1, Date.now() - t0);
+    waited += dt;
+    const now = bufferedAmount(channel);
+    if (now < last) { stuck = 0; last = now; } else { stuck += dt; if (stuck >= staleMs) return; }
+  }
+}
+
+// Reads `reader` once, but if `hasPartial()` and nothing arrives within `ms`, calls `flush()`
+// first so a slow source (live TV, a long poll) is not held back waiting for a full frame.
+async function readOrFlush(reader, hasPartial, flush, ms = 20) {
+  const p = reader.read();
+  if (!hasPartial()) return p;
+  let timer, first;
+  try {
+    const stalled = new Promise((r) => { timer = setTimeout(() => r(null), ms); });
+    first = await Promise.race([p, stalled]);
+  } finally { clearTimeout(timer); }
+  if (first) return first;
+  await flush();
+  return p;
 }
 
 function onHttpMessage(session, channel, data) {
@@ -1208,7 +1382,16 @@ function onHttpMessage(session, channel, data) {
   if (!msg || typeof msg !== 'object') return;
 
   if (msg.kind === 'hello') {
-    sendText(channel, { kind: 'hello', proto: PROTO, features: FEATURES, maxBody: MAX_BODY_BYTES, bodyChunk: CFG.chunkBytes });
+    // frame: the most payload one response frame will carry on THIS connection (`big-frames`),
+    // so a client can size its buffers. stripes: how many EXTRA connections one viewer may add
+    // to a download (`stripe`, see joinStripeGroup). Older clients ignore both fields.
+    const reply = { kind: 'hello', proto: PROTO, features: FEATURES, maxBody: MAX_BODY_BYTES, bodyChunk: CFG.bodyChunk, frame: frameLimit(session.pc, '1'), stripes: MAX_STRIPES };
+    // stripeOf: "this connection belongs to my session <id>", asked by an extra connection.
+    if (msg.stripeOf !== undefined) {
+      const j = joinStripeGroup(session, msg.stripeOf);
+      if (j.ok) reply.stripeOf = String(msg.stripeOf); else reply.stripeError = j.error;
+    }
+    sendText(channel, reply);
     return;
   }
   const uploads = session.uploads || (session.uploads = new Map());
@@ -1224,7 +1407,7 @@ function onHttpMessage(session, channel, data) {
     uploads.delete(msg.id);
     return runRequest(session, channel, up.msg, Buffer.concat(up.parts, up.size));
   }
-  if (msg.kind !== 'req' || !msg.id || typeof msg.id !== 'string') return;
+  if (msg.kind !== 'req' || !msg.id || typeof msg.id !== 'string' || msg.id.length > 128) return;
 
   if (msg.bodyChunks) {
     const blen = Number(msg.blen);
@@ -1269,7 +1452,7 @@ async function acquireStreamLease(session) {
   try {
     const { status, body } = await api('/rtc/stream-lease', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ viewerId: session.viewerId }), timeoutMs: 5000,
+      body: JSON.stringify({ viewerId: session.leaseId || session.viewerId }), timeoutMs: 5000,
     }, true);
     if (status === 200 && body && body.ok) {
       session.streamLeaseActive = true;
@@ -1385,27 +1568,44 @@ async function runRequest(session, channel, msg, reqBody) {
       return;
     }
 
-    // Stream the body in bounded chunks, framed for the data channel.
+    // Stream the body in frames as big as the viewer's channel takes, each built in ONE copy
+    // (header + payload in a single buffer), waiting on the channel's own drain event.
     const reader = res.body.getReader();
-    let leftover = Buffer.alloc(0);
-    const CH = CFG.chunkBytes;
+    const idBuf = Buffer.from(id, 'utf8');
+    const headLen = 2 + idBuf.length;
+    const cap = frameLimit(session.pc, id);
+    let out = null, filled = 0;
+    // Send what has been gathered so far, as a frame of exactly that size.
+    const sendFrame = async () => {
+      if (!out || !filled) return;
+      const buf = filled === cap ? out : out.subarray(0, headLen + filled);
+      out = null; filled = 0;
+      await waitForDrain(channel, ctrl.signal, bufferTarget(session.rate ? session.rate.bps : 0));
+      if (ctrl.signal.aborted) return;
+      // A failed send is an error the viewer must hear about, not a silent hole in the film.
+      channel.send(buf);
+      sentBytes += buf.length - headLen;
+      session.lastMoveAt = Date.now();
+      noteSent(session, buf.length);
+    };
     while (true) {
-      const { done, value } = await reader.read();
-      if (ctrl.signal.aborted) break;
-      if (done) break;
-      let buf = value && value.length ? Buffer.concat([leftover, Buffer.from(value)]) : leftover;
-      while (buf.length >= CH) {
-        await waitForDrain(channel, ctrl.signal);
-        if (ctrl.signal.aborted) break;
-        try { channel.send(frame(id, buf.subarray(0, CH))); sentBytes += CH; session.lastMoveAt = Date.now(); } catch {}
-        buf = buf.subarray(CH);
+      const { done, value } = await readOrFlush(reader, () => filled > 0, sendFrame);
+      if (ctrl.signal.aborted || done) break;
+      let off = 0;
+      const len = value ? value.length : 0;
+      while (off < len) {
+        if (!out) {
+          out = Buffer.allocUnsafe(headLen + cap);
+          out.writeUInt16BE(idBuf.length, 0);
+          idBuf.copy(out, 2);
+        }
+        const n = Math.min(cap - filled, len - off);
+        out.set(off === 0 && n === len ? value : value.subarray(off, off + n), headLen + filled);
+        filled += n; off += n;
+        if (filled === cap) { await sendFrame(); if (ctrl.signal.aborted) break; }
       }
-      leftover = buf;
     }
-    if (!ctrl.signal.aborted && leftover.length) {
-      await waitForDrain(channel, ctrl.signal);
-      try { channel.send(frame(id, leftover)); } catch {}
-    }
+    if (!ctrl.signal.aborted) await sendFrame();
     if (!ctrl.signal.aborted) sendText(channel, { kind: 'end', id });
     reqLog(ctrl.signal.aborted ? 'stopped (viewer moved on)' : 'done');
   } catch (e) {
@@ -1554,6 +1754,7 @@ if (require.main === module) main().catch((e) => { warn('fatal:', e.stack || e.m
 module.exports = {
   loadConfig, discoverToken, verifyViewerToken, frame, unframe, onHttpMessage, requestHeaders, mergeCookies, headMessage,
   PROTO, FEATURES, MAX_BODY_BYTES, parsePortRange, mappedCandidate, setPortMap,
+  MAX_STRIPES, joinStripeGroup, FRAME_MAX, BUFFER_MIN, BUFFER_MAX, BUFFER_START, peerMaxMessage, frameLimit, bufferTarget, noteSent, waitForDrain, lowOrTimeout, readOrFlush,
   turnRestCredential, turnRestIceServers, cloudflareIceServers, cleanRelayConfig, hostRelayEntry, RELAY_TTL_S,
   RELAY_REUSE_MS, relayCredentialPlan, parseBeeboCredentials, billableBytes, pairRelayHops, attachMeter, takeMeterDeltas,
   METER_PACKET_OVERHEAD, METER_OVERHEAD_FACTOR,

@@ -308,7 +308,11 @@ function parseHistoryCsv(text) {
     for (const [k, v] of Object.entries(M.idsFromGuid(pick(rec, COLS.guid)))) if (!ids[k]) ids[k] = v
     if (!title && !showTitle && !Object.keys(ids).length) continue
     const userName = M.str(pick(rec, COLS.user), 80) || 'Plex'
-    const userKey = userName.toLowerCase()
+    // The user column is the file's own text and becomes a key of a plain object below. "__proto__" (or
+    // "constructor") as a user name made that object hand back Object.prototype itself, and the next lines wrote
+    // watched / rating / favourite onto EVERY object in the process. Such a name is kept, under a safe key.
+    const lowered = userName.toLowerCase()
+    const userKey = lowered in Object.prototype ? 'user ' + lowered : lowered
     if (!users.has(userKey)) users.set(userKey, userName)
     const yr = M.year(pick(rec, COLS.year))
     const key = [userKey, isEpisode ? 'e' : isShow ? 's' : 'm', (isEpisode ? showTitle : title).toLowerCase(), isEpisode ? season + 'x' + episode : yr || '', Object.values(ids).join(',')].join('|')

@@ -3,6 +3,7 @@ import ConnectQr from './ConnectQr.jsx'
 import MediaOrganizer from './MediaOrganizer.jsx'
 import ConnectionWizard from './ConnectionWizard.jsx'
 import FirstRunFolders from './FirstRunFolders.jsx'
+import HomeWifiHint from './HomeWifiHint.jsx'
 import PostersStep from './PostersStep.jsx'
 import { badge } from './firstRunStyles.js'
 import { normalizeSetup, RESULT_TEXT } from '../lib/connectionModel.js'
@@ -229,6 +230,7 @@ export default function GetStarted({ onSetupComplete }) {
           <button type="button" style={btnGhost} onClick={refresh}>{t('common.refresh')}</button>
           <button type="button" style={btnGhost} onClick={openDoctor}>{t('firstrun.doctorButton')}</button>
         </div>
+        <HomeWifiHint />
         {address && <p style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 0 }}>{rich(t('firstrun.olderApps', { address: `<code>${plainAddress(address.hostport)}</code>` }))}</p>}
       </div>
 

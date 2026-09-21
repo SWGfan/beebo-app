@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { startPoll } from '../lib/poll.js'
+import OfflineChip from './OfflineChip.jsx'
 import { formatBytes, formatBitrate, formatDuration, formatClock, timeAgo, WHERE_ICON } from '../lib/dashboardFormat.js'
 
 // The server dashboard: who is watching what right now, what the household
@@ -207,6 +208,7 @@ export default function Dashboard({ active = true }) {
       <p style={{ ...muted, fontSize: 13, margin: '0 0 16px' }}>
         Everything here is read from this computer and stays on it. Live figures refresh every few seconds while this page is open.
       </p>
+      <OfflineChip />
       {error && <div style={{ ...panel, borderColor: '#6b2b2b', color: '#ff9d9d' }}>{error}</div>}
       {notice && <div style={{ ...panel, padding: 10 }} onClick={() => setNotice('')}>{notice}</div>}
 

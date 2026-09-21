@@ -218,7 +218,9 @@ internal object CampfireAlarm {
     fun ring(context: Context, sound: Boolean = true) {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
         val mode = audio?.ringerMode ?: AudioManager.RINGER_MODE_NORMAL
-        if (sound && mode == AudioManager.RINGER_MODE_NORMAL) {
+        // Quiet hours (Family Pack A): no game alarm sound at night. The screen flash and vibration remain.
+        val quiet = com.beeboentertainment.movie.campsite.quiet.QuietGate.isQuietNow()
+        if (sound && !quiet && mode == AudioManager.RINGER_MODE_NORMAL) {
             runCatching {
                 // The notification stream follows the ringer volume and Do Not Disturb.
                 val tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)

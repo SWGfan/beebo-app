@@ -227,8 +227,18 @@ function createRadio({ store, dir, fetcher, browser, now = Date.now, log, timing
       if (icy.isPlaylistType(info.contentType) || (icy.isPlaylistUrl(target) && !/^audio\//.test(info.contentType))) {
         const chunks = []
         let size = 0
-        for await (const c of up.stream) { size += c.length; if (size > 64 * 1024) break; chunks.push(c) }
-        up.close()
+        // The station chose how fast this body comes. open() only bounds the wait for the headers, so a server that
+        // answers "playlist" and then goes quiet held this read (and its connection) open for good.
+        const stall = setTimeout(() => up.close(), T.connectMs)
+        if (stall.unref) stall.unref()
+        try {
+          for await (const c of up.stream) { size += c.length; if (size > 64 * 1024) break; chunks.push(c) }
+        } catch {
+          throw fail(502, 'playlist_failed')
+        } finally {
+          clearTimeout(stall)
+          up.close()
+        }
         const pl = icy.parsePlaylist(Buffer.concat(chunks).toString('utf8'))
         if (pl.error) throw fail(422, pl.error)
         target = new URL(pl.url, target).toString()

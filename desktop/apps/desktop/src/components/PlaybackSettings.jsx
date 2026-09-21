@@ -7,6 +7,102 @@ const link = (url, text) => (
   <a href="#" onClick={(e) => { e.preventDefault(); window.beeboentertainment.openExternal(url) }} style={{ color: 'var(--link)' }}>{text}</a>
 )
 
+const BITRATES = [[0, 'No limit'], [8000, '8 Mbps'], [15000, '15 Mbps'], [25000, '25 Mbps'], [40000, '40 Mbps'], [60000, '60 Mbps'], [80000, '80 Mbps'], [120000, '120 Mbps']]
+const bitrateLabel = (kbps) => (BITRATES.find(([v]) => v === Number(kbps)) || [0, kbps ? `${Math.round(kbps / 100) / 10} Mbps` : 'No limit'])[1]
+
+// Settings > Playback > Home theater: how Beebo decides between playing the file as it is, repackaging it without converting
+// (keeps 4K HDR10 / HDR10+ / Dolby Vision and Dolby Atmos / TrueHD / DTS sound) and converting it. Server-wide, with a per-person override.
+function HomeTheaterPanel({ api }) {
+  const [ht, setHt] = useState(null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { if (api && api.homeTheaterGet) api.homeTheaterGet().then(setHt).catch(() => {}) }, [])
+  if (!api || !api.homeTheaterGet || !ht) return null
+  const save = async (patch) => { setBusy(true); try { setHt(await api.homeTheaterSave(patch)) } finally { setBusy(false) } }
+  const saveUser = async (id, patch) => { setBusy(true); try { setHt(await api.homeTheaterSaveUser(id, patch)) } finally { setBusy(false) } }
+  const sv = ht.server
+  const triState = (value) => (typeof value === 'boolean' ? (value ? 'on' : 'off') : 'inherit')
+  const fromTri = (v) => (v === 'on' ? true : v === 'off' ? false : null)
+  const note = { color: 'var(--muted)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.5 }
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label>🎬 Home theater</label>
+      <p style={note}>
+        Big-screen players tell Beebo what they can play. For each film Beebo then chooses, separately for the picture and the sound:
+        play the file as it is, repackage it without converting anything (4K HDR10, HDR10+ and Dolby Vision stay exactly as they are, and
+        Dolby Digital Plus / Atmos sound is copied), or convert. Nothing here is needed for it to work &mdash; these are the switches for the owner.
+      </p>
+      <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0 }}>
+          <input type="checkbox" checked={sv.directPlayPreferred} disabled={busy} onChange={(e) => save({ directPlayPreferred: e.target.checked })} />
+          Play the original file whenever the device can (Direct play preferred)
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0 }}>
+          <input type="checkbox" checked={sv.allowDirectStream} disabled={busy || !ht.ffmpegInstalled} onChange={(e) => save({ allowDirectStream: e.target.checked })} />
+          Repackage without converting when only the container or one sound track is the problem (Direct stream)
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0 }}>
+          <input type="checkbox" checked={sv.allowPassthrough} disabled={busy} onChange={(e) => save({ allowPassthrough: e.target.checked })} />
+          Allow passthrough: send Dolby TrueHD, DTS-HD and Atmos untouched to an AV receiver
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0 }}>
+          Highest bitrate to play as it is
+          <select value={sv.maxBitrateKbps} disabled={busy} onChange={(e) => save({ maxBitrateKbps: Number(e.target.value) })}>
+            {BITRATES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            {!BITRATES.some(([v]) => v === sv.maxBitrateKbps) && <option value={sv.maxBitrateKbps}>{bitrateLabel(sv.maxBitrateKbps)}</option>}
+          </select>
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0 }}>
+          <input type="checkbox" checked={sv.forceTranscode} disabled={busy} onChange={(e) => save({ forceTranscode: e.target.checked })} />
+          Always convert (for testing: never play as it is, never repackage)
+        </label>
+      </div>
+      <p style={note}>
+        Passthrough off means a TV or receiver is not trusted to handle TrueHD, DTS-HD or Atmos, so Beebo converts that sound to Dolby Digital Plus 5.1
+        (the picture is still copied). A film above the bitrate limit is always converted, because a copy cannot lower a bitrate.
+        A player that does not describe itself gets a cautious default for its kind (for example Apple TV, Roku, Samsung, LG, Fire TV, a browser).
+      </p>
+      {ht.users.length > 0 && (
+        <details style={{ marginTop: 8 }}>
+          <summary style={{ cursor: 'pointer', fontSize: 13 }}>Different settings for one person</summary>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%', maxWidth: 820, marginTop: 8 }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
+                <th style={{ padding: '4px 8px 4px 0' }}>Person</th><th>Direct play</th><th>Direct stream</th><th>Passthrough</th><th>Highest bitrate</th><th>Always convert</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ht.users.map((u) => (
+                <tr key={u.id} style={{ borderTop: '1px solid var(--border, #262b35)' }}>
+                  <td style={{ padding: '4px 8px 4px 0' }}>{u.name}</td>
+                  {['directPlayPreferred', 'allowDirectStream', 'allowPassthrough'].map((f) => (
+                    <td key={f}>
+                      <select aria-label={`${u.name} ${f}`} value={triState(u.override[f])} disabled={busy} onChange={(e) => saveUser(u.id, { [f]: fromTri(e.target.value) })}>
+                        <option value="inherit">Same as above</option><option value="on">On</option><option value="off">Off</option>
+                      </select>
+                    </td>
+                  ))}
+                  <td>
+                    <select aria-label={`${u.name} bitrate`} value={u.override.maxBitrateKbps === undefined ? 'inherit' : String(u.override.maxBitrateKbps)} disabled={busy}
+                      onChange={(e) => saveUser(u.id, { maxBitrateKbps: e.target.value === 'inherit' ? null : Number(e.target.value) })}>
+                      <option value="inherit">Same as above</option>
+                      {BITRATES.map(([v, l]) => <option key={v} value={String(v)}>{l}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <select aria-label={`${u.name} force`} value={triState(u.override.forceTranscode)} disabled={busy} onChange={(e) => saveUser(u.id, { forceTranscode: fromTri(e.target.value) })}>
+                      <option value="inherit">Same as above</option><option value="on">On</option><option value="off">Off</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+      )}
+    </div>
+  )
+}
+
 export default function PlaybackSettings() {
   const api = window.beeboentertainment && window.beeboentertainment.playback
   const [s, setS] = useState(null)
@@ -158,6 +254,8 @@ export default function PlaybackSettings() {
           <p style={{ color: 'var(--muted)', fontSize: 12 }}>The converter (ffmpeg) isn&rsquo;t installed, so everyone gets the original file.</p>
         )}
       </div>
+
+      <HomeTheaterPanel api={api} />
 
       <div style={{ marginBottom: 20 }}>
         <label>⚡ Hardware acceleration</label>

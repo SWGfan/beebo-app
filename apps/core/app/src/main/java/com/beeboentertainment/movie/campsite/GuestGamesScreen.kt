@@ -132,7 +132,7 @@ fun GuestGamesScreen(onOpenCampsite: () -> Unit) {
                             GameChoice.PLAY_VS_COMPUTER -> Button(onClick = {
                                 asking = null
                                 if (game.localRoute != null) nativeGame = game.localRoute else localGame = game.id
-                            }) { Text(if (game.localRoute != null) "Play on this phone" else "Play vs computer") }
+                            }) { Text(if (game.localRoute != null || game.playsSolo) "Play on this phone" else "Play vs computer") }
                             GameChoice.INVITE_PLAYERS ->
                                 if (choices.size == 1) Button(onClick = invite) { Text("Invite players") }
                                 else OutlinedButton(onClick = invite) { Text("Invite players") }
@@ -370,7 +370,7 @@ private fun GameRow(game: CampsiteGame, running: Boolean, onPick: (CampsiteGame)
                     else MaterialTheme.colorScheme.surfaceVariant,
                 ) {
                     Text(
-                        CampsiteGameGate.labelFor(needs),
+                        CampsiteGameGate.labelFor(needs, game.playsSolo),
                         fontSize = 11.sp,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     )
@@ -391,6 +391,7 @@ private fun LocalGamesView(gameId: String, onBack: () -> Unit) {
             // Same saved leaderboard as the guest room, so a win against the computer counts.
             history = CampsiteHistoryStore(BeeboApp.instance.session),
             trip = TripStoreSink(TripStore.forApp(BeeboApp.instance.session.plain)),
+            plates = com.beeboentertainment.movie.campsite.platehunt.PlatePrefsBadgeSink(BeeboApp.instance.session.plain),
         ).also { it.open(gameId, withComputer = true) }
     }
     val web = remember(engine) {
@@ -404,7 +405,7 @@ private fun LocalGamesView(gameId: String, onBack: () -> Unit) {
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean = true
             }
-            val html = context.assets.open("campsite-games.html").bufferedReader().use { it.readText() }
+            val html = CampsitePagePacks.gamesPage(context.assets)
             loadDataWithBaseURL(CampsiteLocalGames.BASE_URL, CampsiteLocalGames.page(html), "text/html", "utf-8", null)
         }
     }

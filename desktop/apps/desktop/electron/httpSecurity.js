@@ -181,6 +181,28 @@ function jsonForScript(value) {
   return text.replace(new RegExp('[<>&' + String.fromCharCode(0x2028, 0x2029) + ']', 'g'), esc)
 }
 
+// ------------------------------------------------- Content-Disposition ----
+
+/**
+ * A Content-Disposition value for a download whose name contains anything a person, a tag or a URL supplied.
+ * Node refuses a header value with a CR/LF (writeHead throws, which used to abort the request and leave it
+ * hanging), and a quote would end the filename early and let the rest be read as extra parameters. So the plain
+ * filename= is reduced to safe ASCII (no quotes, slashes, backslashes, control or non-ASCII characters, no leading dot),
+ * and the real name, if different, goes in filename*=UTF-8''... percent-encoded (RFC 6266).
+ */
+function contentDisposition(name, { type = 'attachment', fallback = 'download' } = {}) {
+  const raw = String(name == null ? '' : name).slice(0, 200)
+  const plain = raw.replace(/[^\x20-\x7e]/g, '_').replace(/["\\\/:*?<>|;%]/g, '_').replace(/^[\s.]+|[\s.]+$/g, '').slice(0, 120) || fallback
+  let out = `${type === 'inline' ? 'inline' : 'attachment'}; filename="${plain}"`
+  if (raw && raw !== plain) {
+    try {
+      const star = encodeURIComponent(raw).replace(/['()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase()) // control characters are percent-encoded too
+      if (star) out += `; filename*=UTF-8''${star}`
+    } catch { /* a lone surrogate cannot be encoded: the plain name stands */ }
+  }
+  return out
+}
+
 // --------------------------------------------------------------- Cookies ----
 
 /** True when the browser reached us over TLS (directly, or through a proxy that says so). */
@@ -277,9 +299,14 @@ const CSP_REPORT_PATH = '/__csp-report'
 // report-only: it tells us (in the redacted log) what an enforcing policy would break.
 const CSP_REPORT_ONLY = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
+  // The pre-show (cinemaModeWeb.js) plays online trailers ONLY in YouTube's embedded player: its IFrame API script
+  // comes from www.youtube.com and the frame itself from the privacy-enhanced youtube-nocookie.com.
+  "script-src 'self' 'unsafe-inline' https://www.youtube.com",
+  'frame-src https://www.youtube-nocookie.com',
+  // No third-party fonts or styles: every page works with no internet (test/offline-static.test.js), and a font
+  // host would also learn which houses are watching. Posters that are not saved on this PC may still come from TMDB.
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
   "img-src 'self' data: blob: https://image.tmdb.org https://img.youtube.com https://i.ytimg.com https://tile.openstreetmap.org",
   "media-src 'self' blob:",
   "connect-src 'self'",
@@ -291,6 +318,33 @@ const CSP_REPORT_ONLY = [
 ].join('; ')
 
 /**
+ * A page is HTML this server rendered for one signed-in person (library, admin lists with e-mail addresses,
+ * account pages, one-time-token pages). Unless the route says otherwise with its own Cache-Control, an HTML
+ * response is sent with "no-store", so a shared computer's back button or a proxy never keeps someone else's page.
+ * Routes that set Cache-Control themselves (public pages such as /privacy, the offline page) are untouched, and
+ * only text/html is affected: posters, media, JSON and scripts keep the caching they have.
+ */
+function keepHtmlOutOfCaches(res) {
+  if (res.__beeboHtmlNoStore || typeof res.writeHead !== 'function') return
+  res.__beeboHtmlNoStore = true
+  const original = res.writeHead
+  const find = (obj, name) => {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return undefined
+    for (const k of Object.keys(obj)) if (k.toLowerCase() === name) return obj[k]
+    return undefined
+  }
+  res.writeHead = function (status, ...rest) {
+    try {
+      const given = rest.length ? rest[rest.length - 1] : undefined
+      const type = find(given, 'content-type') || res.getHeader('content-type')
+      const hasCache = find(given, 'cache-control') !== undefined || res.getHeader('cache-control') !== undefined
+      if (!hasCache && !Array.isArray(given) && /^\s*text\/html\b/i.test(String(type || ''))) res.setHeader('Cache-Control', 'no-store')
+    } catch { /* headers are best effort */ }
+    return original.call(this, status, ...rest)
+  }
+}
+
+/**
  * Headers every response from the home server carries. Set with setHeader before the route runs,
  * so a route's own writeHead still wins for the same name (and the media routes are unaffected).
  * `frame-ancestors` is enforced (Report-Only ignores it); the rest of the CSP reports only.
@@ -298,6 +352,7 @@ const CSP_REPORT_ONLY = [
 function applySecurityHeaders(res, { tlsActive = false } = {}) {
   try {
     if (res.headersSent) return
+    keepHtmlOutOfCaches(res)
     if (!res.getHeader('X-Content-Type-Options')) res.setHeader('X-Content-Type-Options', 'nosniff')
     if (!res.getHeader('Referrer-Policy')) res.setHeader('Referrer-Policy', 'same-origin')
     if (!res.getHeader('X-Frame-Options')) res.setHeader('X-Frame-Options', 'SAMEORIGIN')
@@ -344,6 +399,6 @@ function createCspReportHandler({ log, maxPerMinute = 30, now = () => Date.now()
 
 module.exports = {
   hostnameOf, createHostPolicy, hostRejection, trustedOrigin, redirectHost, safeRequestPath, parseBaseUrl,
-  isSecureRequest, buildCookie, cookieWriteRejection, classifyCookieWrite, isCrossSite, STRICT_COOKIE_WRITES, safeEqual, jsonForScript,
+  isSecureRequest, buildCookie, cookieWriteRejection, classifyCookieWrite, isCrossSite, STRICT_COOKIE_WRITES, safeEqual, jsonForScript, contentDisposition,
   CSP_REPORT_PATH, CSP_REPORT_ONLY, applySecurityHeaders, createCspReportHandler, SAFE_METHODS
 }

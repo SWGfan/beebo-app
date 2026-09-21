@@ -22,6 +22,7 @@
 const fs = require('fs')
 const path = require('path')
 const titleParse = require('./titleParse')
+const { hasPlayableExt } = require('./ipcPathGuard')
 
 const YOUTUBE_KEY_RE = /^[A-Za-z0-9_-]{6,20}$/
 const TRAILER_TITLE_MAX = 200
@@ -56,11 +57,13 @@ function trailerUrl({ youtubeKey, title, year } = {}) {
  * player's own script reads (playbackWebUi.js): pbAudio = an audio stream number, pbSub = 'off',
  * 'emb:<stream>' or 'side:<lang>#<n>'; t = where to start.
  */
-function playerPath({ kind, fileName, audioStreamIndex, subtitleKey, startSeconds }) {
+function playerPath({ kind, fileName, audioStreamIndex, subtitleKey, startSeconds, preshow }) {
   const q = [`id=${encodeURIComponent(encodeId(fileName))}`]
   if (Number.isFinite(startSeconds) && startSeconds > 0) q.push(`t=${Math.floor(startSeconds)}`)
   if (Number.isInteger(audioStreamIndex) && audioStreamIndex >= 0) q.push(`pbAudio=${audioStreamIndex}`)
   if (typeof subtitleKey === 'string' && /^(off|emb:\d{1,4}|side:[a-z0-9-]{0,12}#\d{1,3})$/i.test(subtitleKey)) q.push(`pbSub=${encodeURIComponent(subtitleKey)}`)
+  // Cinema Mode (cinemaModeWeb.js): '1' plays the pre-show before this film; '0' or nothing leaves it to the person's setting.
+  if (preshow === true && isKind(kind) !== 'tv') q.push('preshow=1')
   return `${isKind(kind) === 'tv' ? '/tvwatch' : '/watch'}?${q.join('&')}`
 }
 
@@ -227,11 +230,14 @@ function register(deps) {
   async function playFile(arg) {
     const file = libraryFile(arg && arg.path, roots())
     if (!file || !fs.existsSync(file)) return { ok: false, error: 'not_found' }
+    // shell.openPath (below) runs whatever it is given, so only a video file may be opened this way.
+    if (!hasPlayableExt(file)) return { ok: false, error: 'not_a_video_file' }
     const kind = isKind(arg.kind)
     const audio = Number.isInteger(arg.audioStreamIndex) ? arg.audioStreamIndex : null
     const sub = typeof arg.subtitleKey === 'string' ? arg.subtitleKey : null
     const start = Number(arg.startSeconds) > 0 ? Number(arg.startSeconds) : 0
-    const wantsWebPlayer = arg.webPlayer === true || audio !== null || (sub !== null && sub !== 'off') || start > 0
+    const preshow = arg.preshow === true && isKind(arg.kind) !== 'tv'
+    const wantsWebPlayer = arg.webPlayer === true || preshow || audio !== null || (sub !== null && sub !== 'off') || start > 0
     if (!wantsWebPlayer) {
       const err = await shell.openPath(file)
       return err ? { ok: false, error: String(err) } : { ok: true, via: 'system' }
@@ -250,7 +256,7 @@ function register(deps) {
         url: `http://127.0.0.1:${port}`, name: 'beebo_session', value: auth.signSession(store, me.id, { desktop: true }),
         httpOnly: true, sameSite: 'lax', expirationDate: Math.floor(Date.now() / 1000) + 24 * 3600
       })
-      await win.loadURL(`http://127.0.0.1:${port}${playerPath({ kind, fileName, audioStreamIndex: audio, subtitleKey: sub, startSeconds: start })}`)
+      await win.loadURL(`http://127.0.0.1:${port}${playerPath({ kind, fileName, audioStreamIndex: audio, subtitleKey: sub, startSeconds: start, preshow })}`)
       return { ok: true, via: 'web-player' }
     } catch (err) {
       log(`[details] player window failed: ${err && err.message}`)

@@ -292,7 +292,7 @@ function accessList(ctx) {
 
 /** The /photos page of the website: a timeline + albums + viewer, using a minted API token. */
 function photosPageBody({ token }) {
-  const t = JSON.stringify(String(token)).replace(/</g, '\\u003c')
+  const t = require('./httpSecurity').jsonForScript(String(token))
   return `
 <style>
   .ph-wrap{max-width:1400px;margin:0 auto;padding:4px 0 40px}

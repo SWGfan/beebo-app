@@ -4,6 +4,7 @@
 
 import { TIZEN_KEY_NAMES } from '../nav/keys.js'
 import { createXbox, isXboxHost } from './xbox.js'
+import { isMovieNightUrl } from '../util/movienight.js'
 
 export function detect() {
   try {
@@ -45,6 +46,13 @@ export function createPlatform() {
     try { window.close() } catch (e2) { /* ignore */ }
   }
 
+  // Leave the app for the server's own Movie Night screen (a web page the server draws). The ONLY navigation this app
+  // makes, and it refuses anything that is not that page on the server the person chose (util/movienight.js).
+  function openMovieNight(origin, url) {
+    if (!isMovieNightUrl(origin, url)) return false
+    try { window.location.assign(url); return true } catch (e) { return false }
+  }
+
   function deviceModel() {
     if (xbox) return xbox.deviceModel()
     try {
@@ -57,6 +65,7 @@ export function createPlatform() {
     kind: kind,
     registerKeys: registerKeys,
     exit: exit,
+    openMovieNight: openMovieNight,
     deviceName: xbox ? xbox.deviceName : 'Beebo TV app',
     deviceModel: deviceModel,
     backDebounceMs: 0 // >0 only where one Back press can arrive twice (Xbox)

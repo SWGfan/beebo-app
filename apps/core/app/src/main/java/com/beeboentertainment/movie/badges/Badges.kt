@@ -31,6 +31,12 @@ data class BadgeInputs(
     val packingComplete: Boolean,
     val bingoWin: Boolean,
     val trips: Int,
+    /** Plates and signs ticked across every finished Plate & Sign Hunt round (Family Pack A). */
+    val platesSpotted: Int = 0,
+    /** A finished A-to-Z sign hunt with every letter found. */
+    val alphabetComplete: Boolean = false,
+    /** Nights quiet hours were kept while Campsite was running (Family Pack A). */
+    val quietNights: Int = 0,
 )
 
 /** The fixed catalog, in display order. Ids are stable — they're the persistence key. */
@@ -40,6 +46,9 @@ val BADGES: List<Badge> = listOf(
     Badge("packed", "Packed and Ready", "🧳", "Tick every item on the packing list"),
     Badge("bingo", "Bingo Winner", "🎉", "Win a round of car bingo"),
     Badge("veteran", "Road Trip Veteran", "🏕️", "Set up Campfire Mode on 3 different days"),
+    Badge("plate_spotter_20", "Plate Spotter", "🚗", "Spot 20 plates in Plate & Sign Hunt"),
+    Badge("alphabet_complete", "Alphabet Complete", "🔤", "Find every letter A to Z on signs"),
+    Badge("quiet_hero", "Quiet Hero", "🌙", "Keep quiet hours for 3 nights"),
 )
 
 /** Decide, from [inputs], which catalog badges are currently satisfied. */
@@ -49,6 +58,9 @@ fun badgeEarned(id: String, inputs: BadgeInputs): Boolean = when (id) {
     "packed" -> inputs.packingComplete
     "bingo" -> inputs.bingoWin
     "veteran" -> inputs.trips >= 3
+    "plate_spotter_20" -> inputs.platesSpotted >= 20
+    "alphabet_complete" -> inputs.alphabetComplete
+    "quiet_hero" -> inputs.quietNights >= 3
     else -> false
 }
 
@@ -62,6 +74,8 @@ object BadgeStore {
     private const val K_BINGO = "badge_bingo_win_v1"    // set true when a bingo round is won
     private const val K_TRIP_COUNT = "badge_trip_count_v1"
     private const val K_TRIP_DAY = "badge_trip_last_day_v1" // yyyyDDD of the last counted trip day
+    private const val K_PLATES = "badge_plates_spotted_v1"
+    private const val K_ALPHABET = "badge_alphabet_complete_v1"
 
     /** The ids already earned and kept. */
     fun earnedIds(prefs: SharedPreferences): Set<String> =
@@ -85,6 +99,17 @@ object BadgeStore {
      */
     fun recordBingoWin(prefs: SharedPreferences) {
         prefs.edit().putBoolean(K_BINGO, true).apply()
+    }
+
+    /**
+     * A Plate & Sign Hunt round finished. [spotted] is added to the running total (0 for an alphabet
+     * hunt, which is not plates); [alphabetComplete] latches. Two small numbers, on this phone only.
+     */
+    fun recordPlateRound(prefs: SharedPreferences, spotted: Int, alphabetComplete: Boolean) {
+        val edit = prefs.edit()
+        if (spotted > 0) edit.putInt(K_PLATES, (prefs.getInt(K_PLATES, 0) + spotted).coerceAtMost(1_000_000))
+        if (alphabetComplete) edit.putBoolean(K_ALPHABET, true)
+        edit.apply()
     }
 
     /** How many distinct days a trip landmark (Campfire Mode) has been used. */
@@ -116,6 +141,13 @@ object BadgeStore {
             packingComplete = packingComplete,
             bingoWin = bingoWin(prefs),
             trips = tripCount(prefs),
+            platesSpotted = prefs.getInt(K_PLATES, 0),
+            alphabetComplete = prefs.getBoolean(K_ALPHABET, false),
+            quietNights = runCatching {
+                com.beeboentertainment.movie.campsite.quiet.QuietHoursStore(
+                    com.beeboentertainment.movie.campsite.family.SharedPrefsFamilyStorage(prefs),
+                ).nights().size
+            }.getOrDefault(0),
         )
     }
 

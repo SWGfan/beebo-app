@@ -92,7 +92,7 @@ function friendlyError(status, body) {
  * config: { apiKey, username, password } (or a function returning it, read on every call so a
  * change in Settings takes effect at once). fetchImpl defaults to the global fetch.
  */
-function createOpenSubtitlesClient({ config, baseUrl = DEFAULT_BASE, fetchImpl = globalThis.fetch, now = Date.now, userAgent = USER_AGENT, timeoutMs = 20000 } = {}) {
+function createOpenSubtitlesClient({ config, baseUrl = DEFAULT_BASE, fetchImpl = globalThis.fetch, now = Date.now, userAgent = USER_AGENT, timeoutMs = 10000 } = {}) {
   let token = null
   let tokenFor = ''
   let tokenAt = 0

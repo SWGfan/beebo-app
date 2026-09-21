@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "animals",
+ "title": "Animals",
+ "questions": [
+  {
+   "id": "animals-46-01",
+   "band": "4-6",
+   "q": "What sound does a cow make?",
+   "o": [
+    "Woof",
+    "Meow",
+    "Quack",
+    "Moo"
+   ],
+   "a": 3,
+   "fact": "A cow chews its food, swallows it, and then chews it again later!",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-02",
+   "band": "4-6",
+   "q": "Which animal has a long trunk?",
+   "o": [
+    "Elephant",
+    "Frog",
+    "Rabbit",
+    "Lion"
+   ],
+   "a": 0,
+   "fact": "An elephant's trunk can pick up something as small as a peanut.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-03",
+   "band": "4-6",
+   "q": "Which animal says \"quack\"?",
+   "o": [
+    "Cat",
+    "Horse",
+    "Dog",
+    "Duck"
+   ],
+   "a": 3,
+   "fact": "A duck's feathers are oily, so water rolls right off.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-04",
+   "band": "4-6",
+   "q": "Which animal lives in the ocean?",
+   "o": [
+    "Cow",
+    "Chicken",
+    "Whale",
+    "Horse"
+   ],
+   "a": 2,
+   "fact": "Whales are mammals, so they come up to the surface to breathe air.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-05",
+   "band": "4-6",
+   "q": "Which animal has black and white stripes?",
+   "o": [
+    "Rabbit",
+    "Zebra",
+    "Bear",
+    "Cow"
+   ],
+   "a": 1,
+   "fact": "Every zebra has its own stripe pattern, a bit like a fingerprint.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-06",
+   "band": "4-6",
+   "q": "What do we call a baby dog?",
+   "o": [
+    "Chick",
+    "Kitten",
+    "Puppy",
+    "Calf"
+   ],
+   "a": 2,
+   "fact": "A puppy is born with its eyes shut and opens them after about two weeks.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-07",
+   "band": "4-6",
+   "q": "Which animal hops and says \"ribbit\"?",
+   "o": [
+    "Bird",
+    "Snake",
+    "Frog",
+    "Fish"
+   ],
+   "a": 2,
+   "fact": "A frog can also breathe a little through its skin.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-08",
+   "band": "4-6",
+   "q": "Which animal is the tallest?",
+   "o": [
+    "Bear",
+    "Horse",
+    "Giraffe",
+    "Elephant"
+   ],
+   "a": 2,
+   "fact": "A giraffe has a very long neck, but only seven neck bones, just like you!",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-09",
+   "band": "4-6",
+   "q": "Which animal gives us milk on a farm?",
+   "o": [
+    "Bee",
+    "Cow",
+    "Duck",
+    "Pig"
+   ],
+   "a": 1,
+   "fact": "A farm cow can give several big buckets of milk in one day.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-10",
+   "band": "4-6",
+   "q": "What do we call a baby cat?",
+   "o": [
+    "Cub",
+    "Lamb",
+    "Puppy",
+    "Kitten"
+   ],
+   "a": 3,
+   "fact": "Kittens sleep a lot, up to sixteen hours a day.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-11",
+   "band": "4-6",
+   "q": "Which animal makes honey?",
+   "o": [
+    "Bee",
+    "Ladybug",
+    "Ant",
+    "Butterfly"
+   ],
+   "a": 0,
+   "fact": "A honey bee visits lots of flowers to make just a little honey.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-12",
+   "band": "4-6",
+   "q": "Which animal has a shell on its back?",
+   "o": [
+    "Turtle",
+    "Bird",
+    "Rabbit",
+    "Dog"
+   ],
+   "a": 0,
+   "fact": "A turtle's shell is part of its body, so it can never take it off.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-13",
+   "band": "4-6",
+   "q": "Which bird cannot fly but is a great swimmer?",
+   "o": [
+    "Eagle",
+    "Penguin",
+    "Owl",
+    "Robin"
+   ],
+   "a": 1,
+   "fact": "Penguins use their wings like flippers to zoom through the water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-46-14",
+   "band": "4-6",
+   "q": "Which animal has a big loud roar?",
+   "o": [
+    "Lion",
+    "Duck",
+    "Mouse",
+    "Sheep"
+   ],
+   "a": 0,
+   "fact": "A lion's roar can be heard from about five miles away.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-01",
+   "band": "7-10",
+   "q": "What do we call an animal that eats only plants?",
+   "o": [
+    "Carnivore",
+    "Omnivore",
+    "Predator",
+    "Herbivore"
+   ],
+   "a": 3,
+   "fact": "Cows, rabbits and deer are herbivores.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-02",
+   "band": "7-10",
+   "q": "Which of these animals is a mammal?",
+   "o": [
+    "Shark",
+    "Dolphin",
+    "Octopus",
+    "Trout"
+   ],
+   "a": 1,
+   "fact": "Dolphins breathe air and feed their babies milk.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-03",
+   "band": "7-10",
+   "q": "How many legs does an insect have?",
+   "o": [
+    "Four",
+    "Ten",
+    "Eight",
+    "Six"
+   ],
+   "a": 3,
+   "fact": "Spiders have eight legs, so they are not insects.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-04",
+   "band": "7-10",
+   "q": "What is a group of lions called?",
+   "o": [
+    "Flock",
+    "School",
+    "Herd",
+    "Pride"
+   ],
+   "a": 3,
+   "fact": "A pride can have many lions and their cubs living together.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-05",
+   "band": "7-10",
+   "q": "Which animal can change its color to blend in?",
+   "o": [
+    "Horse",
+    "Chameleon",
+    "Duck",
+    "Elephant"
+   ],
+   "a": 1,
+   "fact": "A chameleon also changes color to show how it is feeling.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-06",
+   "band": "7-10",
+   "q": "What does a caterpillar turn into?",
+   "o": [
+    "A worm",
+    "A butterfly or a moth",
+    "A beetle",
+    "A spider"
+   ],
+   "a": 1,
+   "fact": "Inside its chrysalis or cocoon, a caterpillar's body changes completely.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-07",
+   "band": "7-10",
+   "q": "Which animal sleeps hanging upside down?",
+   "o": [
+    "Squirrel",
+    "Bat",
+    "Owl",
+    "Rabbit"
+   ],
+   "a": 1,
+   "fact": "A bat is the only mammal that can truly fly.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-08",
+   "band": "7-10",
+   "q": "What do we call a baby kangaroo?",
+   "o": [
+    "Joey",
+    "Cub",
+    "Foal",
+    "Pup"
+   ],
+   "a": 0,
+   "fact": "A joey lives in its mother's pouch while it grows.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-09",
+   "band": "7-10",
+   "q": "Which animal is the fastest runner on land?",
+   "o": [
+    "Cheetah",
+    "Horse",
+    "Lion",
+    "Wolf"
+   ],
+   "a": 0,
+   "fact": "A cheetah can sprint faster than cars drive on many town roads.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-10",
+   "band": "7-10",
+   "q": "Which of these animals is a reptile?",
+   "o": [
+    "Snake",
+    "Frog",
+    "Newt",
+    "Salamander"
+   ],
+   "a": 0,
+   "fact": "Reptiles have dry, scaly skin.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-11",
+   "band": "7-10",
+   "q": "What does a fish use to breathe underwater?",
+   "o": [
+    "Gills",
+    "Fins",
+    "Scales",
+    "Whiskers"
+   ],
+   "a": 0,
+   "fact": "Gills take oxygen out of the water as it flows past.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-12",
+   "band": "7-10",
+   "q": "Which bird is famous for hooting at night?",
+   "o": [
+    "Parrot",
+    "Duck",
+    "Owl",
+    "Robin"
+   ],
+   "a": 2,
+   "fact": "An owl can turn its head far around to look behind it.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-13",
+   "band": "7-10",
+   "q": "What is the biggest animal in the ocean?",
+   "o": [
+    "Walrus",
+    "Blue whale",
+    "Great white shark",
+    "Giant squid"
+   ],
+   "a": 1,
+   "fact": "The blue whale is the biggest animal we know of that has ever lived.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-710-14",
+   "band": "7-10",
+   "q": "Which is the largest animal living on land?",
+   "o": [
+    "Giraffe",
+    "Hippopotamus",
+    "African elephant",
+    "Rhinoceros"
+   ],
+   "a": 2,
+   "fact": "An African elephant can weigh as much as several small cars.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-01",
+   "band": "11+",
+   "q": "What word describes animals that are mostly active at night?",
+   "o": [
+    "Migratory",
+    "Diurnal",
+    "Dormant",
+    "Nocturnal"
+   ],
+   "a": 3,
+   "fact": "Owls, bats and many mice are nocturnal.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-02",
+   "band": "11+",
+   "q": "Which bird flies from the Arctic to the Antarctic and back each year?",
+   "o": [
+    "Arctic tern",
+    "Puffin",
+    "Snowy owl",
+    "Bald eagle"
+   ],
+   "a": 0,
+   "fact": "The Arctic tern makes one of the longest migrations of any animal.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-03",
+   "band": "11+",
+   "q": "How many hearts does an octopus have?",
+   "o": [
+    "Three",
+    "Two",
+    "One",
+    "Eight"
+   ],
+   "a": 0,
+   "fact": "Two of its hearts serve the gills and one serves the rest of its body.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-04",
+   "band": "11+",
+   "q": "What do we call animals that have a backbone?",
+   "o": [
+    "Invertebrates",
+    "Vertebrates",
+    "Mollusks",
+    "Arthropods"
+   ],
+   "a": 1,
+   "fact": "Fish, birds, reptiles, amphibians and mammals are all vertebrates.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-05",
+   "band": "11+",
+   "q": "Which group of animals do sharks belong to?",
+   "o": [
+    "Mammals",
+    "Amphibians",
+    "Reptiles",
+    "Fish"
+   ],
+   "a": 3,
+   "fact": "A shark's skeleton is made of cartilage, the same bendy stuff as your ears.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-06",
+   "band": "11+",
+   "q": "What do we call a scientist who studies insects?",
+   "o": [
+    "Botanist",
+    "Ornithologist",
+    "Entomologist",
+    "Geologist"
+   ],
+   "a": 2,
+   "fact": "Entomologists study more than a million known kinds of insects.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-07",
+   "band": "11+",
+   "q": "Which animal's fingerprints look a lot like human fingerprints?",
+   "o": [
+    "Owl",
+    "Cat",
+    "Sloth",
+    "Koala"
+   ],
+   "a": 3,
+   "fact": "Koala fingerprints are so like ours that they are hard to tell apart under a microscope.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-08",
+   "band": "11+",
+   "q": "Which mammal lays eggs?",
+   "o": [
+    "Beaver",
+    "Platypus",
+    "Kangaroo",
+    "Otter"
+   ],
+   "a": 1,
+   "fact": "The platypus and the echidnas are the only mammals that lay eggs.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-09",
+   "band": "11+",
+   "q": "What is a group of owls sometimes called?",
+   "o": [
+    "A parliament",
+    "A swarm",
+    "A pod",
+    "A pride"
+   ],
+   "a": 0,
+   "fact": "Old stories say a group of owls is wise enough to hold a parliament.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-10",
+   "band": "11+",
+   "q": "Which sense is a dog's strongest?",
+   "o": [
+    "Sight",
+    "Smell",
+    "Hearing",
+    "Taste"
+   ],
+   "a": 1,
+   "fact": "A dog's nose has hundreds of millions of scent sensors, far more than a person's.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-11",
+   "band": "11+",
+   "q": "Which bird is the fastest diver in the sky?",
+   "o": [
+    "Albatross",
+    "Pelican",
+    "Peregrine falcon",
+    "Bald eagle"
+   ],
+   "a": 2,
+   "fact": "A peregrine falcon can dive faster than 180 miles per hour.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-12",
+   "band": "11+",
+   "q": "What do we call a big group of fish swimming together?",
+   "o": [
+    "A flock",
+    "A herd",
+    "A pack",
+    "A school"
+   ],
+   "a": 3,
+   "fact": "Swimming in a school helps small fish stay safe.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-13",
+   "band": "11+",
+   "q": "What is the name of the dance a honey bee does to show where flowers are?",
+   "o": [
+    "Sway dance",
+    "Spin dance",
+    "Waggle dance",
+    "Buzz dance"
+   ],
+   "a": 2,
+   "fact": "The direction and length of the waggle tell other bees where to fly.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "animals-11-14",
+   "band": "11+",
+   "q": "Which animal can drop its tail and grow a new one?",
+   "o": [
+    "Cat",
+    "Rabbit",
+    "Lizard",
+    "Sparrow"
+   ],
+   "a": 2,
+   "fact": "Many lizards can let go of their tail to escape, and it grows back.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

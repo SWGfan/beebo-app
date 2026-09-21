@@ -16,7 +16,39 @@ import okhttp3.Response
 internal object RemoteProfileSignIn {
     sealed class Result {
         data class SignedIn(val login: LoginResponse) : Result()
-        data class Refused(val message: String) : Result()
+        /**
+         * [secondStepChallenge] is set when the password was right but the account has two-factor
+         * on: the caller asks for a code and finishes with [secondStep].
+         */
+        data class Refused(val message: String, val secondStepChallenge: String? = null) : Result()
+    }
+
+    private const val CODE_PROMPT = "Enter the 6-digit code from your authenticator app."
+
+    /** Step two over the open tunnel: the challenge and a code to the home server's /api/login/2fa. */
+    fun secondStep(name: String, challenge: String, code: String, executeTunnel: (Request) -> Response): Result {
+        val payload = ApiClient.JSON.encodeToString(
+            com.beeboentertainment.movie.data.SecondStepRequest.serializer(),
+            com.beeboentertainment.movie.data.SecondStepRequest(challenge, code)
+        )
+        val request = Request.Builder().url("https://$name.beebo.tv/api/login/2fa")
+            .post(payload.toRequestBody("application/json; charset=utf-8".toMediaType()))
+            .header("Accept", "application/json").build()
+        return executeTunnel(request).use { response ->
+            val body = decode(response.body?.string().orEmpty())
+            when {
+                successful(response.code, body) -> Result.SignedIn(body!!)
+                response.code in 300..399 -> Result.Refused("Your home Beebo redirected the sign-in request. Nothing was forwarded. Reconnect and try again.")
+                body == null -> Result.Refused("Your home Beebo could not check that code. It may need an update.")
+                else -> when (val o = com.beeboentertainment.movie.core.SecondStep.outcome(body)) {
+                    is com.beeboentertainment.movie.core.SecondStep.Outcome.TryAgain -> Result.Refused(o.message, challenge)
+                    is com.beeboentertainment.movie.core.SecondStep.Outcome.StartOver -> Result.Refused(o.message)
+                    is com.beeboentertainment.movie.core.SecondStep.Outcome.Locked -> Result.Refused(o.message)
+                    is com.beeboentertainment.movie.core.SecondStep.Outcome.Failed -> Result.Refused(o.message)
+                    is com.beeboentertainment.movie.core.SecondStep.Outcome.SignedIn -> Result.SignedIn(body)
+                }
+            }
+        }
     }
 
     fun authenticate(name: String, signIn: RemoteSignIn, executeTunnel: (Request) -> Response): Result {
@@ -27,6 +59,7 @@ internal object RemoteProfileSignIn {
             response.code to decode(response.body?.string().orEmpty())
         }
         if (successful(initial.first, initial.second)) return Result.SignedIn(initial.second!!)
+        if (initial.first == 401 && initial.second?.needsSecondStep == true) return Result.Refused(CODE_PROMPT, initial.second!!.challenge)
         val needsOwnPassword = initial.first == 403 && initial.second?.error == "private_profile_sign_in"
         if (!needsOwnPassword || signIn.kind != RemoteSignIn.Kind.MEMBER || signIn.id.isBlank() || signIn.secret.isEmpty()) {
             return Result.Refused(RemoteMessages.remoteSession(if (initial.first == 404) "" else initial.second?.error.orEmpty()))
@@ -42,6 +75,7 @@ internal object RemoteProfileSignIn {
             val body = decode(response.body?.string().orEmpty())
             when {
                 successful(response.code, body) -> Result.SignedIn(body!!)
+                response.code == 401 && body?.needsSecondStep == true -> Result.Refused(CODE_PROMPT, body.challenge)
                 response.code == 429 -> Result.Refused("Too many sign-in attempts. Wait a few minutes, then try again with your own Beebo profile password.")
                 body != null && (body.locked || body.error == "bad_credentials") -> Result.Refused(body.failureMessage())
                 body?.error == "private_profile_sign_in" -> Result.Refused(RemoteMessages.remoteSession(body.error))

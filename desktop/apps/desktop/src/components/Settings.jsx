@@ -8,14 +8,17 @@ import BeeboAddress from './BeeboAddress.jsx'
 import ConnectionSettings from './ConnectionSettings.jsx'
 import { WalletSettingsBanner } from './BeeboWallet.jsx'
 import PlaybackSettings from './PlaybackSettings.jsx'
+import CinemaSettings from './CinemaSettings.jsx'
 import AddonsSettings from './AddonsSettings.jsx'
 import AlwaysOnSettings from './AlwaysOnSettings.jsx'
 import JellyfinCompatSettings from './JellyfinCompatSettings.jsx'
 import MetadataSettings from './MetadataSettings.jsx'
 import LiveTvSettings from './LiveTvSettings.jsx'
 import TvAppCorsSettings from './TvAppCorsSettings.jsx'
+import MovieNightSettings from './MovieNightSettings.jsx'
 import HelpSettings from './HelpSettings.jsx'
 import LanguageSettings from './LanguageSettings.jsx'
+import OfflineChip from './OfflineChip.jsx'
 import { useI18n } from '../lib/i18nApp.js'
 import { announce } from '../lib/announcer.js'
 import AppearanceSettings from './AppearanceSettings.jsx'
@@ -374,6 +377,7 @@ export default function Settings() {
   return (
     <div style={{ maxWidth: 480 }}>
       <h2>{t('settings.title')}</h2>
+      <OfflineChip />
       <LanguageSettings />
       <WalletSettingsBanner />
       <ConnectionSettings />
@@ -382,6 +386,7 @@ export default function Settings() {
       <MetadataSettings />
       <JellyfinCompatSettings />
       <TvAppCorsSettings />
+      <MovieNightSettings />
       <AppearanceSettings />
 
       <div style={{ marginBottom: 20 }}>
@@ -501,6 +506,8 @@ export default function Settings() {
       </div>
 
       <PlaybackSettings />
+
+      <CinemaSettings />
 
       <AddonsSettings />
 

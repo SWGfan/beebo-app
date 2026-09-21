@@ -141,6 +141,71 @@ object TripLogic {
         }
     }
 
+    /**
+     * Family pack B: keep the songs a family sang on the running trip as ONE entry per singing
+     * session ([sessionId]); asking again updates the same entry. Titles only: no audio, no lyrics,
+     * and [names] only when the host chose to include them.
+     */
+    fun recordSongs(book: TripBook, sessionId: String, titles: List<String>, names: List<String>, now: Long): TripBook {
+        val clean = titles.map { it.filter { c -> !c.isISOControl() }.trim().take(MAX_NAME * 2) }.filter { it.isNotEmpty() }.take(MAX_PACK_ITEMS)
+        if (clean.isEmpty()) return book
+        return updateActive(book) { trip ->
+            val id = "song-" + sessionId.filter { it.isLetterOrDigit() || it == '-' }.take(40)
+            val first = trip.moments.firstOrNull { it.id == id }?.at ?: now
+            val moment = TripMoment(
+                id = id,
+                at = first,
+                kind = MomentKind.SONG,
+                title = if (clean.size == 1) "Sang " + clean[0] else "Sang " + clean.size + " songs",
+                text = clean.joinToString("\n"),
+                names = mergeRoster(emptyList(), names),
+            )
+            trip.copy(moments = upsertMoment(trip.moments, moment))
+        }
+    }
+
+    /**
+     * Keep a finished plate or sign hunt on the running trip, one entry per round id. Counts and
+     * nicknames only: there is no coordinate field in a [TallyResult], so nothing here can carry one.
+     */
+    fun recordTally(book: TripBook, tally: TallyResult, now: Long): TripBook {
+        if (tally.total <= 0) return book
+        return updateActive(book) { trip ->
+            val moment = TripMoment(
+                id = "tally-" + tally.id,
+                at = now,
+                kind = MomentKind.TALLY,
+                title = tally.title.trim().take(MAX_NAME * 2).ifBlank { "Plate hunt" },
+                text = tally.text.trim().take(MAX_NAME * 3),
+                names = mergeRoster(emptyList(), tally.names),
+            )
+            trip.copy(moments = upsertMoment(trip.moments, moment))
+        }
+    }
+
+    /** The Trip Clock got there. Written once; a second call keeps the first time. */
+    fun recordArrival(book: TripBook, now: Long): TripBook = updateActive(book) { trip ->
+        if (trip.moments.any { it.kind == MomentKind.ARRIVED }) trip
+        else trip.copy(moments = appendMoment(trip.moments, TripMoment(id = "arrived", at = maxOf(now, trip.startedAt), kind = MomentKind.ARRIVED)))
+    }
+
+    /**
+     * A stop the parent added on the Trip Clock. Coordinates are kept only when the trip has
+     * [Trip.saveLocation] on, the same last line of defence [recordHunt] has.
+     */
+    fun recordStop(book: TripBook, stop: StopResult, now: Long): TripBook = updateActive(book) { trip ->
+        val keep = trip.saveLocation && stop.lat != null && stop.lng != null
+        val moment = TripMoment(
+            id = "stop-" + stop.id,
+            at = if (stop.at > 0L) stop.at else now,
+            kind = MomentKind.STOP,
+            title = stop.title.filter { !it.isISOControl() }.trim().take(MAX_NAME * 2).ifBlank { "Stop" },
+            lat = if (keep) stop.lat else null,
+            lng = if (keep) stop.lng else null,
+        )
+        trip.copy(moments = upsertMoment(trip.moments, moment))
+    }
+
     /** Turn hunt-location saving on or off for the running trip. Turning it off erases what was saved. */
     fun setSaveLocation(book: TripBook, on: Boolean): TripBook = updateActive(book) { trip ->
         if (on) trip.copy(saveLocation = true)

@@ -81,8 +81,8 @@ internal object CampsiteGameGate {
     }
 
     /** The small label under a game's name in the host's list. */
-    fun labelFor(needsGuests: Boolean): String =
-        if (needsGuests) "Needs other phones" else "Play vs computer"
+    fun labelFor(needsGuests: Boolean, playsSolo: Boolean = false): String =
+        if (needsGuests) "Needs other phones" else if (playsSolo) "Play on this phone" else "Play vs computer"
 
     /**
      * The host's Games list: one section per [GameCategory] in declaration order, games

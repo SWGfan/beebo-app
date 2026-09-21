@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "space",
+ "title": "Space and Sky",
+ "questions": [
+  {
+   "id": "space-46-01",
+   "band": "4-6",
+   "q": "What lights up the Moon so we can see it at night?",
+   "o": [
+    "A giant flashlight",
+    "Lightning",
+    "The Sun",
+    "The ocean"
+   ],
+   "a": 2,
+   "fact": "The Moon does not make its own light. It shines by reflecting sunlight.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-02",
+   "band": "4-6",
+   "q": "Which star is closest to Earth?",
+   "o": [
+    "The Moon",
+    "The Sun",
+    "Mars",
+    "A comet"
+   ],
+   "a": 1,
+   "fact": "The Sun is a star, and it gives us light and warmth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-03",
+   "band": "4-6",
+   "q": "What planet do we live on?",
+   "o": [
+    "The Moon",
+    "Mars",
+    "Earth",
+    "The Sun"
+   ],
+   "a": 2,
+   "fact": "Earth is the only planet we know of that has living things.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-04",
+   "band": "4-6",
+   "q": "Which planet is famous for its big rings?",
+   "o": [
+    "Mercury",
+    "Earth",
+    "Mars",
+    "Saturn"
+   ],
+   "a": 3,
+   "fact": "Saturn's rings are made mostly of pieces of ice.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-05",
+   "band": "4-6",
+   "q": "Which planet is called the Red Planet?",
+   "o": [
+    "Earth",
+    "Venus",
+    "Neptune",
+    "Mars"
+   ],
+   "a": 3,
+   "fact": "Mars looks red because its rocks have rust in them.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-06",
+   "band": "4-6",
+   "q": "What do astronauts wear outside their spaceship?",
+   "o": [
+    "Pajamas",
+    "A raincoat",
+    "A swimsuit",
+    "A space suit"
+   ],
+   "a": 3,
+   "fact": "A space suit gives an astronaut air and keeps them comfortable in space.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-07",
+   "band": "4-6",
+   "q": "What do we call people who travel into space?",
+   "o": [
+    "Bakers",
+    "Firefighters",
+    "Astronauts",
+    "Farmers"
+   ],
+   "a": 2,
+   "fact": "The first person in space was Yuri Gagarin in 1961.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-08",
+   "band": "4-6",
+   "q": "How many moons does Earth have?",
+   "o": [
+    "Two",
+    "One",
+    "Ten",
+    "Three"
+   ],
+   "a": 1,
+   "fact": "Our Moon is about one quarter as wide as Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-09",
+   "band": "4-6",
+   "q": "What is a ball of ice and dust with a glowing tail?",
+   "o": [
+    "A comet",
+    "A planet",
+    "A rocket",
+    "A satellite"
+   ],
+   "a": 0,
+   "fact": "A comet's tail always points away from the Sun.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-10",
+   "band": "4-6",
+   "q": "What do you use to look at faraway stars?",
+   "o": [
+    "A telescope",
+    "A magnet",
+    "A ruler",
+    "A microscope"
+   ],
+   "a": 0,
+   "fact": "A telescope collects light so faraway things look bigger and brighter.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-11",
+   "band": "4-6",
+   "q": "What do we call a space robot that rolls around on Mars?",
+   "o": [
+    "A submarine",
+    "A bulldozer",
+    "A rover",
+    "A kite"
+   ],
+   "a": 2,
+   "fact": "Rovers take pictures and study Martian rocks.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-12",
+   "band": "4-6",
+   "q": "What is a shooting star really?",
+   "o": [
+    "A firefly",
+    "An airplane",
+    "A star falling down",
+    "A bit of rock burning up"
+   ],
+   "a": 3,
+   "fact": "Most shooting stars are no bigger than a grain of sand or a pebble.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-13",
+   "band": "4-6",
+   "q": "When can we see the stars best?",
+   "o": [
+    "On a dark, clear night",
+    "At noon",
+    "At breakfast",
+    "During a rainstorm"
+   ],
+   "a": 0,
+   "fact": "Stars show up best when the sky is really dark.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-46-14",
+   "band": "4-6",
+   "q": "What does a rocket do?",
+   "o": [
+    "Grows flowers",
+    "Blasts off into space",
+    "Bakes a cake",
+    "Digs a hole"
+   ],
+   "a": 1,
+   "fact": "Rockets have to go about 17,500 miles per hour to orbit Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-01",
+   "band": "7-10",
+   "q": "Which planet is closest to the Sun?",
+   "o": [
+    "Venus",
+    "Mars",
+    "Earth",
+    "Mercury"
+   ],
+   "a": 3,
+   "fact": "A year on Mercury is only 88 Earth days long.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-02",
+   "band": "7-10",
+   "q": "How many planets are in our solar system?",
+   "o": [
+    "Ten",
+    "Nine",
+    "Eight",
+    "Seven"
+   ],
+   "a": 2,
+   "fact": "Pluto is now called a dwarf planet.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-03",
+   "band": "7-10",
+   "q": "Which planet is the biggest?",
+   "o": [
+    "Earth",
+    "Neptune",
+    "Jupiter",
+    "Saturn"
+   ],
+   "a": 2,
+   "fact": "Jupiter has a giant storm, the Great Red Spot, that has lasted for well over a hundred years.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-04",
+   "band": "7-10",
+   "q": "What is the name of our galaxy?",
+   "o": [
+    "Andromeda",
+    "Orion",
+    "The Big Dipper",
+    "The Milky Way"
+   ],
+   "a": 3,
+   "fact": "The Milky Way has hundreds of billions of stars.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-05",
+   "band": "7-10",
+   "q": "Who was the first person to walk on the Moon?",
+   "o": [
+    "John Glenn",
+    "Neil Armstrong",
+    "Buzz Aldrin",
+    "Yuri Gagarin"
+   ],
+   "a": 1,
+   "fact": "Neil Armstrong stepped onto the Moon in 1969.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-06",
+   "band": "7-10",
+   "q": "What force keeps us on the ground?",
+   "o": [
+    "Magnetism",
+    "Gravity",
+    "Friction",
+    "Wind"
+   ],
+   "a": 1,
+   "fact": "On the Moon gravity is about one sixth as strong, so you could jump much higher.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-07",
+   "band": "7-10",
+   "q": "Which planet is the hottest?",
+   "o": [
+    "Mars",
+    "Mercury",
+    "Venus",
+    "Jupiter"
+   ],
+   "a": 2,
+   "fact": "Venus is hotter than Mercury because its thick air traps heat.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-08",
+   "band": "7-10",
+   "q": "What made the bowl-shaped craters on the Moon?",
+   "o": [
+    "Rain",
+    "Space rocks crashing into it",
+    "Giant animals",
+    "Rivers"
+   ],
+   "a": 1,
+   "fact": "Some Moon craters are billions of years old.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-09",
+   "band": "7-10",
+   "q": "How long does Earth take to go around the Sun once?",
+   "o": [
+    "One year",
+    "One day",
+    "One month",
+    "One week"
+   ],
+   "a": 0,
+   "fact": "Earth zooms around the Sun at about 67,000 miles per hour.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-10",
+   "band": "7-10",
+   "q": "Which planet spins on its side?",
+   "o": [
+    "Earth",
+    "Mars",
+    "Uranus",
+    "Jupiter"
+   ],
+   "a": 2,
+   "fact": "Uranus is tilted so far that it seems to roll around the Sun.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-11",
+   "band": "7-10",
+   "q": "What do we call the path a planet takes around the Sun?",
+   "o": [
+    "A ring",
+    "An orbit",
+    "A circuit",
+    "A loop"
+   ],
+   "a": 1,
+   "fact": "The Moon has an orbit around Earth, too.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-12",
+   "band": "7-10",
+   "q": "What is a group of stars that makes a picture in the sky?",
+   "o": [
+    "A comet",
+    "A planet",
+    "A constellation",
+    "A galaxy"
+   ],
+   "a": 2,
+   "fact": "The Big Dipper is part of the constellation Ursa Major, the Great Bear.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-13",
+   "band": "7-10",
+   "q": "What is a rock from space that lands on Earth called?",
+   "o": [
+    "A meteorite",
+    "A satellite",
+    "A comet",
+    "A planet"
+   ],
+   "a": 0,
+   "fact": "Most space rocks burn up long before they reach the ground.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-710-14",
+   "band": "7-10",
+   "q": "About how long does sunlight take to reach Earth?",
+   "o": [
+    "About 8 seconds",
+    "About 8 hours",
+    "About 8 minutes",
+    "About 8 days"
+   ],
+   "a": 2,
+   "fact": "The sunlight you see right now left the Sun about eight minutes ago.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-01",
+   "band": "11+",
+   "q": "Which planet has the shortest day?",
+   "o": [
+    "Jupiter",
+    "Mercury",
+    "Venus",
+    "Earth"
+   ],
+   "a": 0,
+   "fact": "Jupiter spins once in about ten hours, even though it is huge.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-02",
+   "band": "11+",
+   "q": "What does a light-year measure?",
+   "o": [
+    "Speed",
+    "Distance",
+    "Weight",
+    "Time"
+   ],
+   "a": 1,
+   "fact": "A light-year is about six trillion miles.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-03",
+   "band": "11+",
+   "q": "What is the closest star to our Sun?",
+   "o": [
+    "Polaris",
+    "Betelgeuse",
+    "Sirius",
+    "Proxima Centauri"
+   ],
+   "a": 3,
+   "fact": "Light from Proxima Centauri takes over four years to reach us.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-04",
+   "band": "11+",
+   "q": "Which planet has the tallest volcano in the solar system?",
+   "o": [
+    "Jupiter",
+    "Venus",
+    "Earth",
+    "Mars"
+   ],
+   "a": 3,
+   "fact": "Olympus Mons on Mars is about two and a half times as tall as Mount Everest.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-05",
+   "band": "11+",
+   "q": "What is the Sun mostly made of?",
+   "o": [
+    "Solid rock",
+    "Hydrogen and helium gas",
+    "Liquid lava",
+    "Ice"
+   ],
+   "a": 1,
+   "fact": "Deep inside, the Sun turns hydrogen into helium to make its energy.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-06",
+   "band": "11+",
+   "q": "What was the first human-made satellite to orbit Earth?",
+   "o": [
+    "Hubble",
+    "Sputnik 1",
+    "Voyager 1",
+    "Apollo 11"
+   ],
+   "a": 1,
+   "fact": "Sputnik 1 launched in 1957 and beeped as it circled Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-07",
+   "band": "11+",
+   "q": "About how long does the Moon take to orbit Earth?",
+   "o": [
+    "One day",
+    "About a month",
+    "One year",
+    "One week"
+   ],
+   "a": 1,
+   "fact": "The Moon always shows us the same face.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-08",
+   "band": "11+",
+   "q": "What was the name of the 1969 mission that landed people on the Moon?",
+   "o": [
+    "Apollo 11",
+    "Voyager 2",
+    "Sputnik 1",
+    "Gemini 4"
+   ],
+   "a": 0,
+   "fact": "The Apollo 11 crew were Neil Armstrong, Buzz Aldrin and Michael Collins.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-09",
+   "band": "11+",
+   "q": "What causes the seasons on Earth?",
+   "o": [
+    "Earth's tilt as it orbits the Sun",
+    "The Moon's shadow",
+    "Clouds",
+    "Earth getting closer to the Sun"
+   ],
+   "a": 0,
+   "fact": "Earth is actually a little closer to the Sun in January than in July.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-10",
+   "band": "11+",
+   "q": "Which spacecraft launched in 1977 is now the farthest human-made object from Earth?",
+   "o": [
+    "Hubble",
+    "Apollo 8",
+    "Cassini",
+    "Voyager 1"
+   ],
+   "a": 3,
+   "fact": "Voyager 1 is sending back signals from interstellar space.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-11",
+   "band": "11+",
+   "q": "What has gravity so strong that not even light can escape?",
+   "o": [
+    "A quasar",
+    "A nebula",
+    "A black hole",
+    "A comet"
+   ],
+   "a": 2,
+   "fact": "Many black holes form when a giant star runs out of fuel and collapses.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-12",
+   "band": "11+",
+   "q": "Which planet takes about 165 Earth years to orbit the Sun?",
+   "o": [
+    "Neptune",
+    "Jupiter",
+    "Saturn",
+    "Uranus"
+   ],
+   "a": 0,
+   "fact": "Neptune was found in 1846 using math before anyone spotted it in a telescope.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-13",
+   "band": "11+",
+   "q": "What is the Hubble?",
+   "o": [
+    "A space telescope",
+    "A comet",
+    "A moon",
+    "A rocket"
+   ],
+   "a": 0,
+   "fact": "Hubble has been taking pictures from orbit since 1990.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "space-11-14",
+   "band": "11+",
+   "q": "What is a nebula?",
+   "o": [
+    "A very small planet",
+    "A star's tail",
+    "A type of comet",
+    "A cloud of gas and dust in space"
+   ],
+   "a": 3,
+   "fact": "New stars are born inside nebulae.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

@@ -55,7 +55,7 @@ const os = require('os')
 const path = require('path')
 const { spawn } = require('child_process')
 const model = require('./updateModel')
-const { downloadResumable } = require('./updateDownload')
+const { downloadResumable, sha256File } = require('./updateDownload')
 const marker = require('./updateMarker')
 const trust = require('./updateTrust')
 const platformPolicy = require('./platformPolicy')
@@ -64,7 +64,7 @@ const platformPolicy = require('./platformPolicy')
 // PowerShell is ever touched.
 const impl = {
   downloadResumable,
-  startElevated: (exe, args) => startElevated(exe, args),
+  startElevated: (exe, args, opts) => startElevated(exe, args, opts),
   exists: (p) => fs.existsSync(p),
   fetchJson: (url) => fetchJson(url),
   platform: () => process.platform, // a seam so the tests can act as Windows on any OS
@@ -73,6 +73,7 @@ const impl = {
 
 const VERSION_URL = 'https://beeboentertainment.com/desktop-version.json'
 const MAX_REDIRECTS = 5
+const FEED_MAX_CHARS = 256 * 1024
 
 // --- settings store ------------------------------------------------------
 let PREF_STORE = null
@@ -122,6 +123,8 @@ function get(url, redirects = 0) {
         res.resume()
         let next
         try { next = new URL(res.headers.location, url).toString() } catch (e) { return reject(e) }
+        // An https address may not hand the request on to plain http (the feed carries the installer's fingerprint).
+        if (!url.startsWith('http:') && !next.startsWith('https:')) return reject(new Error('redirect to an insecure address'))
         return resolve(get(next, redirects + 1))
       }
       if (code !== 200) { res.resume(); return reject(new Error('HTTP ' + code)) }
@@ -137,7 +140,10 @@ async function fetchJson(url) {
   return await new Promise((resolve, reject) => {
     let data = ''
     res.setEncoding('utf8')
-    res.on('data', (c) => { data += c })
+    res.on('data', (c) => {
+      data += c
+      if (data.length > FEED_MAX_CHARS) { try { res.destroy() } catch (e) {} reject(new Error('the update feed is too large')) } // a feed is a few KB
+    })
     res.on('end', () => { try { resolve(JSON.parse(data)) } catch (e) { reject(e) } })
     res.on('error', reject)
   })
@@ -416,10 +422,22 @@ function psStr(s) { return "'" + String(s).replace(/'/g, "''") + "'" }
 // time estimate. Start-Process -Verb RunAs goes through the same ShellExecute
 // elevation, waits for the person's answer (no timeout to miss), and tells us
 // whether it started.
-function startElevated(exe, args) {
+// The installer sits in a folder any program of this user can write to, sometimes for hours ("install tonight"),
+// and it is then run with administrator rights. So the file is hashed again right before it is started and must
+// still be the one whose fingerprint was verified after the download.
+async function installerStillMatches(file, sha256) {
+  const want = trust.normalizeSha256(sha256)
+  if (!want) return false
+  try { return (await sha256File(file)) === want } catch (e) { return false }
+}
+
+async function startElevated(exe, args, { sha256 } = {}) {
+  // Belt and braces: this runs a Windows installer through PowerShell and must never be reached elsewhere.
+  if (impl.platform() !== 'win32') return { ok: false, message: 'Installers only run on Windows.', noPowershell: true }
+  if (sha256 !== undefined && !(await installerStillMatches(exe, sha256))) {
+    return { ok: false, tampered: true, message: 'the downloaded installer changed after it was checked' }
+  }
   return new Promise((resolve) => {
-    // Belt and braces: this runs a Windows installer through PowerShell and must never be reached elsewhere.
-    if (impl.platform() !== 'win32') return resolve({ ok: false, message: 'Installers only run on Windows.', noPowershell: true })
     const script = [
       "$ErrorActionPreference = 'Stop'",
       'try {',
@@ -483,7 +501,21 @@ async function launchInstall() {
   // in the gap between this app quitting and the installer taking over.
   marker.writeMarker({ from, to: job.version })
   log('launching installer elevated', job.dest, 'eta', eta)
-  const r = await impl.startElevated(job.dest, ['--updated', '--force-run', '--beebo-eta=' + eta])
+  const r = await impl.startElevated(job.dest, ['--updated', '--force-run', '--beebo-eta=' + eta], { sha256: trust.normalizeSha256(job.info && job.info.sha256) })
+  if (!r.ok && r.tampered) {
+    // The file is not what was downloaded and verified: never run it, never offer it again.
+    installing = false
+    marker.clearMarker()
+    log('refusing to run the installer: it changed after verification')
+    try { fs.unlinkSync(job.dest) } catch (e) {}
+    job.ready = false
+    job.verified = false
+    setProgress({
+      phase: 'error', errorKind: 'verify',
+      message: 'The downloaded update changed after it was checked, so Beebo did not run it. Nothing was changed. Download it again.'
+    }, { immediate: true })
+    return publicProgress()
+  }
   if (!r.ok) {
     installing = false
     marker.clearMarker()
@@ -605,7 +637,14 @@ async function checkForDesktopUpdate(opts = {}) {
     if (manual && parent) { try { if (!parent.isVisible()) parent.show(); parent.focus() } catch (e) {} }
   } catch (e) {
     log('check failed:', (e && e.message) || String(e))
-    if (manual) dialog.showMessageBox(parent, { type: 'warning', title: 'Update check failed', message: "Couldn't check for updates right now.", detail: String((e && e.message) || e) })
+    if (manual) {
+      // No internet is not an error worth alarming anyone about: say so, and say that everything at home still works.
+      const raw = String((e && e.message) || e)
+      const offline = /ENOTFOUND|EAI_AGAIN|ENETUNREACH|EHOSTUNREACH|ETIMEDOUT|ECONNREFUSED|timeout|getaddrinfo|fetch failed/i.test(raw)
+      dialog.showMessageBox(parent, offline
+        ? { type: 'info', title: 'You’re offline', message: "Couldn't check for updates because this computer is offline.", detail: 'Everything on your home network still works. Beebo will check again by itself when the internet is back.' }
+        : { type: 'warning', title: 'Update check failed', message: "Couldn't check for updates right now.", detail: raw })
+    }
   }
 }
 
@@ -640,5 +679,5 @@ module.exports = {
   scheduleInstall,
   launchInstall,
   // Test seam: swap the network/installer pieces and read the current state.
-  __test: { impl, progress: () => publicProgress(), reset: () => { job = null; installing = false; PROGRESS = { ...IDLE_PROGRESS } }, setJob: (j) => { job = j } }
+  __test: { impl, installerStillMatches, progress: () => publicProgress(), reset: () => { job = null; installing = false; PROGRESS = { ...IDLE_PROGRESS } }, setJob: (j) => { job = j } }
 }

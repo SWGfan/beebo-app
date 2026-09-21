@@ -51,8 +51,18 @@ data class LoginResponse(
     val error: String? = null,
     /** Set by the server when this IP is temporarily locked out after repeated bad attempts. */
     val locked: Boolean = false,
-    val minutesRemaining: Int? = null
+    val minutesRemaining: Int? = null,
+    /**
+     * With `error = "two_factor_required"`: the password was right, and this short-lived token
+     * goes back with the code to POST /api/login/2fa. It is not a session and is never stored.
+     */
+    val challenge: String? = null,
+    /** The server's own plain-words line for a refusal (wrong code, second step locked...). */
+    val message: String? = null
 ) {
+    /** Right password, but this account has two-factor on: a code is needed to finish. */
+    val needsSecondStep: Boolean get() = error == "two_factor_required" && !challenge.isNullOrBlank()
+
     /** Message to show the user on failure — spells out a lockout instead of "wrong password". */
     fun failureMessage(): String = when {
         locked -> {
@@ -61,6 +71,9 @@ data class LoginResponse(
             else "Too many failed attempts. Try again shortly."
         }
         error == "bad_credentials" -> "Wrong username or password."
+        error == "two_factor_setup_required" -> com.beeboentertainment.movie.core.SecondStep.SETUP_REQUIRED
+        error == "challenge_expired" -> com.beeboentertainment.movie.core.SecondStep.EXPIRED
+        error == "invalid_code" -> com.beeboentertainment.movie.core.SecondStep.WRONG_CODE
         !error.isNullOrBlank() -> "Login failed: $error"
         else -> "Login failed."
     }
@@ -420,6 +433,10 @@ data class WatchSessionResponse(
 
 @Serializable
 data class LoginRequest(val username: String, val password: String)
+
+/** POST /api/login/2fa. */
+@Serializable
+data class SecondStepRequest(val challenge: String, val code: String)
 
 @Serializable
 data class FlagQualityRequest(val kind: String, val id: String)

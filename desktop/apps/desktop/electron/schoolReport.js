@@ -391,8 +391,10 @@ function navBar (report, opts) {
       '">Export</a>')
   }
   if (hasClear) {
-    actions.push('<a class="btn btn-danger" href="' + esc(opts.clearHref) +
-      '">Clear all</a>')
+    // Deleting is a POST (a link, which another site can send someone to, must never delete anything), with a confirm.
+    actions.push('<form class="inline-form" method="POST" action="' + esc(opts.clearHref) +
+      '" onsubmit="return confirm(\'Clear all of the saved sessions for this child? This cannot be undone.\')">' +
+      '<button type="submit" class="btn btn-danger">Clear all</button></form>')
   }
   const actionBits = actions.length
     ? '<div class="nav-actions">' + actions.join('') + '</div>'
@@ -507,6 +509,8 @@ function styles () {
     'text-decoration:none;font-size:.9rem;border:1px solid var(--line);' +
     'background:var(--card);color:var(--ink)}' +
     '.btn-danger{color:var(--danger);border-color:#e0c4bd}' +
+    'button.btn{font:inherit;font-size:.9rem;cursor:pointer}' +
+    '.inline-form{display:inline;margin:0}' +
     // empty state
     '.empty{text-align:center;padding:48px 22px}' +
     '.empty h1{color:var(--accent);margin-bottom:10px}' +

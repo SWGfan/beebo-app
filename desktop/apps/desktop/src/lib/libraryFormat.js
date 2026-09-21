@@ -79,6 +79,7 @@ const AUDIO_CODECS = {
 export function formatAudioCodec(codec, profile) {
   const c = String(codec || '').toLowerCase()
   if (!c) return ''
+  if (/atmos/i.test(String(profile || '')) && (c === 'eac3' || c === 'truehd')) return c === 'truehd' ? 'TrueHD Atmos' : 'E-AC-3 Atmos'
   if (c === 'dts') {
     const p = String(profile || '')
     if (/dts:x/i.test(p)) return 'DTS:X'

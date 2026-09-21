@@ -39,6 +39,10 @@ const EXPIRED_KEEP_MS = 30 * 24 * HOUR
 const STALE_UPLOAD_MS = 3 * 24 * HOUR
 const UNUSED_MEDIA_MS = 24 * HOUR
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/
+// Half-sent uploads (a .json + a .part each) that may exist at once. Each begin() costs two files and every upload's
+// id is made from what the phone sends, so without a bound one signed-in phone could create files without end.
+const MAX_INCOMPLETE_UPLOADS = 500
+const DISK_RESERVE = 512 * MiB
 
 const DEFAULT_SETTINGS = {
   enabled: true,
@@ -85,7 +89,7 @@ function cleanTripId(value) {
   return s
 }
 
-function createTripShares({ dataDir, now = Date.now, log = () => {}, freeSpace, randomBytes = crypto.randomBytes, autoSweep = false } = {}) {
+function createTripShares({ dataDir, now = Date.now, log = () => {}, freeSpace, randomBytes = crypto.randomBytes, autoSweep = false, maxIncompleteUploads = MAX_INCOMPLETE_UPLOADS } = {}) {
   if (!dataDir) throw new Error('dataDir required')
   const indexFile = path.join(dataDir, 'index.json')
   const mediaRoot = path.join(dataDir, 'media')
@@ -250,6 +254,19 @@ function createTripShares({ dataDir, now = Date.now, log = () => {}, freeSpace, 
     return kind === 'photo' ? st.maxPhotoBytes : kind === 'video' ? st.maxVideoBytes : st.maxSongBytes
   }
 
+  /** Throws pc_disk_full unless [bytes] more can be written and the PC keeps its reserve. */
+  async function assertDiskRoom(bytes) {
+    if (typeof freeSpace === 'function') {
+      const free = await freeSpace(dataDir).catch(() => null)
+      if (free != null && free < bytes + DISK_RESERVE) throw error(507, 'pc_disk_full')
+    } else if (fsp.statfs) {
+      try {
+        const s = await fsp.statfs(dataDir)
+        if (s.bavail * s.bsize < bytes + DISK_RESERVE) throw error(507, 'pc_disk_full')
+      } catch (e) { if (e.status) throw e }
+    }
+  }
+
   async function check(user, body) {
     const tripId = cleanTripId(body && body.tripId)
     const pkg = load().packages[pkgKey(user.id, tripId)]
@@ -283,20 +300,15 @@ function createTripShares({ dataDir, now = Date.now, log = () => {}, freeSpace, 
     const u = await usage()
     if (u.used + u.incoming + size > u.cap) throw error(507, 'trip_storage_full', { used: u.used, cap: u.cap })
     await fsp.mkdir(incomingDir, { recursive: true })
-    if (typeof freeSpace === 'function') {
-      const free = await freeSpace(dataDir).catch(() => null)
-      if (free != null && free < size + 512 * MiB) throw error(507, 'pc_disk_full')
-    } else if (fsp.statfs) {
-      try {
-        const s = await fsp.statfs(dataDir)
-        if (s.bavail * s.bsize < size + 512 * MiB) throw error(507, 'pc_disk_full')
-      } catch (e) { if (e.status) throw e }
-    }
+    await assertDiskRoom(size)
     const uploadId = crypto.createHash('sha1').update(user.id + '|' + tripId + '|' + sha + '|' + size).digest('hex')
     return withLock(uploadId, async () => {
       let m = null
       try { m = JSON.parse(await fsp.readFile(metaPath(uploadId), 'utf8')) } catch {}
       if (!m) {
+        let pending = 0
+        try { pending = (await fsp.readdir(incomingDir)).filter((n) => n.endsWith('.json')).length } catch {}
+        if (pending >= maxIncompleteUploads) throw error(429, 'too_many_uploads')
         m = { uploadId, userId: user.id, tripId, kind, sha256: sha, size, w: Number(body.w) || 0, h: Number(body.h) || 0, startedAt: now() }
         await fsp.writeFile(metaPath(uploadId), JSON.stringify(m))
         await fsp.writeFile(partPath(uploadId), Buffer.alloc(0), { flag: 'a' })
@@ -348,6 +360,11 @@ function createTripShares({ dataDir, now = Date.now, log = () => {}, freeSpace, 
       if (at + data.length > m.size) throw error(400, 'too_much_data', { offset: at })
       const declared = String(req.headers['x-chunk-sha256'] || '').toLowerCase()
       if (declared && sha256(data) !== declared) throw error(422, 'chunk_checksum_mismatch', { offset: at })
+      // begin() only saw empty .part files, so any number of uploads could each pass it. The owner's storage cap and the
+      // PC's free-space reserve are therefore checked against what is really on disk, on every chunk.
+      const u = await usage()
+      if (u.used + u.incoming + data.length > u.cap) throw error(507, 'trip_storage_full', { used: u.used, cap: u.cap })
+      await assertDiskRoom(data.length)
       const fh = await fsp.open(partPath(uploadId), 'r+')
       try { await fh.write(data, 0, data.length, at) } finally { await fh.close() }
       return { ok: true, uploadId, offset: at + data.length, size: m.size }

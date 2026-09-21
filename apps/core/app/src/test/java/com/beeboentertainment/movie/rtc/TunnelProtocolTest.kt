@@ -136,6 +136,97 @@ class TunnelProtocolTest {
         assertEquals(TunnelProtocol.Incoming.Ignored, TunnelProtocol.parseText("""{"kind":"head"}"""))
     }
 
+    // ---- compatibility: every combination of an older or newer app with an older or newer host
+
+    /** What desktop 0.1.57's agent answers (no frame, no stripes). */
+    private val oldHostHello = """{"kind":"hello","proto":2,"features":["headers","body-chunks","set-cookies","resp-headers"],"maxBody":8388608,"bodyChunk":16384}"""
+
+    /** What a newer agent answers. */
+    private val newHostHello = """{"kind":"hello","proto":2,"features":["headers","body-chunks","set-cookies","resp-headers","big-frames","stripe"],"maxBody":8388608,"bodyChunk":32768,"frame":65533,"stripes":4}"""
+
+    private fun features(text: String) = (TunnelProtocol.parseText(text) as TunnelProtocol.Incoming.Hello).features
+
+    @Test fun `a new app on an old host reads no frame size and no stripes, everything else as before`() {
+        val f = features(oldHostHello)
+        assertTrue(f.headers && f.bodyChunks && !f.isLegacy)
+        assertFalse(f.bigFrames)
+        assertFalse(f.stripe)
+        assertEquals(0, f.frame)
+        assertEquals(0, f.stripes)
+        assertEquals(16384, f.bodyChunk)
+        // An old host never answers the hello at all: the legacy features have neither.
+        assertFalse(TunnelProtocol.HostFeatures.LEGACY.stripe)
+        assertFalse(TunnelProtocol.HostFeatures.LEGACY.bigFrames)
+        assertEquals(1, TunnelStripe.connectionsFor(features(oldHostHello), 900L * 1024 * 1024, true))
+    }
+
+    @Test fun `a new app on a new host reads the new fields`() {
+        val f = features(newHostHello)
+        assertTrue(f.bigFrames)
+        assertTrue(f.stripe)
+        assertEquals(65533, f.frame)
+        assertEquals(4, f.stripes)
+        assertEquals(32768, f.bodyChunk)
+        assertEquals(4, TunnelStripe.connectionsFor(f, 900L * 1024 * 1024, true))
+        // An upload is cut into what the host asked for, capped below a data channel message.
+        val body = ByteArray(200_000) { it.toByte() }
+        val frames = TunnelProtocol.encodeRequest("9", "PUT", "/u", emptyList(), body, "application/octet-stream", null, f)
+        val sizes = frames.filterIsInstance<TunnelProtocol.Frame.Binary>().map { it.bytes.size - (2 + 1) }
+        assertEquals(32768, sizes.first())
+        assertEquals(body.size, sizes.sum())
+        // ...and an old host's smaller hint is respected exactly as before.
+        val small = TunnelProtocol.encodeRequest("9", "PUT", "/u", emptyList(), body, "application/octet-stream", null, features(oldHostHello))
+        assertEquals(16384, (small[1] as TunnelProtocol.Frame.Binary).bytes.size - 3)
+    }
+
+    @Test fun `an old app on a new host sends the same plain hello, and the extra fields are harmless`() {
+        // What every released app sends, byte for byte.
+        assertEquals("""{"kind":"hello","proto":2}""", TunnelProtocol.hello())
+        assertEquals("""{"kind":"hello","proto":2}""", TunnelProtocol.hello(null))
+        // The old parser read only kind/proto/features/maxBody/bodyChunk; the new host's answer
+        // still holds all of them in the same shape, with the same meanings.
+        val o = obj(newHostHello)
+        assertEquals("hello", o["kind"]!!.jsonPrimitive.content)
+        assertEquals("2", o["proto"]!!.jsonPrimitive.content)
+        assertEquals("8388608", o["maxBody"]!!.jsonPrimitive.content)
+        assertEquals("32768", o["bodyChunk"]!!.jsonPrimitive.content)
+        assertTrue(o["features"].toString().contains("\"headers\""))
+    }
+
+    @Test fun `an extra connection names its primary, and the answer says whether it was taken in`() {
+        val h = obj(TunnelProtocol.hello("vabc123"))
+        assertEquals("hello", h["kind"]!!.jsonPrimitive.content)
+        assertEquals("2", h["proto"]!!.jsonPrimitive.content)
+        assertEquals("vabc123", h["stripeOf"]!!.jsonPrimitive.content)
+        // Taken in.
+        val ok = TunnelProtocol.parseStripeAnswer("""{"kind":"hello","proto":2,"stripes":4,"stripeOf":"vabc123"}""")!!
+        assertEquals("vabc123", ok.joined)
+        assertNull(ok.error)
+        // Refused, with a reason.
+        val no = TunnelProtocol.parseStripeAnswer("""{"kind":"hello","proto":2,"stripes":4,"stripeError":"not_same_viewer"}""")!!
+        assertNull(no.joined)
+        assertEquals("not_same_viewer", no.error)
+        // An old host says nothing about it: not taken in, no reason.
+        val old = TunnelProtocol.parseStripeAnswer(oldHostHello)!!
+        assertNull(old.joined)
+        assertNull(old.error)
+        // Not a hello at all, or not JSON.
+        assertNull(TunnelProtocol.parseStripeAnswer("""{"kind":"end","id":"1"}"""))
+        assertNull(TunnelProtocol.parseStripeAnswer("garbage"))
+    }
+
+    @Test fun `silly frame and stripe numbers in a hello are not believed`() {
+        val f = features("""{"kind":"hello","proto":2,"features":["stripe","big-frames"],"frame":5,"stripes":99}""")
+        assertEquals(0, f.frame)
+        assertEquals(0, f.stripes)
+        assertFalse("the name without a believable count is no offer", f.stripe)
+        val g = features("""{"kind":"hello","proto":2,"features":["stripe"],"frame":"65533","stripes":"3"}""")
+        assertEquals("numbers sent as strings are accepted, like the other fields", 65533, g.frame)
+        assertEquals(3, g.stripes)
+        assertTrue(g.stripe)
+        assertEquals(0, features("""{"kind":"hello","proto":2,"stripes":-1}""").stripes)
+    }
+
     @Test fun `ranges`() {
         assertEquals(0L, TunnelProtocol.rangeStart(null))
         assertEquals(100L, TunnelProtocol.rangeStart("bytes=100-"))

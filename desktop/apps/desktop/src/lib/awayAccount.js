@@ -21,7 +21,7 @@ export const REASONS = {
 export function humanError(r) {
   if (!r) return 'Something went wrong. Please try again.'
   const reason = String(r.reason || r.error || '')
-  if (reason.startsWith('network')) return "Couldn't reach Beebo just now — check your internet connection and try again."
+  if (reason.startsWith('network')) return "Couldn't reach Beebo just now. You may be offline: check your internet connection and try again. Your home library keeps working either way."
   return REASONS[reason] || ('Couldn’t continue (' + reason + ').')
 }
 

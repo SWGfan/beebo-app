@@ -108,20 +108,42 @@ function checkLan(f) {
     })
   }
   return mk('lan', 'pass', 'This computer’s address', 'Phones on the same Wi-Fi reach this computer at ' + good[0] + '.', {
+    address: good[0] + (f.server && f.server.port ? ':' + f.server.port : ''),
     detail: 'If a phone still cannot connect, check that it is on the same Wi-Fi as this computer and not on a “guest” network, and that Wi-Fi is on (not just mobile data).',
   })
 }
 
 const awayOff = (id, title) => mk(id, 'skip', title, 'You have not turned on watching away from home, so this does not matter yet.', { scope: 'away', fix: FIXES.openSignin })
 
+// "The internet is out" (as opposed to "beebo.tv is having trouble"): either the doctor's own check said the internet
+// is down, or beebo.tv could not be reached by name, in time, or at all. That is a normal state for a home library,
+// not a fault: nothing at home needs the internet. So it is a note (warn), never a failure, and the words say so.
+const OFFLINE_ERRORS = ['dns', 'timeout', 'network']
+function isOffline(f) {
+  const c = f.cloud || {}
+  if (c.signedIn && c.reachable === false) return OFFLINE_ERRORS.includes(c.error || 'network')
+  return !!(f.internet && f.internet.online === false)
+}
+
 function checkInternet(f) {
   const c = f.cloud || {}
-  if (!c.signedIn) return awayOff('internet', 'Beebo’s service (beebo.tv)')
+  if (isOffline(f)) {
+    const lan = ((f.network && f.network.addresses) || []).map((a) => (typeof a === 'string' ? a : a.address)).filter((a) => a && !isLinkLocal(a))[0]
+    const port = f.server && f.server.port
+    const numbers = lan ? lan + (port ? ':' + port : '') : ''
+    return mk('internet', 'warn', 'You’re offline right now', 'This computer cannot reach the internet, but Beebo is fine. Everything on your home network still works: your library, your accounts, and phones and TVs on the same Wi-Fi.', {
+      scope: 'away', offline: true,
+      detail: 'Only watching away from home, update checks and looking up titles Beebo has not seen before need the internet. Beebo keeps going by itself and reconnects when it is back.'
+        + (numbers ? ' To watch on a phone at home right now, join the same Wi-Fi and use ' + numbers + ' (or scan the code in Get Started). No internet is needed for that.' : ''),
+    })
+  }
+  if (!c.signedIn) {
+    if (f.internet && f.internet.online === true) return mk('internet', 'pass', 'The internet is working', 'This computer can reach the internet. Watching at home never needs it.', { scope: 'away' })
+    return awayOff('internet', 'Beebo’s service (beebo.tv)')
+  }
   if (c.reachable === true) return mk('internet', 'pass', 'beebo.tv answers', 'This computer can reach beebo.tv' + (c.ms ? ' (' + c.ms + ' ms)' : '') + '.', { scope: 'away' })
   if (c.reachable === false) {
     const why = {
-      dns: ['Cannot find beebo.tv', 'This computer could not look up the beebo.tv address. Your internet may be down, or the DNS setting is blocking it.'],
-      timeout: ['beebo.tv did not answer in time', 'The connection to beebo.tv timed out. Your internet may be down or very slow.'],
       tls: ['Secure connection to beebo.tv failed', 'This computer could not make a secure connection to beebo.tv. A wrong date or time on this computer, or an antivirus that inspects web traffic, causes this.'],
       http_5xx: ['beebo.tv is having trouble', 'beebo.tv answered with an error. This is on Beebo’s side, and usually clears up in a few minutes.'],
     }[c.error] || ['Cannot reach beebo.tv', 'This computer could not reach beebo.tv. Check the internet connection.']
@@ -130,11 +152,13 @@ function checkInternet(f) {
   return mk('internet', 'warn', 'Could not check beebo.tv', 'Beebo could not test the internet connection just now.', { scope: 'away' })
 }
 
-const dependsOnInternet = (f) => (f.cloud || {}).signedIn && (f.cloud || {}).reachable === false
+const dependsOnInternet = (f) => !!(f.cloud || {}).signedIn && ((f.cloud || {}).reachable === false || isOffline(f))
+const offlineAway = (f) => !!(f.cloud || {}).signedIn && isOffline(f)
 
 function checkRouter(f) {
   const c = f.cloud || {}
   if (!c.signedIn) return awayOff('router', 'Router and port opening')
+  if (offlineAway(f)) return mk('router', 'skip', 'Router and port opening', 'Skipped until this computer is online.', { scope: 'away' })
   const r = f.router && f.router.server
   if (!r) return mk('router', 'warn', 'Router not tried yet', 'Beebo has not asked your router to open the connection yet.', { scope: 'away', fix: FIXES.retryRouter })
   if (r.active && r.reachable) return mk('router', 'pass', 'Your router opened the door', 'Your router accepted Beebo’s request (' + (r.method === 'nat-pmp' ? 'NAT-PMP' : r.method === 'upnp' ? 'UPnP' : 'automatic') + '), so direct connections from outside can reach this computer.', { scope: 'away' })
@@ -151,6 +175,7 @@ function checkRouter(f) {
 function checkNat(f) {
   const c = f.cloud || {}
   if (!c.signedIn) return awayOff('nat', 'Shared internet address')
+  if (offlineAway(f)) return mk('nat', 'skip', 'Shared internet address', 'Skipped until this computer is online.', { scope: 'away' })
   let auto = autoCheck(f.remote)
   const routerKind = f.router && f.router.server && f.router.server.kind
   if ((auto.state === 'unknown' || auto.state === 'checking') && (routerKind === 'cgnat' || routerKind === 'double-nat')) auto = { state: 'direct_unlikely', kind: routerKind }
@@ -235,9 +260,12 @@ export function summarize(checks) {
   const first = fails[0] || warns[0] || null
   const worst = list.reduce((w, c) => (RANK[c.status] > RANK[w] ? c.status : w), 'skip')
   let headline = 'Everything looks good on this computer.'
-  if (fails.length) headline = fails.length === 1 ? 'Found a problem: ' + fails[0].title + '.' : 'Found ' + fails.length + ' problems. Start with: ' + fails[0].title + '.'
+  // No internet is the only thing found: say what is true. Beebo is fine, and watching at home works.
+  const onlyOffline = !fails.length && warns.length > 0 && warns.every((c) => c.offline)
+  if (onlyOffline) headline = 'No internet right now, but watching at home works.'
+  else if (fails.length) headline = fails.length === 1 ? 'Found a problem: ' + fails[0].title + '.' : 'Found ' + fails.length + ' problems. Start with: ' + fails[0].title + '.'
   else if (warns.length) headline = warns.length === 1 ? 'Nearly there: ' + warns[0].title + '.' : 'Nearly there. ' + warns.length + ' things are worth a look.'
-  return { worst, headline, first, fixable: list.filter((c) => c.fix && (c.status === 'fail' || c.status === 'warn')).map((c) => c.id) }
+  return { worst, headline, first, onlyOffline, fixable: list.filter((c) => c.fix && (c.status === 'fail' || c.status === 'warn')).map((c) => c.id) }
 }
 
 // What to try on the phone, chosen from what this computer found. Always ends with the phone-side basics.
@@ -248,6 +276,10 @@ export function phoneAdvice(checks) {
   if (by.firewall && by.firewall.status === 'fail') out.push('Press “Fix the firewall” above, then try the phone again.')
   if (by.lan && by.lan.status !== 'pass') out.push('Make sure the phone is on the same Wi-Fi as this computer, not a guest network and not mobile data.')
   if (by.sleep && by.sleep.status === 'warn') out.push('Wake this computer up. It may have gone to sleep.')
+  if (by.internet && by.internet.offline) {
+    const numbers = by.lan && by.lan.address ? ' (' + by.lan.address + ')' : ''
+    out.push('The internet is down, but phones on the same Wi-Fi can still connect. In the Beebo app choose “Home” and type the numbers' + numbers + ' shown in Get Started, or scan its code.')
+  }
   out.push('On the phone, turn Wi-Fi on and open the Beebo app’s “Can’t connect?” screen for its own checks.')
   return out
 }

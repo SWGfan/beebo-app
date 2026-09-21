@@ -136,7 +136,7 @@ function createConnectionDoctor(deps) {
     const signedIn = !!safe(d.isSignedIn, false)
     const remote = safe(d.getConnectionRemote, null)
     const addr = safe(d.getHomeAddressStatus, null)
-    const [listening, firewall, cloud, dnsIps, sleepMinutes] = await Promise.all([
+    const [listening, firewall, cloud, dnsIps, sleepMinutes, internet] = await Promise.all([
       bounded(probePort(port, 1500, d.connect), 3000, null),
       bounded(checkFirewall({ platform: d.platform, run: d.execFile }), 8000, { applicable: true, present: null }),
       signedIn ? bounded(probeBeebo({ url: safe(d.getBackendUrl, ''), fetchImpl: d.fetchImpl }), 9000, { reachable: null }) : Promise.resolve({ reachable: null }),
@@ -144,6 +144,9 @@ function createConnectionDoctor(deps) {
         ? bounded((d.resolve4 || dns.promises.resolve4)(addr.hostname), 4000, null)
         : Promise.resolve(null),
       bounded(readSleepMinutes({ platform: d.platform, run: d.execFile }), 7000, null),
+      // "Is the internet up at all?", for everyone, signed in or not. Only when the caller supplies a way to check
+      // (main.js does): a plain connection that is opened and closed, or what Beebo has already seen. Never a request.
+      d.probeInternet ? bounded(d.probeInternet(), 4000, null) : Promise.resolve(null),
     ])
     return {
       platform: d.platform || process.platform,
@@ -153,6 +156,7 @@ function createConnectionDoctor(deps) {
       router: { server: safe(d.getPortMapStatus, null), rtc: safe(d.getRtcPortMapStatus, null) },
       remote,
       cloud: Object.assign({ signedIn }, cloud),
+      internet: internet && typeof internet.online === 'boolean' ? { online: internet.online } : null,
       address: addr ? { state: addr.state, hostname: addr.hostname, ipv4: addr.ipv4, reason: addr.reason, dnsIpv4: Array.isArray(dnsIps) ? dnsIps : null } : null,
       sleep: { known: sleepMinutes !== null, acMinutes: sleepMinutes },
     }

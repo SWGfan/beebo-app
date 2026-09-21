@@ -755,7 +755,7 @@ function createTranscodeManager({
     list: () => [...sessions.values()].map((s) => ({
       key: s.key, owner: s.owner, quality: s.quality, encoder: s.encoder, tonemap: s.tonemapMethod || '', hardware: caps.isHardware(s.encoder),
       running: !!s.proc, runStart: s.runStart, readyUpTo: s.readyUpTo, lastRequested: s.lastRequested, runs: s.runs, error: s.error,
-      fallbacks: s.fallbacks, file: path.basename(String(s.filePath || '')),
+      fallbacks: s.fallbacks, file: String(s.filePath || '').split(/[\\/]/).pop(),
       // For the owner's dashboard and /metrics: which file, in what, and whether anyone is still pulling pieces.
       filePath: s.filePath, fileKey: s.fileKey, lastAccess: s.lastAccess,
       videoCodec: (s.tracks && s.tracks.video && s.tracks.video.codec) || null,

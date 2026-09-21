@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "road",
+ "title": "Road-Trip Trivia",
+ "questions": [
+  {
+   "id": "road-46-01",
+   "band": "4-6",
+   "q": "What color is a stop sign?",
+   "o": [
+    "Green",
+    "Blue",
+    "Purple",
+    "Red"
+   ],
+   "a": 3,
+   "fact": "A stop sign has eight sides.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-02",
+   "band": "4-6",
+   "q": "What does a green traffic light mean?",
+   "o": [
+    "Jump",
+    "Go",
+    "Stop",
+    "Sing"
+   ],
+   "a": 1,
+   "fact": "Traffic lights help cars take turns.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-03",
+   "band": "4-6",
+   "q": "How many wheels does a car usually have?",
+   "o": [
+    "Two",
+    "Four",
+    "Six",
+    "Eight"
+   ],
+   "a": 1,
+   "fact": "Some cars carry a spare tire in the trunk.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-04",
+   "band": "4-6",
+   "q": "What can a car use to go?",
+   "o": [
+    "Music",
+    "Balloons",
+    "Gas or electricity",
+    "Sunglasses"
+   ],
+   "a": 2,
+   "fact": "An electric car has a battery instead of a gas tank.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-05",
+   "band": "4-6",
+   "q": "What color is a school bus in North America?",
+   "o": [
+    "Blue",
+    "Red",
+    "Yellow",
+    "Green"
+   ],
+   "a": 2,
+   "fact": "School buses are painted bright yellow so they are easy to spot.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-06",
+   "band": "4-6",
+   "q": "What do windshield wipers wipe off the window?",
+   "o": [
+    "Music",
+    "Rain and dirt",
+    "Shadows",
+    "Clouds"
+   ],
+   "a": 1,
+   "fact": "Wipers sweep back and forth across the front window.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-07",
+   "band": "4-6",
+   "q": "Which vehicle has wings and flies?",
+   "o": [
+    "A bus",
+    "An airplane",
+    "A train",
+    "A bicycle"
+   ],
+   "a": 1,
+   "fact": "Airplanes take off and land on a long runway.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-08",
+   "band": "4-6",
+   "q": "Which vehicle rides on tracks?",
+   "o": [
+    "A train",
+    "A truck",
+    "A scooter",
+    "A wagon"
+   ],
+   "a": 0,
+   "fact": "A train can pull many cars at once.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-09",
+   "band": "4-6",
+   "q": "What do we call a road that goes through a mountain?",
+   "o": [
+    "A ramp",
+    "A bridge",
+    "A tunnel",
+    "A fence"
+   ],
+   "a": 2,
+   "fact": "A tunnel can go through a mountain or under water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-10",
+   "band": "4-6",
+   "q": "What crosses over a river so cars can drive across?",
+   "o": [
+    "A tunnel",
+    "A tent",
+    "A bridge",
+    "A fence"
+   ],
+   "a": 2,
+   "fact": "The Golden Gate Bridge is painted a bright orange color.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-11",
+   "band": "4-6",
+   "q": "Which animal is on a moose crossing sign?",
+   "o": [
+    "A moose",
+    "A penguin",
+    "A kangaroo",
+    "A camel"
+   ],
+   "a": 0,
+   "fact": "Moose are the biggest members of the deer family.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-12",
+   "band": "4-6",
+   "q": "What game starts with \"I spy with my little eye\"?",
+   "o": [
+    "Hopscotch",
+    "I Spy",
+    "Chess",
+    "Tag"
+   ],
+   "a": 1,
+   "fact": "I Spy is a guessing game you can play anywhere.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-13",
+   "band": "4-6",
+   "q": "Where do cars fill up with gas?",
+   "o": [
+    "At a bakery",
+    "At a library",
+    "At a gas station",
+    "At a zoo"
+   ],
+   "a": 2,
+   "fact": "Many gas stations also sell snacks.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-46-14",
+   "band": "4-6",
+   "q": "What shape is a yield sign?",
+   "o": [
+    "A circle",
+    "A star",
+    "A triangle",
+    "A square"
+   ],
+   "a": 2,
+   "fact": "A yield sign tells drivers to let others go first.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-01",
+   "band": "7-10",
+   "q": "Which side of the road do cars drive on in the U.S. and Canada?",
+   "o": [
+    "The right side",
+    "Either side",
+    "The left side",
+    "The middle"
+   ],
+   "a": 0,
+   "fact": "In the United Kingdom and Japan, cars drive on the left.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-02",
+   "band": "7-10",
+   "q": "What do the numbers on a highway exit sign, like Exit 42, help you do?",
+   "o": [
+    "Check the weather",
+    "Count the cars",
+    "Tell the time",
+    "Find your exit"
+   ],
+   "a": 3,
+   "fact": "In many places, exit numbers match the mile markers.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-03",
+   "band": "7-10",
+   "q": "What does a yellow diamond-shaped road sign usually do?",
+   "o": [
+    "Warns about something ahead",
+    "Says stop",
+    "Shows the speed limit",
+    "Points to a hospital"
+   ],
+   "a": 0,
+   "fact": "Yellow diamond signs warn about things like curves or animals crossing.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-04",
+   "band": "7-10",
+   "q": "In the U.S. Interstate system, which way do highways with odd numbers run?",
+   "o": [
+    "East to west",
+    "North to south",
+    "Over bridges",
+    "In circles"
+   ],
+   "a": 1,
+   "fact": "Interstate 5 runs up the west coast and Interstate 95 runs up the east coast.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-05",
+   "band": "7-10",
+   "q": "Which Interstate runs all the way along the East Coast?",
+   "o": [
+    "Interstate 5",
+    "Interstate 10",
+    "Interstate 70",
+    "Interstate 95"
+   ],
+   "a": 3,
+   "fact": "Interstate 95 goes from Florida to Maine.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-06",
+   "band": "7-10",
+   "q": "What does mph stand for?",
+   "o": [
+    "Maps per highway",
+    "Miles per hour",
+    "Minutes per hop",
+    "Meters per hour"
+   ],
+   "a": 1,
+   "fact": "Canada uses kilometers per hour, or km/h, for speed limits.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-07",
+   "band": "7-10",
+   "q": "What does a speedometer show?",
+   "o": [
+    "The time",
+    "How fast the car is going",
+    "How much gas is left",
+    "The temperature outside"
+   ],
+   "a": 1,
+   "fact": "A speedometer needle or number moves as the car speeds up.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-08",
+   "band": "7-10",
+   "q": "What is a rest area?",
+   "o": [
+    "A place off the highway to stop and stretch",
+    "A race track",
+    "A hotel",
+    "A repair shop"
+   ],
+   "a": 0,
+   "fact": "Many rest areas have picnic tables and restrooms.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-09",
+   "band": "7-10",
+   "q": "What is the Trans-Canada Highway?",
+   "o": [
+    "A canal",
+    "A train",
+    "A bridge",
+    "A road that crosses all of Canada"
+   ],
+   "a": 3,
+   "fact": "The Trans-Canada Highway is more than 7,000 kilometers long.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-10",
+   "band": "7-10",
+   "q": "Which famous old highway is nicknamed the Mother Road?",
+   "o": [
+    "Interstate 95",
+    "Route 1",
+    "Highway 401",
+    "Route 66"
+   ],
+   "a": 3,
+   "fact": "Route 66 ran from Chicago to Santa Monica.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-11",
+   "band": "7-10",
+   "q": "Which Ontario highway is one of the busiest in North America?",
+   "o": [
+    "Highway 1",
+    "Interstate 95",
+    "Route 66",
+    "Highway 401"
+   ],
+   "a": 3,
+   "fact": "In parts of Toronto, Highway 401 is up to 18 lanes wide.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-12",
+   "band": "7-10",
+   "q": "Which famous San Francisco bridge is painted International Orange?",
+   "o": [
+    "The Golden Gate Bridge",
+    "The Tower Bridge",
+    "The Brooklyn Bridge",
+    "The Sydney Harbour Bridge"
+   ],
+   "a": 0,
+   "fact": "The Golden Gate Bridge opened in 1937.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-13",
+   "band": "7-10",
+   "q": "What is a detour?",
+   "o": [
+    "A different route around a blocked road",
+    "A type of car",
+    "A road map",
+    "A stop for snacks"
+   ],
+   "a": 0,
+   "fact": "Detour signs show the way around the closed part.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-710-14",
+   "band": "7-10",
+   "q": "What does RV stand for?",
+   "o": [
+    "Rolling van",
+    "Roadside visitor",
+    "Recreational vehicle",
+    "Rest and view"
+   ],
+   "a": 2,
+   "fact": "Many RVs have a bed, a kitchen and a bathroom inside.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-01",
+   "band": "11+",
+   "q": "Which national park is home to the Old Faithful geyser?",
+   "o": [
+    "Zion",
+    "Yosemite",
+    "Yellowstone",
+    "Acadia"
+   ],
+   "a": 2,
+   "fact": "Old Faithful erupts about every hour and a half.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-02",
+   "band": "11+",
+   "q": "Which national park is famous for El Capitan, a giant granite cliff?",
+   "o": [
+    "Zion",
+    "Yosemite",
+    "Acadia",
+    "Glacier"
+   ],
+   "a": 1,
+   "fact": "El Capitan rises about 3,000 feet from the valley floor.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-03",
+   "band": "11+",
+   "q": "Which Canadian national park has Lake Louise?",
+   "o": [
+    "Jasper",
+    "Wood Buffalo",
+    "Yoho",
+    "Banff"
+   ],
+   "a": 3,
+   "fact": "Lake Louise looks turquoise because of tiny bits of rock ground up by glaciers.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-04",
+   "band": "11+",
+   "q": "The Alaska Highway begins in Dawson Creek in which Canadian province?",
+   "o": [
+    "Manitoba",
+    "Yukon",
+    "British Columbia",
+    "Alberta"
+   ],
+   "a": 2,
+   "fact": "The Alaska Highway was built in 1942 in about eight months.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-05",
+   "band": "11+",
+   "q": "In which U.S. state is Mount Rushmore?",
+   "o": [
+    "South Dakota",
+    "Colorado",
+    "Wyoming",
+    "Montana"
+   ],
+   "a": 0,
+   "fact": "The faces carved into Mount Rushmore are each about 60 feet tall.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-06",
+   "band": "11+",
+   "q": "Which U.S. city is home to the Space Needle?",
+   "o": [
+    "Denver",
+    "Boston",
+    "Portland",
+    "Seattle"
+   ],
+   "a": 3,
+   "fact": "The Space Needle was built for the 1962 World's Fair.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-07",
+   "band": "11+",
+   "q": "Which U.S. state is nicknamed the Lone Star State?",
+   "o": [
+    "Nevada",
+    "Oklahoma",
+    "Texas",
+    "Alaska"
+   ],
+   "a": 2,
+   "fact": "The Texas flag has one big white star.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-08",
+   "band": "11+",
+   "q": "Which Canadian province is known for the Cabot Trail?",
+   "o": [
+    "Manitoba",
+    "Nova Scotia",
+    "Ontario",
+    "Alberta"
+   ],
+   "a": 1,
+   "fact": "The Cabot Trail loops around Cape Breton Island.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-09",
+   "band": "11+",
+   "q": "The Calgary Stampede is held in which city?",
+   "o": [
+    "Edmonton",
+    "Regina",
+    "Winnipeg",
+    "Calgary"
+   ],
+   "a": 3,
+   "fact": "The Calgary Stampede happens every July.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-10",
+   "band": "11+",
+   "q": "Vancouver sits on the coast of which ocean?",
+   "o": [
+    "The Pacific",
+    "The Indian",
+    "The Arctic",
+    "The Atlantic"
+   ],
+   "a": 0,
+   "fact": "Vancouver is squeezed between mountains and the sea.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-11",
+   "band": "11+",
+   "q": "What does an odometer show?",
+   "o": [
+    "Engine heat",
+    "Fuel left",
+    "Speed",
+    "How far the car has traveled"
+   ],
+   "a": 3,
+   "fact": "An odometer counts every mile a car has driven in its life.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-12",
+   "band": "11+",
+   "q": "In which U.S. state is the Grand Canyon?",
+   "o": [
+    "Utah",
+    "Nevada",
+    "New Mexico",
+    "Arizona"
+   ],
+   "a": 3,
+   "fact": "The Grand Canyon is about 277 miles long.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-13",
+   "band": "11+",
+   "q": "Which U.S. city has a famous stainless steel arch called the Gateway Arch?",
+   "o": [
+    "St. Louis",
+    "Denver",
+    "Kansas City",
+    "Dallas"
+   ],
+   "a": 0,
+   "fact": "The Gateway Arch is 630 feet tall, the tallest human-made monument in the U.S.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "road-11-14",
+   "band": "11+",
+   "q": "Which Canadian province is home to Niagara Falls?",
+   "o": [
+    "Ontario",
+    "Quebec",
+    "Nova Scotia",
+    "Manitoba"
+   ],
+   "a": 0,
+   "fact": "Niagara Falls is on the border between Ontario and New York.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

@@ -42,7 +42,16 @@ internal fun MusicTogetherCard() {
             Spacer(Modifier.height(10.dp))
 
             if (v.state == "idle") {
-                Button(onClick = { CampsiteMusicHost.playTogether() }, modifier = Modifier.fillMaxWidth()) { Text("Play together") }
+                // Quiet hours (Family Pack A): out-loud music for everyone waits until the host says everyone has headphones.
+                val quiet = com.beeboentertainment.movie.campsite.quiet.QuietGate.isQuietNow()
+                if (quiet) {
+                    Button(onClick = { CampsiteMusicHost.playTogether(withHeadphones = true) }, modifier = Modifier.fillMaxWidth()) { Text("Play with headphones") }
+                    Text(
+                        "Quiet hours are on. Only start this once everyone has headphones in. Check your campground's posted quiet hours.",
+                        fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                } else Button(onClick = { CampsiteMusicHost.playTogether() }, modifier = Modifier.fillMaxWidth()) { Text("Play together") }
                 Text(
                     "Plays what is queued in Music (start a song there first). This phone stays quiet and conducts.",
                     fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,

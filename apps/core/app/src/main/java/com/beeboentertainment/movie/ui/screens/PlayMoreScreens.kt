@@ -14,8 +14,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.beeboentertainment.movie.BeeboApp
+import com.beeboentertainment.movie.audio.AudioRoutes
 import com.beeboentertainment.movie.campsite.CampsiteHost
 import com.beeboentertainment.movie.core.TvFeatures
+import com.beeboentertainment.movie.server.ServerFeature
 import com.beeboentertainment.movie.data.RewardsClient
 import com.beeboentertainment.movie.data.UnauthorizedException
 import kotlinx.coroutines.launch
@@ -30,6 +32,10 @@ private data class MenuItem(val route: String, val icon: String, val title: Stri
 private val outdoors = listOf(
     MenuItem("campsite", "🏕️", "Campsite Mode", "Invite nearby phones to watch your downloads and play. Games don't need it."),
     MenuItem("scavengerhunt", "🔎", "Scavenger Hunt", "Find things together on this phone. Syncing phones needs internet and hub sign-in."),
+    MenuItem("songbook", "\uD83C\uDFB6", "Campfire Songbook", "Big-print traditional songs and rounds. Works offline."),
+    MenuItem("roadsidequiz", "\u2753", "Roadside Quiz", "Animals, space, geography and more for the whole car. Works offline."),
+    MenuItem("tripclock", "🚗", "Are We There Yet?", "A back-seat trip clock: time left in kid terms. An estimate for passengers, not navigation."),
+    MenuItem("quiethours", "🌙", "Quiet Hours & Wind-Down", "Keep the sound down at night and run a bedtime story and ambience timer."),
     MenuItem("starchart", "✨", "Star Chart", "Explore what's in the sky tonight."),
     MenuItem("nearby", "🧭", "Nearby", "Find trails, food and gas. Online maps need internet."),
     MenuItem("campsite-slides", "📸", "Shared photos & videos", "Take turns presenting photos and videos. Everyone follows the presenter over campsite Wi-Fi."),
@@ -114,6 +120,7 @@ fun MoreScreen(
 ) {
     val app = BeeboApp.instance
     val isTv = com.beeboentertainment.movie.ui.tv.LocalIsTv.current
+    val features by com.beeboentertainment.movie.server.rememberServerFeatures()
     var aboutOpen by remember { mutableStateOf(false) }
     var voiceOpen by remember { mutableStateOf(false) }
     // A profile with parental controls, or a guest in someone else's library: no settings (Beebo
@@ -131,6 +138,11 @@ fun MoreScreen(
                     (if (TvFeatures.downloadsAvailable(isTv)) "Your connection, hub sign-in, downloads and your own links."
                     else "Your connection, hub sign-in and your own links.")
                 else "Your hub sign-in${if (TvFeatures.downloadsAvailable(isTv)) " and downloads" else ""}.")), Modifier, onOpen)
+        // Only when this computer has the feature (asked, not assumed): an older Beebo shows nothing here.
+        if (features.has(ServerFeature.ACCOUNT_SECURITY) && !app.session.isGuest) {
+            MenuCard(MenuItem(AudioRoutes.ACCOUNT_SECURITY, "🔐", "Account security",
+                "Two-factor status, and where your account is signed in. Sign out anywhere."), Modifier, onOpen)
+        }
         MenuCard(MenuItem("delete-account", "🗑️", "Delete my account",
             "Permanently delete an account you use in this app."), Modifier, onOpen)
         MenuCard(MenuItem("profiles", "👤", "Switch profile",
@@ -159,6 +171,23 @@ fun MoreScreen(
 
         SectionHeading("Watch")
         MenuCard(MenuItem("surf", "🎲", "Surprise me", "Channel-surf your own library."), Modifier, onOpen)
+        if (features.has(ServerFeature.LIVE_TV)) {
+            MenuCard(MenuItem(AudioRoutes.LIVE_TV, "📡", "Live TV",
+                "Watch your own antenna through your own tuner. Pause, rewind and go live."), Modifier, onOpen)
+        }
+        if (features.has(ServerFeature.WATCH_TOGETHER)) {
+            MenuCard(MenuItem(AudioRoutes.JOIN_WATCH_TOGETHER, "🍿", "Join a watch together room",
+                "Paste an invite link or code to watch in step with friends on this Beebo."), Modifier, onOpen)
+        }
+        if (features.has(ServerFeature.AUDIOBOOKS) || features.has(ServerFeature.PODCASTS) || features.has(ServerFeature.RADIO)) {
+            SectionHeading("Listen")
+            if (features.has(ServerFeature.AUDIOBOOKS)) MenuCard(MenuItem(AudioRoutes.AUDIOBOOKS, "🎧", "Audiobooks",
+                "Your books and series. Speed, sleep timer and bookmarks; your place follows you between devices."), Modifier, onOpen)
+            if (features.has(ServerFeature.PODCASTS)) MenuCard(MenuItem(AudioRoutes.PODCASTS, "🎙️", "Podcasts",
+                "The shows you follow, new episodes and your queue."), Modifier, onOpen)
+            if (features.has(ServerFeature.RADIO)) MenuCard(MenuItem(AudioRoutes.RADIO, "📻", "Radio",
+                "Stations from around the world, and your favourites."), Modifier, onOpen)
+        }
         if (TvFeatures.isAvailable("campsite", isTv)) {
             MenuCard(MenuItem("campsite", "📶", "Campsite & Wi-Fi",
                 "Share this phone's Wi-Fi hotspot so nearby phones can watch and play."), Modifier, onOpen)

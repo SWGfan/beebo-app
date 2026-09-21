@@ -30,8 +30,9 @@ internal class CampsiteLocalGames(
     botClock: Boolean = true,
     private val hostName: String = "You",
     trip: TripMomentSink = TripMomentSink.None,
+    plates: com.beeboentertainment.movie.campsite.platehunt.PlateBadgeSink = com.beeboentertainment.movie.campsite.platehunt.PlateBadgeSink.None,
 ) {
-    private val games = CampsiteGames(trivia, history = history, botClockEnabled = botClock, trip = trip)
+    private val games = CampsiteGames(trivia, history = history, botClockEnabled = botClock, trip = trip, plates = plates)
     private var token: String? = null
 
     /** The host's play token, re-joining if the engine reaped an idle session (app in the background). */
@@ -105,7 +106,9 @@ internal class CampsiteLocalGames(
     fun open(gameId: String, withComputer: Boolean): Boolean {
         val entered = act("enter", mapOf("game" to JsonPrimitive(gameId)))
         if (entered.status != 200) return false
-        if (withComputer) {
+        // A checklist game (Plate & Sign Hunt) has nobody to play against, so no computer is seated.
+        val soloGame = com.beeboentertainment.movie.campsite.games.CampsiteGameCatalog[gameId]?.playsSolo == true
+        if (withComputer && !soloGame) {
             val room = entered.body["room"] as? JsonObject
             val bots = (room?.get("bots") as? JsonPrimitive)?.intOrNull ?: 0
             if (bots == 0) act("addbot", emptyMap())

@@ -86,18 +86,53 @@ function findTagEnd(s, i) {
   return -1
 }
 
-const ATTR_RE = /([^\s=/<>"']+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g
+// Whitespace as a regex \s sees it, by code unit (the scanner below is a loop, not a regex).
+const isWs = (c) => c === 32 || (c >= 9 && c <= 13) || c === 0xa0 || c === 0xfeff || c === 0x1680 || (c >= 0x2000 && c <= 0x200a) || c === 0x2028 || c === 0x2029 || c === 0x202f || c === 0x205f || c === 0x3000
+// Characters that can never be part of a generic attribute name: space, "=", "/", "<", ">", quotes.
+const isNameStop = (c) => isWs(c) || c === 61 || c === 47 || c === 60 || c === 62 || c === 34 || c === 39
+// The stricter name shape some readers use: [A-Za-z_][A-Za-z0-9_:.-]*
+const isStrictStart = (c) => (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95
+const isStrictChar = (c) => isStrictStart(c) || (c >= 48 && c <= 57) || c === 58 || c === 46 || c === 45
+
+/**
+ * name="value" / name='value' pairs of one tag's attribute text -> [{ name, raw }] (raw = the text between the
+ * quotes, not decoded), at most `max` of them. A single pass with no backtracking: the regex this replaces
+ * (name, optional spaces, "=") was quadratic on a tag holding one long run of name characters, and a feed, an
+ * .nfo or a guide file is exactly where somebody can put one. `strict` uses the [A-Za-z_][\w:.-]* name shape.
+ */
+function scanAttrs(src, { max = Infinity, strict = false } = {}) {
+  const out = []
+  const s = String(src)
+  const n = s.length
+  let i = 0
+  while (i < n && out.length < max) {
+    const c = s.charCodeAt(i)
+    if (strict ? !isStrictStart(c) : isNameStop(c)) { i++; continue }
+    let j = i + 1
+    if (strict) while (j < n && isStrictChar(s.charCodeAt(j))) j++
+    else while (j < n && !isNameStop(s.charCodeAt(j))) j++
+    let k = j
+    while (k < n && isWs(s.charCodeAt(k))) k++
+    if (s.charCodeAt(k) !== 61) { i = j; continue }
+    k++
+    while (k < n && isWs(s.charCodeAt(k))) k++
+    const q = s.charCodeAt(k)
+    if (q !== 34 && q !== 39) { i = j; continue }
+    const end = s.indexOf(q === 34 ? '"' : "'", k + 1)
+    if (end === -1) { i = j; continue }
+    out.push({ name: s.slice(i, j), raw: s.slice(k + 1, end) })
+    i = end + 1
+  }
+  return out
+}
 
 function parseAttrs(src, limits) {
   const out = {}
   let n = 0
-  ATTR_RE.lastIndex = 0
-  let m
-  while ((m = ATTR_RE.exec(src))) {
+  for (const a of scanAttrs(src, { max: limits.maxAttrs + 1 })) {
     if (++n > limits.maxAttrs) throw new XmlError('too_many_attributes')
-    const raw = m[2] !== undefined ? m[2] : m[3]
-    if (raw.length > limits.maxAttrLength) throw new XmlError('attribute_too_long')
-    out[m[1]] = decodeEntities(raw)
+    if (a.raw.length > limits.maxAttrLength) throw new XmlError('attribute_too_long')
+    out[a.name] = decodeEntities(a.raw)
   }
   return out
 }
@@ -216,4 +251,4 @@ function firstText(node, ...names) {
   return ''
 }
 
-module.exports = { parseXml, decodeXmlBytes, decodeEntities, XmlError, kids, kid, textOf, firstText, LIMITS }
+module.exports = { parseXml, decodeXmlBytes, decodeEntities, scanAttrs, XmlError, kids, kid, textOf, firstText, LIMITS }

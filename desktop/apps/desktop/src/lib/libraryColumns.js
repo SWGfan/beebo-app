@@ -290,8 +290,13 @@ const ALL = [
   },
   {
     id: 'hdr', label: 'HDR', labels: { tv: 'HDR (1st ep)' }, group: 'Video & audio', width: 116, type: 'text', kinds: ['movies', 'tv'], needsInfo: true,
-    title: 'Dolby Vision, HDR10, HLG or SDR, from the video stream',
+    title: 'Dolby Vision, HDR10+, HDR10, HLG or SDR, from the video stream',
     cell: (r, i) => (probed(i) ? txt(i.hdr) : NONE)
+  },
+  {
+    id: 'formats', label: 'Home theater', labels: { tv: 'Home theater (1st ep)' }, group: 'Video & audio', width: 230, type: 'text', kinds: ['movies', 'tv'], needsInfo: true,
+    title: 'What the file offers a big screen and an AV receiver: 4K, Dolby Vision, HDR10+, Atmos, DTS:X, 7.1 ...',
+    cell: (r, i) => (probed(i) && Array.isArray(i.badges) && i.badges.length ? txt(i.badges.join(' \u2022 ')) : NONE)
   },
   {
     id: 'audio', label: 'Audio', labels: { tv: 'Audio (1st ep)' }, group: 'Video & audio', width: 132, type: 'text', kinds: ['movies', 'tv'], needsInfo: true,

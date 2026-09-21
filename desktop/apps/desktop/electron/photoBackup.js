@@ -25,10 +25,13 @@ const fs = require('node:fs')
 const path = require('node:path')
 const crypto = require('node:crypto')
 const { kindOf, INCOMING_FOLDER } = require('./photoLibrary')
+const { isReservedDeviceName } = require('./safePath')
 
 const MAX_CHUNK = 4 * 1024 * 1024
 const MAX_FILE = 64 * 1024 * 1024 * 1024
 const STALE_PART_MS = 30 * 86400000
+const DISK_RESERVE = 512 * 1024 * 1024
+const MAX_INCOMPLETE_UPLOADS = 500 // half-sent uploads at once (a .json + a .part each)
 const error = (status, code, extra) => Object.assign(new Error(code), { status, code, extra })
 
 /** A device or file name that is safe as one Windows path segment. */
@@ -38,7 +41,7 @@ function safeSegment(input, fallback, max = 120) {
     .replace(/^[\s.]+|[\s.]+$/g, '')
     .slice(0, max)
     .replace(/[\s.]+$/g, '')
-  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(s)) s = '_' + s
+  if (isReservedDeviceName(s)) s = '_' + s // CON, NUL, COM0-9, COM¹²³, LPT..., CONIN$ (electron/safePath.js), with or without an extension
   return s || fallback
 }
 
@@ -60,7 +63,7 @@ async function hashFile(file) {
   return h.digest('hex')
 }
 
-function createPhotoBackup({ library, dataDir, now = Date.now, log = () => {}, freeSpace } = {}) {
+function createPhotoBackup({ library, dataDir, now = Date.now, log = () => {}, freeSpace, maxIncompleteUploads = MAX_INCOMPLETE_UPLOADS } = {}) {
   const indexFile = path.join(dataDir, 'photo-backup-index.json')
   let idx = null
   const locks = new Map()
@@ -157,6 +160,19 @@ function createPhotoBackup({ library, dataDir, now = Date.now, log = () => {}, f
     return { ok: true, results }
   }
 
+  /** Throws pc_disk_full unless [bytes] more can be written to [root] and the PC keeps its reserve. */
+  async function assertDiskRoom(root, bytes) {
+    if (typeof freeSpace === 'function') {
+      const free = await freeSpace(root).catch(() => null)
+      if (free != null && free < bytes + DISK_RESERVE) throw error(507, 'pc_disk_full')
+    } else if (fsp.statfs) {
+      try {
+        const s = await fsp.statfs(root)
+        if (s.bavail * s.bsize < bytes + DISK_RESERVE) throw error(507, 'pc_disk_full')
+      } catch (e) { if (e.status) throw e }
+    }
+  }
+
   async function begin(user, body) {
     requireBackup(user)
     const device = cleanDevice(body)
@@ -174,15 +190,7 @@ function createPhotoBackup({ library, dataDir, now = Date.now, log = () => {}, f
     }
     const root = library.backupRoot()
     await fsp.mkdir(incomingDir(), { recursive: true })
-    if (typeof freeSpace === 'function') {
-      const free = await freeSpace(root).catch(() => null)
-      if (free != null && free < size + 512 * 1024 * 1024) throw error(507, 'pc_disk_full')
-    } else if (fsp.statfs) {
-      try {
-        const s = await fsp.statfs(root)
-        if (s.bavail * s.bsize < size + 512 * 1024 * 1024) throw error(507, 'pc_disk_full')
-      } catch (e) { if (e.status) throw e }
-    }
+    await assertDiskRoom(root, size)
     // Stable across app reinstalls: the same person sending the same bytes from the same phone
     // resumes the same partial file.
     const uploadId = crypto.createHash('sha1').update(user.id + '|' + device + '|' + sha + '|' + size).digest('hex')
@@ -190,6 +198,9 @@ function createPhotoBackup({ library, dataDir, now = Date.now, log = () => {}, f
       let m = null
       try { m = JSON.parse(await fsp.readFile(metaPath(uploadId), 'utf8')) } catch {}
       if (!m) {
+        let pending = 0
+        try { pending = (await fsp.readdir(incomingDir())).filter((n) => n.endsWith('.json')).length } catch {}
+        if (pending >= maxIncompleteUploads) throw error(429, 'too_many_uploads')
         m = { uploadId, userId: user.id, device, name, size, sha256: sha, takenAt: Number.isFinite(takenAt) && takenAt > 0 ? takenAt : null, startedAt: now() }
         await fsp.writeFile(metaPath(uploadId), JSON.stringify(m))
         await fsp.writeFile(partPath(uploadId), Buffer.alloc(0), { flag: 'a' })
@@ -236,6 +247,9 @@ function createPhotoBackup({ library, dataDir, now = Date.now, log = () => {}, f
         const actual = crypto.createHash('sha256').update(data).digest('hex')
         if (actual !== declared) throw error(422, 'chunk_checksum_mismatch', { offset: at })
       }
+      // begin() checked the disk once per upload, before any bytes existed; many uploads (or one PC drive filling
+      // for other reasons) can pass it. Every chunk keeps the reserve.
+      await assertDiskRoom(library.backupRoot(), data.length)
       const fh = await fsp.open(partPath(uploadId), 'r+')
       try { await fh.write(data, 0, data.length, at) } finally { await fh.close() }
       return { ok: true, uploadId, offset: at + data.length, size: m.size }

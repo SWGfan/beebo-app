@@ -46,6 +46,17 @@ function decodeEntities(s) {
 }
 
 const escText = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+// Escaped text of at most `room` characters. The cut is made on the raw text and the escaping done afterwards,
+// so it can never split an entity, and (each raw character becomes at least one output character) removing
+// `overshoot` characters is always enough: 40 KB of "<" is 40 KB of output, not 160 KB.
+function fitText(raw, room) {
+  let e = escText(raw)
+  if (e.length > room) {
+    raw = raw.slice(0, Math.max(0, raw.length - (e.length - room)))
+    e = escText(raw)
+  }
+  return e
+}
 const escAttr = (s) => escText(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 
 // C0 controls, space, DEL, C1 controls and the two Unicode line separators.
@@ -101,13 +112,21 @@ function sanitizeHtml(input, { maxOutput = MAX_OUTPUT } = {}) {
     let text = ''
     for (const p of paras) {
       if (text.length >= maxOutput) break
-      text += '<p>' + escText(p.slice(0, maxOutput - text.length)).replace(/\n/g, '<br>') + '</p>'
+      // "\n" becomes "<br>" (4 characters), so the room left for the paragraph's own text counts each line break as 4.
+      let piece = escText(p).replace(/\n/g, '<br>')
+      const room = maxOutput - text.length - 7 // "<p>" + "</p>"
+      if (room <= 0) break
+      if (piece.length > room) {
+        const cut = p.slice(0, Math.max(0, p.length - (piece.length - room)))
+        piece = escText(cut).replace(/\n/g, '<br>')
+      }
+      text += '<p>' + piece + '</p>'
     }
     return text
   }
   let out = ''
   // Text is cut BEFORE it is escaped, so a cap can never split a tag or an entity.
-  const addText = (raw) => { out += escText(decodeEntities(raw).slice(0, Math.max(0, maxOutput - out.length))) }
+  const addText = (raw) => { out += fitText(decodeEntities(raw), Math.max(0, maxOutput - out.length)) }
   const open = [] // the allowed tags currently open, by output name
   let i = 0
   const n = s.length

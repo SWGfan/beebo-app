@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050302">
+<meta name="color-scheme" content="dark">
+<title>Campfire Songbook - Beebo</title>
+<style>
+/* One self-contained page: no external fonts, images or scripts. The host serves it with a policy that forbids any. */
+:root{--lyric-min:28px;--scale:1;--bg:#050302;--panel:#140c07;--line:#2c1c10;--text:#e9c28e;--dim:#7d5d3e;--now:#ffd9a0;--accent:#ff9d3c;--chip:#1d130b;--ok:#8fd694}
+body.bright{--bg:#0d1830;--panel:#152444;--line:#2c3e5d;--text:#dbe6fb;--dim:#7f93b8;--now:#ffffff;--accent:#f0c05a;--chip:#1a2c4f;--ok:#7be0a2}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,'Segoe UI',Roboto,sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+[hidden]{display:none!important}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+:where(button,a,input):focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+.bar .title{flex:1;min-width:0;font-size:15px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar a.back{text-decoration:none;font-size:14px;padding:10px 4px}
+.tool{min-width:48px;min-height:48px;padding:6px 12px;background:var(--chip);border:1px solid var(--line);border-radius:12px;cursor:pointer;font-size:15px}
+.tool[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.tabs{display:flex;gap:8px;padding:10px 14px 0}
+.tabs .tool{flex:1;font-weight:650}
+.tabs .tool[aria-selected=true]{background:var(--accent);color:#1a0d03;border-color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;min-height:0}
+#banner{margin:10px 14px 0;padding:12px 14px;border-radius:14px;background:var(--chip);border:1px solid var(--line);font-size:calc(19px*var(--scale));font-weight:650;text-align:center}
+#banner.go{border-color:var(--ok);color:var(--ok)}
+#groups{display:flex;flex-wrap:wrap;gap:8px;margin:10px 14px 0}
+#groups .tool{flex:1;min-width:120px}
+#groups .tool[aria-pressed=true]{background:var(--accent);color:#1a0d03;border-color:var(--accent)}
+#stage{flex:1;overflow-y:auto;padding:22px 16px 28vh;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+@media (prefers-reduced-motion:reduce){#stage{scroll-behavior:auto}}
+.empty{margin:28px 16px;text-align:center;color:var(--dim);font-size:calc(22px*var(--scale))}
+.line{font-size:max(var(--lyric-min),calc(7vw*var(--scale)));line-height:1.28;margin:0 0 .35em;color:var(--dim);overflow-wrap:anywhere;transition:color .15s}
+.line.gap{margin-top:1em}
+.line.refrain{padding-left:.6em;border-left:4px solid var(--line)}
+.line.near{color:var(--text)}
+.line.now{color:var(--now);font-weight:800;font-size:max(calc(var(--lyric-min) + 4px),calc(8.6vw*var(--scale)))}
+.tag{display:block;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:1em 0 .2em}
+#songs{padding:12px 14px 30px;overflow-y:auto}
+#songs input{width:100%;min-height:52px;font-size:18px;padding:10px 14px;border-radius:12px;background:var(--chip);border:1px solid var(--line);color:var(--text)}
+#songs .hint{margin:10px 2px;color:var(--dim);font-size:14px}
+.song{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;margin:8px 0;padding:10px 14px;text-align:left;background:var(--chip);border:1px solid var(--line);border-radius:14px;cursor:pointer;font-size:19px}
+.song .t{flex:1;overflow-wrap:anywhere}
+.song .n{min-width:1.6em;text-align:center;color:var(--dim);font-size:15px}
+.song .h{font-size:28px;line-height:1;color:var(--dim)}
+.song[aria-pressed=true]{border-color:var(--accent)}
+.song[aria-pressed=true] .h{color:var(--accent)}
+.song.playing{box-shadow:inset 4px 0 var(--accent)}
+#notice{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));padding:12px 14px;border-radius:12px;background:#3a1f2a;border:1px solid #8a3b4a;color:#ffd9de;font-size:15px;text-align:center}
+.foot{padding:8px 14px 12px;color:var(--dim);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="/library" aria-label="Back to the campsite">&larr; Camp</a>
+  <div class="title" id="title">Campfire Songbook</div>
+  <button class="tool" id="size-down" type="button" aria-label="Smaller lyrics">A-</button>
+  <button class="tool" id="size-up" type="button" aria-label="Bigger lyrics">A+</button>
+  <button class="tool" id="theme" type="button" aria-pressed="true" aria-label="Campfire mode: dark and dim">Fire</button>
+</div>
+<div class="tabs" role="tablist" aria-label="Songbook">
+  <button class="tool" id="tab-sing" type="button" role="tab" aria-selected="true" aria-controls="sing">Sing</button>
+  <button class="tool" id="tab-songs" type="button" role="tab" aria-selected="false" aria-controls="songs">Song list</button>
+</div>
+<main>
+  <section id="sing" role="tabpanel" aria-labelledby="tab-sing" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <div id="banner" role="status" aria-live="polite" hidden></div>
+    <div id="groups" role="group" aria-label="Which round group are you in?" hidden></div>
+    <div id="stage" aria-live="off"></div>
+  </section>
+  <section id="songs" role="tabpanel" aria-labelledby="tab-songs" hidden>
+    <label for="filter" class="hint">Tap the heart to ask for a song. Your host chooses what plays next.</label>
+    <input id="filter" type="search" placeholder="Find a song" autocomplete="off" maxlength="40">
+    <p class="hint" id="hearts-left"></p>
+    <div id="list"></div>
+  </section>
+</main>
+<div id="notice" role="alert" hidden></div>
+<p class="foot">Traditional songs, words only. Keep this page open; it follows your host.</p>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var GLYPH = ['▲', '●', '■', '★'];          // triangle, circle, square, star: colour is never the only cue
+  var NAME = ['Red', 'Blue', 'Green', 'Gold'];
+  var st = null;            // latest state from the host
+  var recvAt = 0;           // performance.now() when it arrived
+  var haveSong = -1, haveList = false;
+  var songs = [], lines = [], refrain = [], verseStart = [];
+  var shown = { key: '', idx: -2 };
+  var scale = 1, tab = 'sing', bright = false, userChose = false;
+  var busy = false, backoff = 0, noticeTimer = 0;
+
+  function api(method, body) {
+    var opt = { method: method, headers: { 'X-Beebo-Songbook': '1' }, credentials: 'same-origin', cache: 'no-store' };
+    var url = '/api/songbook';
+    if (method === 'GET') url += '?have=' + haveSong + '&cat=' + (haveList ? 1 : 0);
+    else { body.haveSong = haveSong; body.haveList = haveList ? 1 : 0; opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch(url, opt).then(function (r) {
+      return r.json().then(function (j) { j.__status = r.status; return j; });
+    });
+  }
+
+  function say(text) {
+    var n = $('notice');
+    n.textContent = text; n.hidden = false;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(function () { n.hidden = true; }, 3500);
+  }
+
+  function apply(j) {
+    if (!j || j.ok === false) { if (j && j.error) say(j.error); if (j && j.__status === 429) backoff = 3000; return; }
+    backoff = 0;
+    if (j.songs) { songs = j.songs; haveList = true; renderList(); }
+    if (j.song && j.song.lines) {
+      lines = j.song.lines; refrain = j.song.refrain || []; verseStart = j.song.verseStart || [];
+      haveSong = j.song.songRev;
+      shown.key = '';            // rebuild the lyric lines
+    }
+    if (!j.song) { lines = []; haveSong = -1; shown.key = ''; }
+    st = j; recvAt = performance.now();
+    if (!userChose) setTheme(!!j.campfire);
+    if (j.notice) say(j.notice);
+    render();
+  }
+
+  function poll() {
+    if (busy || document.hidden) return;
+    busy = true;
+    api('GET').then(apply).catch(function () { }).then(function () { busy = false; });
+  }
+  function act(body) {
+    return api('POST', body).then(apply).catch(function () { say('Could not reach your host. Check your Wi-Fi.'); });
+  }
+
+  // The step the singers are on right now: what the host last said, plus the time since we heard it.
+  function step() {
+    if (!st || !st.song) return 0;
+    var s = st.step;
+    if (st.playing && st.auto && !st.finished) s += Math.floor((st.msInto + (performance.now() - recvAt)) / st.song.lineMs);
+    return Math.min(s, st.song.total);
+  }
+
+  // Mirrors SongbookEngine.lineFor on the host: wait, sing line idx, or done. Pure, so a test can call it.
+  function where(sg, group, s, L) {
+    if (!sg.round) return s >= L ? { state: 'done' } : { state: 'sing', idx: s };
+    var k = s - group * sg.offset;
+    if (k < 0) return { state: 'wait', remaining: -k };
+    if (k >= sg.repeats * L) return { state: 'done' };
+    return { state: 'sing', idx: k % L };
+  }
+  window.beeboSongbookWhere = where;
+
+  function build() {
+    var stage = $('stage');
+    while (stage.firstChild) stage.removeChild(stage.firstChild);
+    lines.forEach(function (text, i) {
+      if (refrain[i] && (i === 0 || !refrain[i - 1] || verseStart[i])) {
+        var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'Everybody'; stage.appendChild(tag);
+      }
+      var d = document.createElement('div');
+      d.className = 'line' + (refrain[i] ? ' refrain' : '') + (verseStart[i] && i > 0 && !refrain[i] ? ' gap' : '');
+      d.textContent = text; d.dataset.i = i;
+      stage.appendChild(d);
+    });
+  }
+
+  function render() {
+    if (!st) return;
+    var sg = st.song;
+    $('title').textContent = sg ? sg.title : 'Campfire Songbook';
+    var stage = $('stage'), banner = $('banner'), groupsEl = $('groups');
+    if (!sg) {
+      stage.textContent = '';
+      var e = document.createElement('p'); e.className = 'empty'; e.textContent = 'Waiting for your host to pick a song.';
+      stage.appendChild(e); banner.hidden = true; groupsEl.hidden = true; shown.key = ''; shown.idx = -2; markList();
+      return;
+    }
+    if (shown.key !== String(sg.songRev)) { build(); shown.key = String(sg.songRev); shown.idx = -2; }
+    var w = where(sg, st.group, step(), lines.length);
+    // banner
+    var text = '', go = false;
+    if (w.state === 'wait') text = 'Get ready! Your group starts in ' + w.remaining + (w.remaining === 1 ? ' line.' : ' lines.');
+    else if (w.state === 'done') text = st.playing || st.step > 0 ? 'That was lovely. The song is finished.' : '';
+    else if (sg.round && step() - st.group * sg.offset === 0) { text = 'Your turn: sing!'; go = true; }
+    else if (!st.playing && st.auto && st.step === 0) text = 'Ready when your host is.';
+    banner.textContent = text; banner.hidden = !text; banner.className = go ? 'go' : '';
+    // round group chips
+    if (sg.round) {
+      groupsEl.hidden = false;
+      if (groupsEl.dataset.n !== String(sg.groups) + ':' + st.group + ':' + st.groupSizes.join(',')) {
+        while (groupsEl.firstChild) groupsEl.removeChild(groupsEl.firstChild);
+        for (var g = 0; g < sg.groups; g++) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'tool'; b.dataset.g = g;
+          b.setAttribute('aria-pressed', st.group === g ? 'true' : 'false');
+          b.textContent = GLYPH[g] + ' Group ' + (g + 1) + ' (' + NAME[g] + ') · ' + (st.groupSizes[g] || 0);
+          b.addEventListener('click', function (ev) { act({ action: 'group', group: Number(ev.currentTarget.dataset.g) }); });
+          groupsEl.appendChild(b);
+        }
+        groupsEl.dataset.n = String(sg.groups) + ':' + st.group + ':' + st.groupSizes.join(',');
+      }
+    } else { groupsEl.hidden = true; groupsEl.dataset.n = ''; }
+    // highlight
+    var idx = w.state === 'sing' ? w.idx : (w.state === 'wait' ? -1 : -3);
+    if (idx !== shown.idx) {
+      shown.idx = idx;
+      var els = stage.querySelectorAll('.line');
+      for (var i = 0; i < els.length; i++) {
+        els[i].className = els[i].className.replace(/\s*\b(now|near)\b/g, '');
+        if (i === idx) els[i].className += ' now';
+        else if (idx >= 0 && (i === idx - 1 || i === idx + 1)) els[i].className += ' near';
+        else if (idx === -1 && i === 0) els[i].className += ' near';
+      }
+      var cur = idx >= 0 ? els[idx] : null;
+      if (cur && tab === 'sing') cur.scrollIntoView({ block: 'center' });
+      else if (idx === -1 || idx === -3) stage.scrollTop = 0;
+    }
+    markList();
+  }
+
+  function renderList() {
+    var list = $('list'), q = $('filter').value.trim().toLowerCase();
+    while (list.firstChild) list.removeChild(list.firstChild);
+    songs.forEach(function (s) {
+      if (q && s.title.toLowerCase().indexOf(q) < 0) return;
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'song'; b.dataset.id = s.id;
+      var t = document.createElement('span'); t.className = 't'; t.textContent = s.title;
+      var n = document.createElement('span'); n.className = 'n';
+      var h = document.createElement('span'); h.className = 'h'; h.setAttribute('aria-hidden', 'true');
+      b.appendChild(t); b.appendChild(n); b.appendChild(h);
+      b.addEventListener('click', function () { act({ action: 'heart', song: s.id }); });
+      list.appendChild(b);
+    });
+    markList();
+  }
+
+  function markList() {
+    if (!st) return;
+    var mine = {}, count = 0;
+    (st.mine || []).forEach(function (id) { mine[id] = true; count++; });
+    var buttons = $('list').querySelectorAll('.song');
+    for (var i = 0; i < buttons.length; i++) {
+      var b = buttons[i], id = b.dataset.id, c = (st.hearts && st.hearts[id]) || 0, on = !!mine[id];
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.setAttribute('aria-label', b.firstChild.textContent + (on ? ', you asked for this. Tap to take it back.' : '. Tap to ask for it.') + (c ? ' ' + c + ' asked.' : ''));
+      b.children[1].textContent = c ? String(c) : '';
+      b.children[2].textContent = on ? '♥' : '♡';
+      b.className = 'song' + (st.song && st.song.id === id ? ' playing' : '');
+    }
+    $('hearts-left').textContent = 'You have asked for ' + count + ' of 5 songs.';
+  }
+
+  function setTheme(campfire) {
+    bright = !campfire;
+    document.body.className = bright ? 'bright' : '';
+    $('theme').setAttribute('aria-pressed', campfire ? 'true' : 'false');
+    $('theme').setAttribute('aria-label', campfire ? 'Campfire mode is on: dark and dim. Tap for brighter colours.' : 'Bright mode. Tap for campfire mode.');
+    $('theme').textContent = campfire ? 'Fire' : 'Bright';
+  }
+  function setScale(v) { scale = Math.max(0.8, Math.min(1.6, v)); document.documentElement.style.setProperty('--scale', String(scale)); }
+  function setTab(name) {
+    tab = name;
+    $('tab-sing').setAttribute('aria-selected', name === 'sing' ? 'true' : 'false');
+    $('tab-songs').setAttribute('aria-selected', name === 'songs' ? 'true' : 'false');
+    $('sing').hidden = name !== 'sing'; $('songs').hidden = name !== 'songs';
+    if (name === 'sing') { shown.idx = -2; render(); }
+  }
+
+  $('tab-sing').addEventListener('click', function () { setTab('sing'); });
+  $('tab-songs').addEventListener('click', function () { setTab('songs'); });
+  $('size-down').addEventListener('click', function () { setScale(scale - 0.1); });
+  $('size-up').addEventListener('click', function () { setScale(scale + 0.1); });
+  $('theme').addEventListener('click', function () { userChose = true; setTheme(bright); });
+  $('filter').addEventListener('input', renderList);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+
+  setTheme(true);
+  act({ action: 'join' });
+  (function loop() { poll(); setTimeout(loop, 800 + backoff); })();
+  setInterval(function () { if (st && !document.hidden) render(); }, 200);
+})();
+</script>
+</body>
+</html>

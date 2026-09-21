@@ -175,13 +175,24 @@ function attempt(token, iceServers) {
       if (offer.status !== 200 || !offer.body || !offer.body.viewerId) { finish(false); return; }
       viewerId = offer.body.viewerId;
       for (const c of early) postJson('/rtc/candidate', { to: 'host', viewerId, token, candidate: c }).catch(() => {});
+      // The host trickles its candidates BEFORE it posts the answer, so they can arrive first. A
+      // browser refuses a candidate until the remote description is set (werift queues them
+      // itself), so hold them back until the answer is in: the same order on every kind of viewer.
+      let remoteReady = false;
+      const pendingCands = [];
       pollTimer = setInterval(async () => {
         if (settled) return;
         try {
           const r = await api('/rtc/poll?box=' + viewerId);
           for (const m of (r.body && r.body.msgs) || []) {
-            if (m.type === 'answer' && m.sdp) await pc.setRemoteDescription({ type: 'answer', sdp: m.sdp }).catch(() => {});
-            else if (m.type === 'candidate' && m.candidate) await pc.addIceCandidate(m.candidate).catch(() => {});
+            if (m.type === 'answer' && m.sdp) {
+              await pc.setRemoteDescription({ type: 'answer', sdp: m.sdp }).catch(() => {});
+              remoteReady = true;
+              for (const c of pendingCands.splice(0)) await pc.addIceCandidate(c).catch(() => {});
+            } else if (m.type === 'candidate' && m.candidate) {
+              if (remoteReady) await pc.addIceCandidate(m.candidate).catch(() => {});
+              else pendingCands.push(m.candidate);
+            }
           }
         } catch { /* try again next tick */ }
       }, 400);

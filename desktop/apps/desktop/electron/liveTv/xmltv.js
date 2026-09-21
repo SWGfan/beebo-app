@@ -3,16 +3,53 @@
 // such as Schedules Direct, through their XMLTV exporters) produce. This is a tokenizer, not an XML
 // engine: DOCTYPE/ENTITY declarations are never processed (nothing to expand, so nothing to bomb),
 // tag text is decoded with a fixed set of entities, sizes and counts are capped.
+//
+// The file is somebody else's (a guide site, a download), so it is scanned in ONE pass per element:
+// no regex with a lazy "anything up to the closing tag" that is re-tried from every opening tag (that
+// is quadratic on a file full of unterminated tags), and no regex over an attribute run. A file made
+// to be slow costs time in proportion to its size, like any other file.
+
+const { scanAttrs } = require('../xmlLite')
 
 const MAX_PROGRAMMES = 250000
 const MAX_CHANNELS = 5000
 
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }
 
+// <![CDATA[ ... ]]> -> its text, with "&" protected so it is not read as an entity later.
+function unwrapCdata(s) {
+  if (s.indexOf('<![CDATA[') === -1) return s
+  let out = ''
+  let i = 0
+  for (;;) {
+    const a = s.indexOf('<![CDATA[', i)
+    if (a === -1) { out += s.slice(i); break }
+    const b = s.indexOf(']]>', a + 9)
+    if (b === -1) { out += s.slice(i); break } // unterminated: no later section can end either
+    out += s.slice(i, a) + s.slice(a + 9, b).replace(/&/g, '\x01amp;')
+    i = b + 3
+  }
+  return out
+}
+
+// "<...>" removed. A "<" with no ">" after it is left as text.
+function stripTags(s) {
+  if (s.indexOf('<') === -1) return s
+  let out = ''
+  let i = 0
+  for (;;) {
+    const lt = s.indexOf('<', i)
+    if (lt === -1) { out += s.slice(i); break }
+    const gt = s.indexOf('>', lt + 1)
+    if (gt === -1) { out += s.slice(i); break }
+    out += s.slice(i, lt)
+    i = gt + 1
+  }
+  return out
+}
+
 function decode(text) {
-  return String(text)
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_m, c) => c.replace(/&/g, '\x01amp;'))
-    .replace(/<[^>]*>/g, '')
+  return stripTags(unwrapCdata(String(text)))
     .replace(/&(#x[0-9a-fA-F]{1,6}|#\d{1,7}|[a-zA-Z]{2,4});/g, (m, e) => {
       if (e[0] === '#') {
         const cp = e[1] === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)
@@ -28,9 +65,11 @@ function decode(text) {
 
 function attrs(text) {
   const out = {}
-  const re = /([A-Za-z_:][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g
-  let m
-  while ((m = re.exec(text))) out[m[1].toLowerCase()] = decode(m[2] !== undefined ? m[2] : m[3])
+  for (const a of scanAttrs(text, { strict: true })) {
+    const name = a.name.toLowerCase()
+    if (name === '__proto__' || name === 'constructor') continue
+    out[name] = decode(a.raw)
+  }
   return out
 }
 
@@ -45,31 +84,58 @@ function parseXmltvTime(text) {
   return t - off
 }
 
+/**
+ * Calls fn(attributeText, bodyText) for every <tag ...>body</tag> in `text`, in order, until fn returns false.
+ * One pass: an opening tag whose ">" or whose closing tag never comes ends the scan (nothing later can be
+ * complete either), so a file of unterminated tags is read once, not once per tag. Tag names are matched
+ * case-insensitively, as they always were.
+ */
+function forEachElement(text, tag, fn) {
+  const openRe = new RegExp('<' + tag + '\\b', 'gi')
+  const closeRe = new RegExp('</' + tag + '>', 'gi')
+  let m
+  while ((m = openRe.exec(text))) {
+    const gt = text.indexOf('>', openRe.lastIndex)
+    if (gt === -1) return
+    closeRe.lastIndex = gt + 1
+    const c = closeRe.exec(text)
+    if (!c) return
+    if (fn(text.slice(openRe.lastIndex, gt), text.slice(gt + 1, c.index)) === false) return
+    openRe.lastIndex = c.index + c[0].length
+  }
+}
+
+function firstBody(inner, tag) {
+  let found = null
+  forEachElement(inner, tag, (_a, body) => { found = body; return false })
+  return found
+}
+
 function firstText(inner, tag, max) {
-  const m = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, 'i').exec(inner)
-  return m ? decode(m[1]).slice(0, max) : ''
+  const body = firstBody(inner, tag)
+  return body === null ? '' : decode(body).slice(0, max)
 }
 
 function episodeOf(inner) {
-  const re = /<episode-num\b([^>]*)>([\s\S]*?)<\/episode-num>/gi
-  let m
   let out = null
-  while ((m = re.exec(inner))) {
-    const system = (attrs(m[1]).system || '').toLowerCase()
-    const text = decode(m[2])
+  let result = null
+  forEachElement(inner, 'episode-num', (a, body) => {
+    const system = (attrs(a).system || '').toLowerCase()
+    const text = decode(body)
     if (system === 'xmltv_ns') {
       const p = /^\s*(\d*)\s*(?:\/\s*\d+)?\s*\.\s*(\d*)\s*(?:\/\s*\d+)?\s*(?:\.\s*[\d/]*)?\s*$/.exec(text)
       if (p && (p[1] !== '' || p[2] !== '')) {
         const season = p[1] === '' ? null : Number(p[1]) + 1
         const episode = p[2] === '' ? null : Number(p[2]) + 1
-        if ((season === null || season < 1000) && (episode === null || episode < 100000)) return { season, episode }
+        if ((season === null || season < 1000) && (episode === null || episode < 100000)) { result = { season, episode }; return false }
       }
     } else {
       const s = /S(\d{1,3})\s*E(\d{1,4})/i.exec(text)
       if (s) out = { season: Number(s[1]), episode: Number(s[2]) }
     }
-  }
-  return out
+    return true
+  })
+  return result || out
 }
 
 /**
@@ -80,37 +146,33 @@ function parseXmltv(input) {
   const text = Buffer.isBuffer(input) ? input.toString('utf8') : String(input || '')
   const channels = []
   const programmes = []
-  const chRe = /<channel\b([^>]*)>([\s\S]*?)<\/channel>/gi
-  let m
-  while ((m = chRe.exec(text)) && channels.length < MAX_CHANNELS) {
-    const id = attrs(m[1]).id
-    if (!id) continue
-    const names = []
-    const nRe = /<display-name\b[^>]*>([\s\S]*?)<\/display-name>/gi
-    let n
-    while ((n = nRe.exec(m[2])) && names.length < 8) { const v = decode(n[1]).slice(0, 80); if (v) names.push(v) }
-    channels.push({ id: id.slice(0, 200), names })
-  }
-  const pRe = /<programme\b([^>]*)>([\s\S]*?)<\/programme>/gi
-  while ((m = pRe.exec(text)) && programmes.length < MAX_PROGRAMMES) {
-    const a = attrs(m[1])
+  forEachElement(text, 'channel', (attrText, body) => {
+    const id = attrs(attrText).id
+    if (id) {
+      const names = []
+      forEachElement(body, 'display-name', (_a, nb) => { const v = decode(nb).slice(0, 80); if (v) names.push(v); return names.length < 8 })
+      channels.push({ id: id.slice(0, 200), names })
+    }
+    return channels.length < MAX_CHANNELS
+  })
+  forEachElement(text, 'programme', (attrText, body) => {
+    const a = attrs(attrText)
     const start = parseXmltvTime(a.start)
     const stop = parseXmltvTime(a.stop)
-    const title = firstText(m[2], 'title', 200)
-    if (!a.channel || start === null || stop === null || stop <= start || stop - start > 24 * 3600 * 1000 || !title) continue
+    const title = firstText(body, 'title', 200)
+    if (!a.channel || start === null || stop === null || stop <= start || stop - start > 24 * 3600 * 1000 || !title) return true
     const cats = []
-    const cRe = /<category\b[^>]*>([\s\S]*?)<\/category>/gi
-    let c
-    while ((c = cRe.exec(m[2])) && cats.length < 6) { const v = decode(c[1]).slice(0, 40); if (v) cats.push(v) }
-    const ep = episodeOf(m[2])
-    const ratingBlock = /<rating\b[^>]*>([\s\S]*?)<\/rating>/i.exec(m[2])
+    forEachElement(body, 'category', (_a, cb) => { const v = decode(cb).slice(0, 40); if (v) cats.push(v); return cats.length < 6 })
+    const ep = episodeOf(body)
+    const ratingBody = firstBody(body, 'rating')
     programmes.push({
       channel: a.channel.slice(0, 200), start, stop, title,
-      subTitle: firstText(m[2], 'sub-title', 200), desc: firstText(m[2], 'desc', 1000), categories: cats,
+      subTitle: firstText(body, 'sub-title', 200), desc: firstText(body, 'desc', 1000), categories: cats,
       season: ep ? ep.season : null, episode: ep ? ep.episode : null,
-      isNew: /<new\b/i.test(m[2]), rating: ratingBlock ? firstText(ratingBlock[1], 'value', 20) : ''
+      isNew: /<new\b/i.test(body), rating: ratingBody !== null ? firstText(ratingBody, 'value', 20) : ''
     })
-  }
+    return programmes.length < MAX_PROGRAMMES
+  })
   return { channels, programmes }
 }
 

@@ -38,6 +38,9 @@ function defaultRequest(url, headers, redirects = 0) {
         res.resume()
         let next
         try { next = new URL(res.headers.location, url).toString() } catch (e) { return reject(e) }
+        // https may not be handed on to plain http (the fingerprint check still guards the bytes, but a
+        // downgrade is never wanted).
+        if (!url.startsWith('http:') && !next.startsWith('https:')) return reject(new UpdateDownloadError('NETWORK', 'redirect to an insecure address'))
         return resolve(defaultRequest(next, headers, redirects + 1))
       }
       resolve(res)

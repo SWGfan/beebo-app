@@ -268,10 +268,20 @@ test('the same path twice, blank paths and non-strings are ignored', async () =>
 test('a saved cache is loaded at start', async () => {
   const dir = tmp()
   const cacheFile = path.join(dir, 'big.json')
-  fs.writeFileSync(cacheFile, JSON.stringify({ v: 1, entries: { 'a|1|1': { width: 1 } } }))
+  fs.writeFileSync(cacheFile, JSON.stringify({ v: info.CACHE_VERSION, entries: { 'a|1|1': { width: 1 } } }))
   const { service } = rig({}, { cacheFile })
   await service.request('m', [], () => {})
   assert.equal(service.status().cached, 1)
+  fs.rmSync(dir, { recursive: true, force: true })
+})
+
+test('a cache written before HDR10+ / Dolby Vision / Atmos were read is ignored (files are read again)', async () => {
+  const dir = tmp()
+  const cacheFile = path.join(dir, 'old.json')
+  fs.writeFileSync(cacheFile, JSON.stringify({ v: 1, entries: { 'a|1|1': { width: 1 } } }))
+  const { service } = rig({}, { cacheFile })
+  await service.request('m', [], () => {})
+  assert.equal(service.status().cached, 0)
   fs.rmSync(dir, { recursive: true, force: true })
 })
 

@@ -13,6 +13,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.beeboentertainment.movie.audio.AudioKind
+import com.beeboentertainment.movie.audio.AudioMedia
+import com.beeboentertainment.movie.audio.SpokenSeek
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,10 +49,18 @@ object MusicPlayer {
         /** Off, counting down to a time, or armed for the end of the current track. */
         val sleepTimer: MusicSleepTimerState = MusicSleepTimerState.Off,
         /** What to show for [sleepTimer] right now, or null when it's off. Already formatted. */
-        val sleepTimerLabel: String? = null
+        val sleepTimerLabel: String? = null,
+        /** Playback speed (1x for music; audiobooks and podcasts may run 0.5x to 3x with the pitch kept). */
+        val speed: Float = 1f,
+        /** Music, an audiobook, a podcast episode or a radio station: what the one audio service is playing. */
+        val kind: AudioKind = AudioKind.MUSIC,
+        /** The player's own error text for spoken audio and radio ("This song" reads wrong for a book). */
+        val errorText: String? = null,
     ) {
         val hasSong: Boolean get() = current != null
         val trackId: String? get() = MusicMedia.trackId(current)
+        /** The server's id for the current audiobook, episode or station session. */
+        val itemId: String? get() = AudioMedia.itemId(current)
     }
 
     private val _state = MutableStateFlow(State())
@@ -111,6 +122,9 @@ object MusicPlayer {
         val start = if (shuffle && startIndex == 0) (items.indices).random() else startIndex.coerceIn(0, items.size - 1)
         withController(context) { c ->
             c.shuffleModeEnabled = false
+            // Speed belongs to a book or an episode: songs always play at their own pace.
+            c.setPlaybackSpeed(1f)
+            c.volume = 1f
             c.setMediaItems(items, start, C.TIME_UNSET)
             c.prepare()
             // After the items are in, so the service shuffles around the song that is starting.
@@ -119,6 +133,51 @@ object MusicPlayer {
             playNextCount = 0
         }
     }
+
+    /* ------------------- audiobooks, podcasts and radio (same service) ------------------- */
+
+    /**
+     * Replace the queue with spoken-word or radio [items] and start at [startIndex], [startPositionMs]
+     * into it, at [speed]. No shuffle, no repeat: a book's parts play in order and stop at the end.
+     */
+    fun playSpoken(context: Context, items: List<MediaItem>, startIndex: Int, startPositionMs: Long, speed: Float, volume: Float = 1f) {
+        if (items.isEmpty()) return
+        withController(context) { c ->
+            c.shuffleModeEnabled = false
+            c.repeatMode = Player.REPEAT_MODE_OFF
+            c.setMediaItems(items, startIndex.coerceIn(0, items.size - 1), startPositionMs.coerceAtLeast(0L))
+            c.setPlaybackSpeed(speed.coerceIn(0.5f, 3f))
+            c.volume = volume
+            c.prepare()
+            c.play()
+            playNextCount = 0
+        }
+    }
+
+    fun setSpeed(speed: Float) { controller?.setPlaybackSpeed(speed.coerceIn(0.5f, 3f)); publish() }
+
+    fun setVolume(volume: Float) { controller?.volume = volume.coerceIn(0f, 1f) }
+
+    fun pause() { controller?.pause(); publish() }
+
+    fun play() {
+        val c = controller ?: return
+        if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition(0)
+        if (c.playbackState == Player.STATE_IDLE) c.prepare()
+        c.play()
+        publish()
+    }
+
+    /** Skip back (negative) or forward (positive) by seconds of book time, across the files of a multi-part book. */
+    fun skipSpoken(deltaSec: Int) { controller?.let { SpokenSeek.seekBy(it, deltaSec) }; publish() }
+
+    /** Jump to whole-book seconds. */
+    fun seekToBook(seconds: Double) { controller?.let { SpokenSeek.seekToBook(it, seconds) }; publish() }
+
+    /** Whole-book seconds at the playhead, read straight from the player (0 when nothing is playing). */
+    fun bookPositionSec(): Double = controller?.let { SpokenSeek.bookPosition(it) } ?: 0.0
+
+    fun controllerOrNull(): MediaController? = controller
 
     fun playNext(context: Context, track: MusicTrack) {
         val item = MusicMedia.item(track) ?: return
@@ -291,7 +350,10 @@ object MusicPlayer {
             upNext = upNext,
             error = c.playerError?.let { "This song couldn't be played." },
             sleepTimer = sleepTimer,
-            sleepTimerLabel = MusicSleepTimer.label(sleepTimer, SystemClock.elapsedRealtime())
+            sleepTimerLabel = MusicSleepTimer.label(sleepTimer, SystemClock.elapsedRealtime()),
+            speed = c.playbackParameters.speed,
+            kind = AudioMedia.kindOf(c.currentMediaItem),
+            errorText = c.playerError?.let { "That couldn't be played." }
         )
         main.removeCallbacks(ticker)
         if (c.isPlaying) main.postDelayed(ticker, 500)

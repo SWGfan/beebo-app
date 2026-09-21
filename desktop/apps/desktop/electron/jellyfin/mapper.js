@@ -7,7 +7,7 @@ const POSTER_ASPECT = 0.6666666666666666
 
 const tagOf = (s) => crypto.createHash('sha1').update(String(s)).digest('hex').slice(0, 32)
 
-function createMapper({ ids, auth, catalog }) {
+function createMapper({ ids, auth, catalog, firstSeen }) {
   const serverId = () => auth.serverId()
   const images = new Map()
   const IMAGE_CAP = 60000
@@ -22,11 +22,16 @@ function createMapper({ ids, auth, catalog }) {
   const imageSources = (jid) => images.get(jid) || null
 
   function imageInfo(entry) {
+    // An episode's Primary image is landscape in Jellyfin; Beebo has no episode stills, so the show's backdrop stands in.
     const primary = entry.type === 'MusicArtist' || entry.type === 'MusicAlbum' || entry.type === 'Audio'
       ? (entry.cover || null)
-      : (entry.poster || null)
+      : entry.type === 'Episode' ? (entry.backdrop || entry.poster || null) : (entry.poster || null)
     const backdrop = entry.backdrop || null
     rememberImages(entry.jid, { primary, backdrop })
+    if (entry.type === 'Episode') {
+      if (entry.seriesJid) rememberImages(entry.seriesJid, { primary: entry.poster || null, backdrop })
+      if (entry.seasonJid) rememberImages(entry.seasonJid, { primary: entry.poster || null, backdrop })
+    }
     return { primary, backdrop }
   }
 
@@ -56,7 +61,10 @@ function createMapper({ ids, auth, catalog }) {
     const { primary, backdrop } = imageInfo(entry)
     dto.ServerId = serverId()
     dto.Id = entry.jid
-    dto.Etag = tagOf(entry.jid + '|' + entry.title)
+    // Changes whenever what the app would show changes (title, year, summary, rating, art), so a client's cache is never stale.
+    dto.Etag = tagOf([entry.jid, entry.title, entry.year, entry.overview, entry.rating, primary, backdrop].join('|'))
+    const seen = firstSeen ? firstSeen.get(entry.jid) : 0
+    if (seen) dto.DateCreated = isoDate(seen)
     dto.CanDelete = false
     dto.CanDownload = false
     dto.SortName = String(entry.title || '').toLowerCase()
@@ -75,8 +83,14 @@ function createMapper({ ids, auth, catalog }) {
     dto.LockData = false
     dto.ImageBlurHashes = {}
     dto.ImageTags = primary ? { Primary: tagOf(primary) } : {}
+    // Thumb is the landscape card art: the backdrop serves it for titles, shows and collections.
+    if (backdrop && (entry.type === 'Movie' || entry.type === 'Series' || entry.type === 'BoxSet')) dto.ImageTags.Thumb = tagOf(backdrop)
     dto.BackdropImageTags = backdrop ? [tagOf(backdrop)] : []
-    if (primary) dto.PrimaryImageAspectRatio = entry.type === 'MusicAlbum' || entry.type === 'Audio' || entry.type === 'MusicArtist' ? 1 : POSTER_ASPECT
+    if (entry.type === 'Episode' || entry.type === 'Season') {
+      if (backdrop && entry.seriesJid) { dto.ParentBackdropItemId = entry.seriesJid; dto.ParentBackdropImageTags = [tagOf(backdrop)] }
+      if (entry.poster && entry.seriesJid) { dto.ParentPrimaryImageItemId = entry.seriesJid; dto.ParentPrimaryImageTag = tagOf(entry.poster) }
+    }
+    if (primary) dto.PrimaryImageAspectRatio = entry.type === 'MusicAlbum' || entry.type === 'Audio' || entry.type === 'MusicArtist' ? 1 : entry.type === 'Episode' && entry.backdrop ? 1.7777777777777777 : POSTER_ASPECT
     if (entry.overview) dto.Overview = entry.overview
     if (typeof entry.rating === 'number' && entry.rating > 0) dto.CommunityRating = Math.round(entry.rating * 10) / 10
     if (entry.year) {
@@ -223,14 +237,28 @@ function createMapper({ ids, auth, catalog }) {
       AlbumArtists: entry.albumArtist && entry.artistJid ? [{ Name: entry.albumArtist, Id: entry.artistJid }] : [],
       IndexNumber: entry.number || undefined,
       ParentIndexNumber: entry.disc || undefined,
-      RunTimeTicks: entry.duration ? toTicks(entry.duration) : undefined
+      RunTimeTicks: entry.duration ? toTicks(entry.duration) : undefined,
+      HasLyrics: false // music apps (Gelly) skip a track that does not say
     }
     commonFields(entry, dto, ctx)
     dto.UserData = { PlaybackPositionTicks: 0, PlayCount: 0, IsFavorite: false, Played: false, Key: entry.beeboId, ItemId: entry.jid }
     return dto
   }
 
-  const BUILDERS = { Movie: movie, Series: series, Season: season, Episode: episode, BoxSet: boxset, MusicArtist: artist, MusicAlbum: album, Audio: audio }
+  function playlist(entry, ctx) {
+    const dto = {
+      Name: entry.title,
+      Type: 'Playlist',
+      MediaType: ctx.playlistMediaType || 'Video',
+      IsFolder: true,
+      LocationType: 'Virtual',
+      ParentId: ctx.viewJid('playlists'),
+      ChildCount: entry.itemCount
+    }
+    return commonFields(entry, dto, ctx)
+  }
+
+  const BUILDERS = { Movie: movie, Series: series, Season: season, Episode: episode, BoxSet: boxset, MusicArtist: artist, MusicAlbum: album, Audio: audio, Playlist: playlist }
 
   function toDto(entry, ctx) {
     const build = BUILDERS[entry.type]
@@ -242,7 +270,8 @@ function createMapper({ ids, auth, catalog }) {
       movies: { Name: 'Movies', CollectionType: 'movies' },
       tvshows: { Name: 'TV Shows', CollectionType: 'tvshows' },
       music: { Name: 'Music', CollectionType: 'music' },
-      boxsets: { Name: 'Collections', CollectionType: 'boxsets' }
+      boxsets: { Name: 'Collections', CollectionType: 'boxsets' },
+      playlists: { Name: 'Playlists', CollectionType: 'playlists' }
     }[name]
     const id = ctx.viewJid(name)
     return {

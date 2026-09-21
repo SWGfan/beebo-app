@@ -72,6 +72,7 @@ apps/smarttv/
 `GET /api/tvshows/<key>/episodes`, `GET /api/playback/info`, `POST /api/playback/start` (H.264/AAC HLS transcode,
 1080p / 720p / 480p), `POST /api/playback/stop`, `POST /api/watch-session`, `POST /api/progress`, `GET /api/upnext`,
 `GET /subtitles/file` (WebVTT), `GET /media/poster/*` (public artwork), `GET /health`.
+Movie Night adds `GET /api/movie-night/status` and `POST /api/movie-night/tv/create` (below).
 Auth is `Authorization: Bearer <token>` only. The token is never put in a URL and never logged
 (`test/dom-safety.test.mjs` scans for `console.*` and `?token=`). Playback URLs carry their own signed ticket
 (`/hls/<ticket>/index.m3u8`) and media token (`&mt=`), so `<video>` needs no headers. The raw MKV / direct file
@@ -166,6 +167,26 @@ Open it in Chrome, choose "Type my server address", enter `localhost:8080`, sign
 everything with the arrow keys, Enter and Backspace (Back). Options: `MOCK_SHOWS=1300`, `MOCK_LEGACY=1` (no
 `/api/v1`), `MOCK_CORS=1`, `MOCK_SLOW=400`, `APP_DIR=dist/webos` (serve a staged build). To try the pairing screen point
 `localStorage['beebo.tv.pairBase']` at the mock. The mock streams a public sample mp4.
+
+## Movie Night (party games with phones)
+
+Home has a **Movie Night** rail with one tile (`screens/movienight.js`). It does not draw the games: the home server serves the
+shared screen as a web page (`/movie-night/tv`, see `docs/MOVIE-NIGHT.md`), and the app only
+
+1. asks `GET /api/movie-night/status` whether it is available,
+2. starts a room as the signed-in person with `POST /api/movie-night/tv/create` (Bearer token; the reply is
+   `{ ok, code, ticket, tvPath: "/movie-night/tv", hash: "k=<ticket>" }`),
+3. opens `<server origin>/movie-night/tv#k=<ticket>` in the TV's own web view (`platform.openMovieNight`).
+
+The reply is checked before the TV navigates (`util/movienight.js`): the address is always on the server the person chose,
+on exactly that path, with a ticket of the shape the server makes; `platform.openMovieNight` refuses anything else and is the
+only navigation in the app (a test pins that). The ticket travels in the fragment, so it is never sent to the server or logged.
+Phones join by scanning the QR on that page, on the home Wi-Fi, with no account. The page handles the remote itself (arrow keys,
+OK, and Back = 8 / 27 / 10009 / 461, which opens an "End Movie Night?" box; leaving the page returns to the app's Home).
+
+Needs *Settings > Allow TV apps (Samsung/LG) to connect* on (the two Movie Night routes are in the CORS allow-list). Xbox shares this
+code; whether the Xbox shell lets the page navigate to the LAN address is unverified. Android TV, Roku and Apple TV wiring is a follow-up
+(see `docs/MOVIE-NIGHT.md`).
 
 ## Remote keys
 

@@ -130,6 +130,9 @@ object ConnectionDoctor {
 
     private val FIX_ON_PC = "On the computer, open Beebo and press “Can’t connect? Fix it for me”."
 
+    /** At home with the internet down, a name like thesmiths.beebo.tv cannot be looked up, but the numbers always work. */
+    private val HOME_WIFI_HINT = "At home and the internet is down? Join your home Wi-Fi and use the numbers Beebo shows on the computer (like 192.168.1.20:47811). That works with no internet at all."
+
     fun diagnose(f: DoctorFacts): List<DoctorFinding> {
         val out = ArrayList<DoctorFinding>()
         val target = f.target
@@ -176,7 +179,11 @@ object ConnectionDoctor {
             out += DoctorFinding(
                 "dns", Level.PROBLEM, "The address cannot be found",
                 "This phone could not look up ${if (target.trust == ServerTrust.OTHER) "that name" else host.orEmpty()}.",
-                if (target.trust == ServerTrust.BEEBO_TV) listOf("Check the phone’s internet connection.", "Check the spelling of your home’s name.")
+                if (target.trust == ServerTrust.BEEBO_TV) listOf(
+                    "Check the phone’s internet connection.",
+                    "Check the spelling of your home’s name.",
+                    HOME_WIFI_HINT,
+                )
                 else listOf("Check the address for typing mistakes.", "Names ending in .local often do not work on Android. Use the numbers shown in Beebo on the computer, like 192.168.1.20:47811."),
             )
         } else if (f.nameFound == true) {
@@ -229,7 +236,7 @@ object ConnectionDoctor {
             )
             FailureClass.DNS -> DoctorFinding(
                 "dns", Level.PROBLEM, "The address cannot be found", "The name did not resolve.",
-                listOf("Check the address for typing mistakes.", "Check the phone’s internet connection."),
+                listOf("Check the address for typing mistakes.", "Check the phone’s internet connection.", HOME_WIFI_HINT),
             )
             FailureClass.CERTIFICATE -> DoctorFinding(
                 "secure", Level.PROBLEM, "The secure connection failed",

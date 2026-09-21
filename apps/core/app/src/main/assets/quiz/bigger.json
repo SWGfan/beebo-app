@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "bigger",
+ "title": "Which Is Bigger?",
+ "questions": [
+  {
+   "id": "bigger-46-01",
+   "band": "4-6",
+   "q": "Which animal is the biggest?",
+   "o": [
+    "Elephant",
+    "Mouse",
+    "Cat",
+    "Dog"
+   ],
+   "a": 0,
+   "fact": "An elephant is the biggest animal that walks on land.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-02",
+   "band": "4-6",
+   "q": "Which sea animal is the longest?",
+   "o": [
+    "Crab",
+    "Goldfish",
+    "Starfish",
+    "Blue whale"
+   ],
+   "a": 3,
+   "fact": "A blue whale is longer than two school buses.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-03",
+   "band": "4-6",
+   "q": "Which of these is the biggest?",
+   "o": [
+    "A bicycle",
+    "A chair",
+    "A house",
+    "A car"
+   ],
+   "a": 2,
+   "fact": "Most houses are much bigger than a car.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-04",
+   "band": "4-6",
+   "q": "Which one is the biggest in the sky?",
+   "o": [
+    "A kite",
+    "An airplane",
+    "A bird",
+    "The Sun"
+   ],
+   "a": 3,
+   "fact": "The Sun looks small only because it is very far away.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-05",
+   "band": "4-6",
+   "q": "Which fruit is the biggest?",
+   "o": [
+    "Blueberry",
+    "Grape",
+    "Cherry",
+    "Watermelon"
+   ],
+   "a": 3,
+   "fact": "A watermelon is mostly water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-06",
+   "band": "4-6",
+   "q": "Which bird is the biggest?",
+   "o": [
+    "Ostrich",
+    "Sparrow",
+    "Robin",
+    "Duck"
+   ],
+   "a": 0,
+   "fact": "An ostrich is taller than most grown-ups.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-07",
+   "band": "4-6",
+   "q": "Which tree is the biggest?",
+   "o": [
+    "A tulip",
+    "A rose bush",
+    "An oak tree",
+    "A dandelion"
+   ],
+   "a": 2,
+   "fact": "A big oak tree can grow taller than a house.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-08",
+   "band": "4-6",
+   "q": "Which animal has the biggest ears?",
+   "o": [
+    "Elephant",
+    "Cat",
+    "Mouse",
+    "Rabbit"
+   ],
+   "a": 0,
+   "fact": "An elephant flaps its big ears to stay cool.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-09",
+   "band": "4-6",
+   "q": "Which vehicle is the biggest?",
+   "o": [
+    "A cruise ship",
+    "A scooter",
+    "A skateboard",
+    "A bicycle"
+   ],
+   "a": 0,
+   "fact": "The biggest cruise ships are longer than three football fields.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-10",
+   "band": "4-6",
+   "q": "Which of these places is the biggest?",
+   "o": [
+    "A classroom",
+    "A bedroom",
+    "A football field",
+    "A closet"
+   ],
+   "a": 2,
+   "fact": "A football field is about 100 yards long, not counting the end zones.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-11",
+   "band": "4-6",
+   "q": "Which water place is the biggest?",
+   "o": [
+    "The ocean",
+    "A pond",
+    "A puddle",
+    "A bathtub"
+   ],
+   "a": 0,
+   "fact": "The ocean covers most of Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-12",
+   "band": "4-6",
+   "q": "Which wild cat is the biggest?",
+   "o": [
+    "House cat",
+    "Tiger",
+    "Lynx",
+    "Bobcat"
+   ],
+   "a": 1,
+   "fact": "Some tigers weigh more than three grown-ups.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-13",
+   "band": "4-6",
+   "q": "Which of these is the smallest?",
+   "o": [
+    "A book",
+    "A shoe",
+    "A grain of rice",
+    "A pencil"
+   ],
+   "a": 2,
+   "fact": "A grain of rice is smaller than your fingernail.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-46-14",
+   "band": "4-6",
+   "q": "Which of these is the tallest?",
+   "o": [
+    "A boulder",
+    "A hill",
+    "A mountain",
+    "A pebble"
+   ],
+   "a": 2,
+   "fact": "Mountains are much taller than hills.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-01",
+   "band": "7-10",
+   "q": "Which of these animals is the heaviest?",
+   "o": [
+    "Rhino",
+    "Blue whale",
+    "Elephant",
+    "Hippo"
+   ],
+   "a": 1,
+   "fact": "A blue whale can weigh as much as thirty elephants.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-02",
+   "band": "7-10",
+   "q": "Which Great Lake is the biggest by area?",
+   "o": [
+    "Lake Ontario",
+    "Lake Superior",
+    "Lake Michigan",
+    "Lake Erie"
+   ],
+   "a": 1,
+   "fact": "Lake Superior is the biggest freshwater lake in the world by surface area.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-03",
+   "band": "7-10",
+   "q": "Which of these is bigger than Earth?",
+   "o": [
+    "The Moon",
+    "Mars",
+    "Venus",
+    "Saturn"
+   ],
+   "a": 3,
+   "fact": "Saturn is about nine times wider than Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-04",
+   "band": "7-10",
+   "q": "Which mountain is the tallest?",
+   "o": [
+    "Mount Kilimanjaro",
+    "Mount Fuji",
+    "Mount Everest",
+    "Mount Rainier"
+   ],
+   "a": 2,
+   "fact": "Mount Everest is still slowly growing taller.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-05",
+   "band": "7-10",
+   "q": "Which of these states is the biggest?",
+   "o": [
+    "Ohio",
+    "Florida",
+    "Georgia",
+    "Texas"
+   ],
+   "a": 3,
+   "fact": "Only Alaska is bigger than Texas.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-06",
+   "band": "7-10",
+   "q": "Which bird has the widest wings?",
+   "o": [
+    "Wandering albatross",
+    "Seagull",
+    "Bald eagle",
+    "Red-tailed hawk"
+   ],
+   "a": 0,
+   "fact": "A wandering albatross can stretch its wings more than ten feet across.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-07",
+   "band": "7-10",
+   "q": "Which of these continents is the smallest?",
+   "o": [
+    "Antarctica",
+    "Australia",
+    "South America",
+    "Europe"
+   ],
+   "a": 1,
+   "fact": "Australia is both a country and a continent.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-08",
+   "band": "7-10",
+   "q": "Which number is the biggest?",
+   "o": [
+    "Nine hundred thousand",
+    "Nine thousand",
+    "One million",
+    "Ninety thousand"
+   ],
+   "a": 2,
+   "fact": "A million is a thousand thousands.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-09",
+   "band": "7-10",
+   "q": "Which of these is the longest?",
+   "o": [
+    "A yard",
+    "A foot",
+    "A mile",
+    "An inch"
+   ],
+   "a": 2,
+   "fact": "A mile is 5,280 feet.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-10",
+   "band": "7-10",
+   "q": "Which is the biggest lake that lies completely inside Canada?",
+   "o": [
+    "Okanagan Lake",
+    "Lake Winnipeg",
+    "Lake Louise",
+    "Great Bear Lake"
+   ],
+   "a": 3,
+   "fact": "Great Bear Lake is in the Northwest Territories.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-11",
+   "band": "7-10",
+   "q": "Which of these four animals weighs the most?",
+   "o": [
+    "Lion",
+    "Hippopotamus",
+    "Horse",
+    "Cow"
+   ],
+   "a": 1,
+   "fact": "A hippo can weigh as much as a small car.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-12",
+   "band": "7-10",
+   "q": "Which fish is the biggest?",
+   "o": [
+    "Salmon",
+    "Whale shark",
+    "Great white shark",
+    "Tuna"
+   ],
+   "a": 1,
+   "fact": "The whale shark filters tiny plankton out of the water to eat.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-13",
+   "band": "7-10",
+   "q": "Which moon is the biggest in our solar system?",
+   "o": [
+    "Earth's Moon",
+    "Phobos",
+    "Europa",
+    "Ganymede"
+   ],
+   "a": 3,
+   "fact": "Ganymede, a moon of Jupiter, is bigger than the planet Mercury.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-710-14",
+   "band": "7-10",
+   "q": "Which bone in the human body is the longest?",
+   "o": [
+    "The thigh bone",
+    "A rib",
+    "The collarbone",
+    "The skull"
+   ],
+   "a": 0,
+   "fact": "Your thigh bone is about a quarter of your height.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-01",
+   "band": "11+",
+   "q": "Which is the biggest organ of the human body?",
+   "o": [
+    "The skin",
+    "The liver",
+    "The brain",
+    "The heart"
+   ],
+   "a": 0,
+   "fact": "Your skin covers your whole body.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-02",
+   "band": "11+",
+   "q": "Which of these planets is bigger than Neptune?",
+   "o": [
+    "Earth",
+    "Uranus",
+    "Mercury",
+    "Mars"
+   ],
+   "a": 1,
+   "fact": "Uranus and Neptune are called the ice giants.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-03",
+   "band": "11+",
+   "q": "Which is the deepest lake in the world?",
+   "o": [
+    "Lake Superior",
+    "Lake Victoria",
+    "Lake Baikal",
+    "Lake Erie"
+   ],
+   "a": 2,
+   "fact": "Lake Baikal in Russia holds about one fifth of the world's unfrozen fresh water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-04",
+   "band": "11+",
+   "q": "Which is the biggest desert in the world by area?",
+   "o": [
+    "The Gobi",
+    "The Arabian Desert",
+    "The Sahara",
+    "Antarctica"
+   ],
+   "a": 3,
+   "fact": "Antarctica counts as a desert because it gets very little snow or rain.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-05",
+   "band": "11+",
+   "q": "Which is the biggest Canadian territory by area?",
+   "o": [
+    "Yukon",
+    "Nunavut",
+    "Nova Scotia",
+    "Northwest Territories"
+   ],
+   "a": 1,
+   "fact": "Nunavut became its own territory in 1999.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-06",
+   "band": "11+",
+   "q": "Which is the biggest unit of computer data?",
+   "o": [
+    "Kilobyte",
+    "Megabyte",
+    "Byte",
+    "Gigabyte"
+   ],
+   "a": 3,
+   "fact": "A gigabyte is about a thousand megabytes.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-07",
+   "band": "11+",
+   "q": "Which U.S. national park is the biggest?",
+   "o": [
+    "Wrangell-St. Elias",
+    "Yosemite",
+    "Grand Canyon",
+    "Yellowstone"
+   ],
+   "a": 0,
+   "fact": "Wrangell-St. Elias in Alaska is bigger than the whole country of Switzerland.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-08",
+   "band": "11+",
+   "q": "Which is the biggest island country in the world by area?",
+   "o": [
+    "Indonesia",
+    "New Zealand",
+    "Japan",
+    "Madagascar"
+   ],
+   "a": 0,
+   "fact": "Indonesia has more than 17,000 islands.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-09",
+   "band": "11+",
+   "q": "Which of these space things is the biggest?",
+   "o": [
+    "A planet",
+    "A galaxy",
+    "A moon",
+    "A solar system"
+   ],
+   "a": 1,
+   "fact": "Our galaxy has hundreds of billions of stars.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-10",
+   "band": "11+",
+   "q": "Which waterfall is the tallest in the world?",
+   "o": [
+    "Victoria Falls",
+    "Yosemite Falls",
+    "Niagara Falls",
+    "Angel Falls"
+   ],
+   "a": 3,
+   "fact": "Angel Falls in Venezuela is more than twice as tall as the Empire State Building.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-11",
+   "band": "11+",
+   "q": "Which is the biggest lake in Africa?",
+   "o": [
+    "Lake Malawi",
+    "Lake Tanganyika",
+    "Lake Victoria",
+    "Lake Chad"
+   ],
+   "a": 2,
+   "fact": "Lake Victoria is shared by three countries: Uganda, Kenya and Tanzania.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-12",
+   "band": "11+",
+   "q": "How many millions make a billion?",
+   "o": [
+    "100",
+    "1,000",
+    "10,000",
+    "1,000,000"
+   ],
+   "a": 1,
+   "fact": "A billion seconds is about 31 years.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-13",
+   "band": "11+",
+   "q": "Which is the biggest rodent in the world?",
+   "o": [
+    "Rat",
+    "Porcupine",
+    "Beaver",
+    "Capybara"
+   ],
+   "a": 3,
+   "fact": "Capybaras love to swim.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "bigger-11-14",
+   "band": "11+",
+   "q": "Which continent has the most countries?",
+   "o": [
+    "Europe",
+    "Asia",
+    "Africa",
+    "South America"
+   ],
+   "a": 2,
+   "fact": "Africa has 54 countries recognized by the United Nations.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

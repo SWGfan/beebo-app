@@ -23,6 +23,7 @@ const fs = require('fs')
 const path = require('path')
 const titleParse = require('./titleParse')
 const mo = require('./metadataOverrides')
+const { scanAttrs } = require('./xmlLite')
 
 const MAX_BYTES = 512 * 1024
 const MAX_DEPTH = 24
@@ -96,13 +97,14 @@ function skipDoctype(text, from) {
 
 function parseAttrs(source) {
   const attrs = {}
-  const re = /([A-Za-z_][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g
-  let m
   let n = 0
-  while ((m = re.exec(source)) && n < MAX_ATTRS) {
-    const name = m[1].toLowerCase()
+  // xmlLite.scanAttrs is one pass with no backtracking: the regex that used to sit here was quadratic on a
+  // tag holding a long run of name characters, and a sidecar .nfo that arrived with a download can hold one.
+  for (const a of scanAttrs(source, { strict: true })) {
+    if (n >= MAX_ATTRS) break
+    const name = a.name.toLowerCase()
     if (name === '__proto__' || name === 'constructor') continue
-    attrs[name] = decodeEntities(m[2] !== undefined ? m[2] : m[3]).slice(0, 200)
+    attrs[name] = decodeEntities(a.raw).slice(0, 200)
     n++
   }
   return attrs
@@ -311,14 +313,16 @@ function parsePlexMatch(input) {
     const text = Buffer.isBuffer(input) ? decodeBytes(input.subarray(0, PLEXMATCH_MAX_BYTES)) : String(input || '').slice(0, PLEXMATCH_MAX_BYTES)
     const hint = { kind: 'show' }
     for (const line of text.split(/\r?\n/)) {
-      const m = /^\s*([A-Za-z]+)\s*:\s*(.+?)\s*$/.exec(line)
-      if (!m) continue
+      // The value is trimmed with trim(), not a lazy group followed by \s*$ (that one was quadratic on a long padded line).
+      const m = /^\s*([A-Za-z]+)\s*:(.*)$/.exec(line)
+      const value = m ? m[2].trim() : ''
+      if (!value) continue
       const key = m[1].toLowerCase()
-      if (key === 'title') hint.title = mo.cleanText(m[2], mo.LIMITS.title)
-      else if (key === 'year' && mo.cleanYear(m[2])) hint.year = mo.cleanYear(m[2])
-      else if (key === 'tmdbid' && POS_INT(m[2])) hint.tmdbId = Number(m[2])
-      else if (key === 'tvdbid' && POS_INT(m[2])) hint.tvdbId = Number(m[2])
-      else if (key === 'imdbid' && IMDB_RE.test(m[2])) hint.imdbId = IMDB_RE.exec(m[2])[0]
+      if (key === 'title') hint.title = mo.cleanText(value, mo.LIMITS.title)
+      else if (key === 'year' && mo.cleanYear(value)) hint.year = mo.cleanYear(value)
+      else if (key === 'tmdbid' && POS_INT(value)) hint.tmdbId = Number(value)
+      else if (key === 'tvdbid' && POS_INT(value)) hint.tvdbId = Number(value)
+      else if (key === 'imdbid' && IMDB_RE.test(value)) hint.imdbId = IMDB_RE.exec(value)[0]
     }
     return Object.keys(hint).length > 1 ? hint : null
   } catch {

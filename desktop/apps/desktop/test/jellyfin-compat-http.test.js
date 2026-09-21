@@ -39,7 +39,7 @@ test('discovery, ping and branding answer without a token and never claim to be 
     assert.equal(r.status, 200)
     assert.equal(r.json.ProductName, 'Beebo Entertainment')
     assert.equal(r.json.ServerName, 'Beebo Entertainment')
-    assert.match(r.json.Version, /^10\.\d+\.\d+$/)
+    assert.match(r.json.Version, /^(10|12)\.\d+\.\d+$/, 'a version that apps gate on (10.10+ for the older ones, 12.x for the newest)')
     assert.match(r.json.Id, /^[0-9a-f]{32}$/)
     assert.equal(r.json.BeeboCompat.notJellyfin, true)
     assert.equal((await f.jf('GET', '/system/info/public/', { token: null })).status, 200, 'case-insensitive, trailing slash')
@@ -335,13 +335,20 @@ test('images are anonymous but only for art already handed out; backdrops redire
     const bd = await f.jf('GET', '/Items/' + toy.Id + '/Images/Backdrop/0?maxWidth=400', { token: null, raw: true })
     assert.equal(bd.status, 302)
     assert.match(bd.headers.get('location'), /^https:\/\/image\.tmdb\.org\/t\/p\/w(300|500|780|1280)\/toyback\.jpg$/)
-    for (const u of ['/Items/' + toy.Id + '/Images/Logo', '/Items/' + toy.Id + '/Images/Thumb', '/Items/' + toy.Id + '/Images/Primary/3', '/Items/zzzz/Images/Primary']) {
+    for (const u of ['/Items/' + toy.Id + '/Images/Logo', '/Items/' + toy.Id + '/Images/Primary/3', '/Items/zzzz/Images/Primary']) {
       assert.equal((await f.jf('GET', u, { token: null, raw: true })).status, 404, u)
     }
+    // Thumb is the landscape card art: the same public backdrop, and it is advertised in ImageTags.
+    assert.ok(toy.ImageTags.Thumb, 'Thumb tag')
+    assert.equal((await f.jf('GET', '/Items/' + toy.Id + '/Images/Thumb?tag=' + toy.ImageTags.Thumb, { token: null, raw: true })).status, 302)
     if (toy.ImageTags.Primary) {
       const p = await f.jf('GET', '/Items/' + toy.Id + '/Images/Primary?maxWidth=300&quality=90&tag=' + toy.ImageTags.Primary, { token: null, raw: true })
       assert.equal(p.status, 200)
       assert.equal(p.headers.get('content-type'), 'image/jpeg')
+      assert.match(p.headers.get('cache-control'), /max-age=31536000/, 'a tagged image is cacheable for a year')
+      assert.equal(p.headers.get('etag'), '"' + toy.ImageTags.Primary + '"')
+      const again = await f.jf('GET', '/Items/' + toy.Id + '/Images/Primary?tag=' + toy.ImageTags.Primary, { token: null, raw: true, headers: { 'if-none-match': '"' + toy.ImageTags.Primary + '"' } })
+      assert.equal(again.status, 304, 'If-None-Match with the current tag')
     }
   } finally { await f.close() }
 })

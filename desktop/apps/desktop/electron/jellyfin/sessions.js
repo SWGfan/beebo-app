@@ -66,7 +66,7 @@ function createSessions({ host, ids, catalog, mapper, services }) {
     const { rec, error } = await ensureSession(user, entry, body, req)
     if (!rec) return { status: error === 403 ? 403 : error === 404 ? 404 : 500 }
     await report(user, entry, rec, body, req)
-    return { status: 204 }
+    return { status: 204, entry }
   }
 
   async function progress(user, body, req) {
@@ -75,7 +75,7 @@ function createSessions({ host, ids, catalog, mapper, services }) {
     const { rec, error } = await ensureSession(user, entry, body, req)
     if (!rec) return { status: error === 403 ? 403 : 500 }
     await report(user, entry, rec, body, req)
-    return { status: 204 }
+    return { status: 204, entry }
   }
 
   async function stopped(user, body, req) {
@@ -86,7 +86,7 @@ function createSessions({ host, ids, catalog, mapper, services }) {
     const ensured = known ? { rec: known } : await ensureSession(user, entry, body, req)
     if (ensured.rec) await report(user, entry, ensured.rec, body, req)
     playing.delete(key)
-    return { status: 204 }
+    return { status: 204, entry }
   }
 
   async function userDataFor(user, entry) {

@@ -34,7 +34,7 @@
 // ============================================================================
 
 function playbackPanelHtml({ kind, mediaId }) {
-  const cfg = JSON.stringify({ kind: kind === 'tv' ? 'tv' : 'movie', id: String(mediaId || '') }).replace(/</g, '\\u003c')
+  const cfg = require('./httpSecurity').jsonForScript({ kind: kind === 'tv' ? 'tv' : 'movie', id: String(mediaId || '') })
   return `
 <style>
 #pbSheet{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);font-family:system-ui,Segoe UI,Arial,sans-serif}

@@ -179,13 +179,14 @@ class CampsiteEntryFlowTest {
         ).forEach { assertFalse(it, CampsiteGameCatalog[it]!!.needsGuests) }
     }
 
-    @Test fun `every solo-playable game has a computer player`() {
+    @Test fun `every solo-playable game has a computer player, except checklists that play alone`() {
         CampsiteGameCatalog.ALL.filter { !it.needsGuests }.forEach { game ->
             val local = CampsiteLocalGames(botClock = false)
             try {
                 assertTrue(game.id, local.open(game.id, withComputer = true))
                 val room = local.snapshot().getValue("room").jsonObject
-                assertEquals(game.id, 1, room.getValue("bots").jsonPrimitive.int)
+                // A game with playsSolo (Plate & Sign Hunt) has nobody to play against, so no computer is seated.
+                assertEquals(game.id, if (game.playsSolo) 0 else 1, room.getValue("bots").jsonPrimitive.int)
             } finally { local.close() }
         }
     }

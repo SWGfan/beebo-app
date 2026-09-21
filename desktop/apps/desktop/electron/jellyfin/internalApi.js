@@ -53,7 +53,7 @@ function makeRequest(real, { method, path, headers, body }) {
 // Runs Beebo's own request handler in-process, as one signed-in person, and returns what it answered.
 // The bearer token is minted here and never leaves the process.
 function createInternalApi({ store, dispatch, makeApiToken }) {
-  return async function api(userId, method, pathAndQuery, body, realReq) {
+  return async function api(userId, method, pathAndQuery, body, realReq, opts) {
     const token = makeApiToken(store, userId)
     if (!token) return { status: 401, body: null }
     const req = makeRequest(realReq, { method, path: pathAndQuery, headers: { authorization: 'Bearer ' + token }, body })
@@ -63,6 +63,7 @@ function createInternalApi({ store, dispatch, makeApiToken }) {
       dispatch(req, res).then(() => (res.writableEnded ? null : new Promise((resolve) => res.once('finish', resolve)))),
       new Promise((resolve) => setTimeout(resolve, 60000).unref())
     ])
+    if (opts && opts.binary) return { status: res.statusCode, body: null, text: '', buffer: res.body(), headers: res.getHeaders() }
     const text = res.body().toString('utf8')
     let parsed = null
     try { parsed = text ? JSON.parse(text) : null } catch { parsed = null }

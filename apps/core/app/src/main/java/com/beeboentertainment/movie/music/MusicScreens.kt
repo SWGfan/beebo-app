@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
@@ -72,6 +73,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.beeboentertainment.movie.BeeboApp
+import com.beeboentertainment.movie.audio.AudioKind
+import com.beeboentertainment.movie.audio.AudioRoutes
 import com.beeboentertainment.movie.core.UrlUtils
 import com.beeboentertainment.movie.data.UnauthorizedException
 import com.beeboentertainment.movie.ui.EmptyBox
@@ -135,7 +138,8 @@ fun NavGraphBuilder.musicRoutes(navController: NavController, onUnauthorized: ()
 fun MusicNavEffects(navController: NavController) {
     val open by MusicPlayer.openNowPlaying.collectAsState()
     LaunchedEffect(open) {
-        if (open > 0) runCatching { navController.navigate(MusicRoutes.NOW_PLAYING) { launchSingleTop = true } }
+        // A tap on the notification opens the player for whatever is playing: song, book, episode or station.
+        if (open > 0) runCatching { navController.navigate(AudioRoutes.nowPlaying(MusicPlayer.state.value.kind)) { launchSingleTop = true } }
     }
 }
 
@@ -643,11 +647,11 @@ fun MusicArtistScreen(artistId: String, onOpenAlbum: (String) -> Unit, onUnautho
 
 /** The strip above the bottom bar while music is loaded: cover, song, play/pause, next. Tap opens Now Playing. */
 @Composable
-fun MusicMiniPlayer(currentRoute: String?, onOpen: () -> Unit) {
+fun MusicMiniPlayer(currentRoute: String?, onOpen: (AudioKind) -> Unit) {
     val s by MusicPlayer.state.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(Unit) { MusicPlayer.connect(context) }
-    if (!s.hasSong || currentRoute == MusicRoutes.NOW_PLAYING) return
+    if (!s.hasSong || currentRoute == AudioRoutes.nowPlaying(s.kind)) return
     val meta = s.current?.mediaMetadata
     Surface(tonalElevation = 3.dp, modifier = Modifier.fillMaxWidth()) {
         Column {
@@ -662,7 +666,7 @@ fun MusicMiniPlayer(currentRoute: String?, onOpen: () -> Unit) {
                 }
             }
             Row(
-                Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(horizontal = 10.dp, vertical = 6.dp),
+                Modifier.fillMaxWidth().clickable { onOpen(s.kind) }.padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(Modifier.size(42.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
@@ -678,8 +682,15 @@ fun MusicMiniPlayer(currentRoute: String?, onOpen: () -> Unit) {
                 IconButton(onClick = { MusicPlayer.togglePlay() }) {
                     Icon(if (s.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow, contentDescription = if (s.isPlaying) "Pause" else "Play")
                 }
-                IconButton(onClick = { MusicPlayer.next() }, enabled = s.upNext.isNotEmpty()) {
-                    Icon(Icons.Filled.SkipNext, contentDescription = "Next song")
+                if (s.kind.spoken) {
+                    // A book, an episode or a station: skip forward (30 s), or nothing for radio which has no timeline.
+                    if (s.kind.seekable) IconButton(onClick = { MusicPlayer.skipSpoken(com.beeboentertainment.movie.audio.AudioPrefs.skipForwardSeconds(context)) }) {
+                        Icon(Icons.Filled.FastForward, contentDescription = "Skip forward")
+                    }
+                } else {
+                    IconButton(onClick = { MusicPlayer.next() }, enabled = s.upNext.isNotEmpty()) {
+                        Icon(Icons.Filled.SkipNext, contentDescription = "Next song")
+                    }
                 }
             }
             HorizontalDivider()

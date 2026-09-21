@@ -79,14 +79,17 @@ function readCredentials(req, query) {
 }
 
 function makeQuery(url) {
+  // Every occurrence is kept: typed SDKs send arrays as repeated parameters (includeItemTypes=Movie&includeItemTypes=Series),
+  // others as one comma-separated value; both mean the same list.
   const map = new Map()
   for (const [k, v] of url.searchParams) {
     const key = k.toLowerCase()
-    if (!map.has(key)) map.set(key, v)
+    if (!map.has(key)) map.set(key, [])
+    map.get(key).push(v)
   }
   const q = (name) => {
     const v = map.get(String(name).toLowerCase())
-    return v === undefined ? '' : v
+    return v === undefined ? '' : v[0]
   }
   q.has = (name) => map.has(String(name).toLowerCase())
   q.int = (name, fallback = 0) => {
@@ -94,7 +97,7 @@ function makeQuery(url) {
     return Number.isFinite(n) ? n : fallback
   }
   q.bool = (name) => /^(true|1)$/i.test(q(name))
-  q.list = (name) => q(name).split(/[,|]/).map((s) => s.trim()).filter(Boolean)
+  q.list = (name) => (map.get(String(name).toLowerCase()) || []).flatMap((v) => v.split(/[,|]/)).map((s) => s.trim()).filter(Boolean)
   return q
 }
 

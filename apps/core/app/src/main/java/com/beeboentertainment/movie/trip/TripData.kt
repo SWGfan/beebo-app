@@ -37,6 +37,11 @@ internal object TripData {
             earnedBadgesNow = earned,
             thisOrThatRounds = TripQueries.thisOrThatRounds(window, game.rounds, game.firstMs, game.lastMs),
             now = now,
+            quietNights = runCatching {
+                com.beeboentertainment.movie.campsite.quiet.QuietNights.inRange(
+                    com.beeboentertainment.movie.campsite.quiet.QuietGate.runtime.store.nights(), trip.startedAt, trip.endedAt,
+                )
+            }.getOrDefault(0),
         )
     }
 

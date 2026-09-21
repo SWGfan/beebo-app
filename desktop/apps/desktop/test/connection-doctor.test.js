@@ -111,18 +111,20 @@ test('away checks are skipped, not failed, on a computer that never turned away-
   assert.equal(by(c, 'sleep').scope, 'both')
 })
 
-test('beebo.tv unreachable: each cause has its own words, and the address check waits', async () => {
+test('beebo.tv unreachable: a secure-connection or server problem is a failure with its own words; no internet at all is a calm note', async () => {
   const m = await load()
   const f = healthy()
   const titles = {}
   for (const error of ['dns', 'timeout', 'tls', 'http_5xx', 'network']) {
     f.cloud = { signedIn: true, reachable: false, error }
     const c = m.evaluate(f)
-    assert.equal(by(c, 'internet').status, 'fail')
+    const offline = ['dns', 'timeout', 'network'].includes(error)
+    assert.equal(by(c, 'internet').status, offline ? 'warn' : 'fail', error)
+    assert.equal(!!by(c, 'internet').offline, offline, error)
     titles[error] = by(c, 'internet').title
     assert.equal(by(c, 'address').status, 'skip', 'no point comparing addresses while offline')
   }
-  assert.equal(new Set(Object.values(titles)).size, 5)
+  assert.equal(new Set(Object.values(titles)).size, 3, 'offline, secure connection, server trouble')
   assert.match(titles.tls, /Secure connection/)
   f.cloud = { signedIn: true, reachable: null }
   assert.equal(by(m.evaluate(f), 'internet').status, 'warn')

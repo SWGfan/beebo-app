@@ -178,7 +178,7 @@ VideoToolbox test encodes and their real-world failure texts, `tonemap_vaapi` / 
 
 ## 9. Not done yet
 
-* HEVC / AV1 *output* (HEVC encoders are only detected), direct-stream (remux) of compatible video,
+* HEVC / AV1 *output* (HEVC encoders are only detected). Direct stream (remux: picture copied, HDR10 / HDR10+ / Dolby Vision kept, sound copied or converted alone) is built now: `electron/hlsRemux.js`, see `docs/HOME-THEATER.md`,
 * hardware *decoding* (`-hwaccel`) - decoding is still in software, which matters on an old PC with 4K HEVC,
 * hardware acceleration for the offline "Convert" queue (`convert.js`; it uses OpenH264 by design),
 * learning from measured speed (a per-encoder real-time factor) to lower the default limit automatically.

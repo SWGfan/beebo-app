@@ -1,4 +1,4 @@
-; Beebo Entertainment installer customisation (electron-builder 24, NSIS, oneClick).
+; Beebo Entertainment installer customisation (electron-builder 26, NSIS, oneClick).
 ;
 ; Included by electron-builder BEFORE its own templates (package.json build.nsis.include),
 ; for both the installer and the uninstaller compile passes. The build runs makensis
@@ -180,6 +180,11 @@ Var pid
 
 ; --- first thing in the install section: close Beebo ---------------------------------
 !macro customCheckAppRunning
+  ; electron-builder 25.1+/26: its own CHECK_APP_RUNNING inserts IS_POWERSHELL_AVAILABLE (which
+  ; declares and sets $IsPowerShellAvailable, read by FIND_PROCESS / KILL_PROCESS) only when NO
+  ; customCheckAppRunning exists. Defining this macro bypasses that, so insert it here, first,
+  ; exactly as the default path does; otherwise makensis -WX fails on the undeclared variable.
+  !insertmacro IS_POWERSHELL_AVAILABLE
   !ifndef BUILD_UNINSTALLER
     !insertmacro beeboWriteMarker
     !insertmacro beeboStatus 1 "Closing Beebo if it's running..." 0

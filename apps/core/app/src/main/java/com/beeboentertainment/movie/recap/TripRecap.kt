@@ -132,6 +132,11 @@ object TripRecapBuilder {
         if (summary.hunt.isNotEmpty()) {
             stats += RecapStat("🔎", "Scavenger hunt: " + TripSlides.plural(summary.hunt.size, "waypoint") + " found")
         }
+        summary.tallies.forEach { stats += RecapStat("🚗", it.text.ifBlank { it.title }) }
+        if (summary.quietNights > 0) stats += RecapStat("🌙", "Quiet hours kept: " + TripSlides.plural(summary.quietNights, "night"))
+        if (summary.stops.isNotEmpty()) {
+            stats += RecapStat("🛑", "Stops: " + summary.stops.joinToString(", ") { it.title })
+        }
         if (summary.badges.isNotEmpty()) {
             stats += RecapStat("🎖️", "New badges: " + summary.badges.joinToString(", ") { it.title })
         }

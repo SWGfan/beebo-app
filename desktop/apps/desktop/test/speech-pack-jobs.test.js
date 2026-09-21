@@ -423,6 +423,9 @@ test('settings are validated; search only returns library titles', async () => {
     assert.deepEqual((await e.queue.search('alpha')).map((x) => x.label), ['Alpha Movie.d15.mkv'])
     assert.deepEqual(await e.queue.search('a'), [])
     assert.ok(!('path' in (await e.queue.search('beta'))[0]), 'no paths in search results')
-    assert.ok(!JSON.stringify(e.queue.status()).includes(e.movies), 'status never exposes folder paths of the jobs')
+    // The job list never carries a folder path (the settings screen shows the LIBRARY folders to the owner on purpose).
+    // Check the raw and the JSON-escaped form: on Windows JSON doubles the backslashes, so a raw-only check can never fail.
+    const jobsJson = JSON.stringify(e.queue.status().jobs)
+    assert.ok(!jobsJson.includes(e.movies) && !jobsJson.includes(JSON.stringify(e.movies).slice(1, -1)), 'jobs never expose folder paths')
   } finally { await e.close() }
 })

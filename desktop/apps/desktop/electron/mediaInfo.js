@@ -22,6 +22,7 @@ const fs = require('fs')
 const path = require('path')
 const tracksLib = require('./playbackTracks')
 const aiSubtitles = require('./aiSubtitles')
+const classify = require('./mediaClassify')
 
 const CACHE_FILE = 'media-info-cache.json'
 const MAX_MEMORY = 300
@@ -63,12 +64,20 @@ function videoCodecLabel(codec, profile) {
   return p && p !== 'unknown' ? `${name} ${p}` : name
 }
 
-/** The one-line "Video" value: "1080p (HEVC Main 10)", "4K (HEVC Main 10, HDR)". */
+/** "Dolby Vision 8.1 / HDR10": every HDR format the picture carries, the Dolby Vision profile included. */
+function hdrWords(video) {
+  const formats = Array.isArray(video.hdrFormats) ? video.hdrFormats : []
+  if (!formats.length) return video.hdr ? 'HDR' : ''
+  const dv = video.dolbyVision
+  return formats.map((f) => (f === 'Dolby Vision' && dv && dv.label ? `Dolby Vision ${dv.label}` : f)).join(' / ')
+}
+
+/** The one-line "Video" value: "1080p (HEVC Main 10)", "4K (HEVC Main 10, Dolby Vision 8.1 / HDR10)". */
 function describeVideo(video) {
   if (!video) return null
   const res = resolutionLabel(video.width, video.height)
   const codec = videoCodecLabel(video.codec, video.profile)
-  const bits = [codec, video.hdr ? 'HDR' : ''].filter(Boolean).join(', ')
+  const bits = [codec, hdrWords(video)].filter(Boolean).join(', ')
   const label = res && bits ? `${res} (${bits})` : res || bits || null
   return {
     label,
@@ -79,6 +88,15 @@ function describeVideo(video) {
     profile: video.profile || null,
     fps: video.fps || null,
     hdr: !!video.hdr,
+    // Precise picture facts (mediaClassify.js).
+    hdrType: video.hdrType || (video.hdr ? 'HDR10' : 'SDR'),
+    hdrFormats: video.hdrFormats || [],
+    dolbyVision: video.dolbyVision ? { profile: video.dolbyVision.profile, label: video.dolbyVision.label, level: video.dolbyVision.level, compatId: video.dolbyVision.compatId, baseLooksLike: video.dolbyVision.baseLooksLike, elPresent: video.dolbyVision.elPresent } : null,
+    hdr10Plus: !!video.hdr10Plus,
+    bitDepth: video.bitDepth || null,
+    resolutionClass: video.resolutionClass || null,
+    colorPrimaries: video.colorPrimaries || null,
+    colorTransfer: video.colorTransfer || null,
     bitrateKbps: video.bitrateKbps || null
   }
 }
@@ -86,6 +104,9 @@ function describeVideo(video) {
 function audioCodecWord(codec, profile) {
   const c = String(codec || '').toLowerCase()
   const p = String(profile || '')
+  // Object audio is worth naming in the picker ("English (Dolby TrueHD Atmos 7.1)").
+  if (/atmos/i.test(p)) return c === 'truehd' ? 'Dolby TrueHD Atmos' : 'Dolby Digital Plus Atmos'
+  if (c === 'dts' && /dts:x/i.test(p)) return 'DTS:X'
   // ffprobe names the DTS family by profile: "DTS-HD MA", "DTS-HD HRA", "DTS-ES".
   if (c === 'dts' && /dts-hd/i.test(p)) return /ma/i.test(p) ? 'DTS-HD MA' : 'DTS-HD'
   return AUDIO_CODEC_WORDS[c] || (c ? c.toUpperCase() : '')
@@ -123,8 +144,8 @@ function subtitleLabel({ languageName, forced, hearingImpaired, kind, title, cod
  * subtitles[i] { key, source: 'embedded', streamIndex, label, language, kind: 'text' | 'image', forced, hearingImpaired, isDefault }
  * Subtitle codecs the player cannot show at all are left out. Sidecar files are added by describeFile.
  */
-function describeProbe(rawProbe) {
-  const parsed = tracksLib.parseTracks(rawProbe)
+function describeProbe(rawProbe, opts = {}) {
+  const parsed = tracksLib.parseTracks(rawProbe, { frameSideData: opts.frameSideData })
   if (!parsed) return null
   const profileByIndex = new Map()
   for (const s of (rawProbe && Array.isArray(rawProbe.streams)) ? rawProbe.streams : []) {
@@ -138,7 +159,14 @@ function describeProbe(rawProbe) {
     languageName: a.languageName,
     codec: a.codec,
     channels: a.channels,
-    isDefault: !!a.isDefault
+    isDefault: !!a.isDefault,
+    // What the track is (mediaClassify.js): "Dolby TrueHD + Dolby Atmos", 7.1, lossless, object audio.
+    formatName: a.formatName || null,
+    family: a.family || null,
+    layout: a.layout || null,
+    lossless: !!a.lossless,
+    objectAudio: a.objectAudio || null,
+    spatialFormat: a.spatialFormat || 'None'
   }))
   const subtitles = parsed.subtitles
     .filter((s) => s.kind !== 'unsupported')
@@ -154,7 +182,16 @@ function describeProbe(rawProbe) {
       hearingImpaired: s.hearingImpaired,
       isDefault: !!s.isDefault
     }))
-  return { durationSec: parsed.durationSec, video: describeVideo(parsed.video), audio, subtitles }
+  const whole = classify.classifyProbe(rawProbe, { frameSideData: opts.frameSideData })
+  return {
+    classifyVersion: classify.CLASSIFY_VERSION,
+    durationSec: parsed.durationSec,
+    video: describeVideo(parsed.video),
+    audio,
+    subtitles,
+    // "4K", "Dolby Vision", "HDR10+", "Atmos", "7.1": the short labels for the details page and every list.
+    badges: whole ? whole.badges : []
+  }
 }
 
 /**
@@ -285,13 +322,14 @@ function createMediaInfo({ ffprobePath, getCacheDir, execFileFn, fsImpl = fs, no
 
   async function describeFile(filePath, key) {
     const persisted = loadDisk()
-    if (persisted && persisted[key] && persisted[key].d) {
+    // An entry written before the classification existed lacks HDR10+ / Dolby Vision / Atmos: read the file again.
+    if (persisted && persisted[key] && persisted[key].d && persisted[key].d.classifyVersion === classify.CLASSIFY_VERSION) {
       persisted[key].at = now()
       return persisted[key].d
     }
     if (!resolveFfprobe()) return { error: 'no_ffprobe' }
     const tracks = await prober.probe(filePath)
-    const described = tracks ? describeProbe(tracks.raw) : null
+    const described = tracks ? describeProbe(tracks.raw, { frameSideData: tracks.frameSideData }) : null
     if (!described) return { error: 'unreadable' }
     if (persisted) {
       persisted[key] = { at: now(), d: described }
@@ -332,6 +370,7 @@ module.exports = {
   createMediaInfo,
   describeProbe,
   describeVideo,
+  hdrWords,
   resolutionLabel,
   videoCodecLabel,
   audioLabel,

@@ -3,6 +3,9 @@
 Written for the owner and for whoever maintains the player code. Everything here is what the code
 does today; the "Not verified" list at the end is what could only be tested without a real receiver.
 
+For the whole home-theatre picture (Dolby Vision / HDR10+ / Atmos / DTS:X, what each device plays, direct play vs direct stream vs transcode, and a
+checklist for a receiver) see `HOME-THEATER.md`; this page is about what the live conversion does with the sound.
+
 ## Video: the computer's live conversion (HLS)
 
 `desktop/apps/desktop/electron/hlsAudio.js` decides the sound of every conversion; `hlsTranscoder.js`

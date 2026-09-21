@@ -14,6 +14,7 @@ const encoderCaps = require('./encoderCapabilities')
 const convert = require('./convert')
 const subtitleSweep = require('./subtitleSweep')
 const trickplayCache = require('./trickplayCache')
+const homeTheaterSettings = require('./homeTheaterSettings')
 
 // The encoder choices Settings may store: '' = Automatic, 'software' = processor only, or one encoder to prefer.
 const ENCODER_MODES = new Set(['', 'software', ...hls.ENCODER_CANDIDATES, ...encoderCaps.HLS_ENCODER_IDS])
@@ -24,7 +25,7 @@ const CPU_MODES = new Set(['', 'gentle', 'normal'])
  * cached probe the conversions use) and its live load. Without it (headless tests) this builds its
  * own service over the same settings store, sharing the on-disk probe cache.
  */
-function register({ ipcMain, store, getTranscode = () => null }) {
+function register({ ipcMain, store, getTranscode = () => null, getUsers = () => [] }) {
   const get = (k, d) => { try { const v = store.get(k); return v === undefined || v === null ? d : v } catch { return d } }
   let ownService = null
   const service = () => {
@@ -108,6 +109,24 @@ function register({ ipcMain, store, getTranscode = () => null }) {
       return { ok: false, message: 'The encoder check could not run: ' + String((e && e.message) || e), detected: [] }
     }
   })
+
+  // Settings > Playback > Home theater: direct play / bitrate / passthrough / forced transcode, server-wide and per person
+  // (homeTheaterSettings.js). The same store keys are read by every /playback/negotiate and /playback/info request.
+  const ht = homeTheaterSettings.createStore(store)
+  const htState = () => {
+    let users = []
+    try { users = (getUsers() || []).filter((u) => u && u.id) } catch { users = [] }
+    const overrides = ht.users()
+    return {
+      server: ht.server(),
+      defaults: homeTheaterSettings.DEFAULTS,
+      users: users.slice(0, 200).map((u) => ({ id: String(u.id), name: String(u.name || u.username || 'Person').slice(0, 60), isAdmin: !!u.isAdmin, override: overrides[String(u.id)] || {} })),
+      ffmpegInstalled: !!convert.ffmpegPath()
+    }
+  }
+  ipcMain.handle('homeTheater:get', () => htState())
+  ipcMain.handle('homeTheater:save', (_e, patch) => { ht.saveServer(patch); return htState() })
+  ipcMain.handle('homeTheater:saveUser', (_e, userId, patch) => { ht.saveUser(userId, patch); return htState() })
 
   // "Transcode load": conversions running now / allowed / waiting.
   ipcMain.handle('playback:transcodeLoad', () => {

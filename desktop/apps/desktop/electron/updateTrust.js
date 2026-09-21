@@ -15,6 +15,12 @@ function normalizeSha256(value) {
   return SHA256_RE.test(v) ? v : ''
 }
 
+const VERSION_RE = /^\d{1,4}(?:\.\d{1,4}){1,3}(?:[-+][0-9A-Za-z][0-9A-Za-z.-]{0,31})?$/
+
+function isSafeVersion(value) {
+  return (typeof value === 'string' || typeof value === 'number') && VERSION_RE.test(String(value))
+}
+
 function isHttps(url) {
   try { return new URL(String(url)).protocol === 'https:' } catch (e) { return false }
 }
@@ -26,6 +32,9 @@ function isHttps(url) {
  */
 function evaluateFeed(info) {
   if (!info || !info.version || !info.url) return { ok: false, sha256: '', reason: 'feed-incomplete', downloadOnlyPossible: false }
+  // The version becomes part of a file name in the temp folder and of a PowerShell script that starts the installer
+  // elevated: only "0.1.58" / "0.2.0-beta.1" shapes are accepted, never a path, a quote or a line break.
+  if (!isSafeVersion(info.version)) return { ok: false, sha256: '', reason: 'feed-incomplete', downloadOnlyPossible: false }
   if (!isHttps(info.url)) return { ok: false, sha256: '', reason: 'insecure-url', downloadOnlyPossible: false }
   const sha256 = normalizeSha256(info.sha256)
   if (!sha256) return { ok: false, sha256: '', reason: 'no-fingerprint', downloadOnlyPossible: true }
@@ -61,4 +70,4 @@ function installGate(job) {
   return { ok: true, reason: '' }
 }
 
-module.exports = { evaluateFeed, installGate, normalizeSha256, messageFor, isHttps }
+module.exports = { evaluateFeed, installGate, normalizeSha256, messageFor, isHttps, isSafeVersion }

@@ -155,8 +155,9 @@ internal object CampsiteMusicHost {
     // ---- host actions -----------------------------------------------------------------------
 
     /** Play what the Music player has queued (the current song and everything after it) on every guest phone. */
-    fun playTogether() {
+    fun playTogether(withHeadphones: Boolean = false) {
         val h = hub ?: return
+        if (quietRefuses(withHeadphones)) return
         setupJob?.cancel()
         setupJob = scope.launch {
             val st = MusicPlayer.state.value
@@ -180,7 +181,22 @@ internal object CampsiteMusicHost {
         }
     }
 
-    fun play() { hub?.play() }
+    /**
+     * Quiet hours (Family Pack A): music for the whole camp is not started out loud at night. The host
+     * may confirm everyone is on headphones ([withHeadphones]); otherwise the message says what to do.
+     * True means "refused, do not play".
+     */
+    private fun quietRefuses(withHeadphones: Boolean): Boolean {
+        val quiet = com.beeboentertainment.movie.campsite.quiet.QuietGate.runtime
+        if (withHeadphones && quiet.isQuiet()) quiet.headphonesConfirmed = true
+        if (quiet.musicDecision() == com.beeboentertainment.movie.campsite.quiet.MusicDecision.REFUSE) {
+            say(com.beeboentertainment.movie.campsite.quiet.QuietMusicPolicy.REFUSED_MESSAGE)
+            return true
+        }
+        return false
+    }
+
+    fun play() { if (quietRefuses(false)) return; hub?.play() }
     fun pause() { hub?.pause() }
     fun next() { hub?.next() }
     fun previous() { hub?.previous() }

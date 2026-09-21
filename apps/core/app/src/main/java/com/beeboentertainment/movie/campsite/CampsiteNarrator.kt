@@ -43,6 +43,8 @@ internal class CampsiteNarrator(context: Context, private val onInvite: () -> Un
 
     private fun say(text: String) {
         if (released) return
+        // Quiet hours (Family Pack A): the narrator stays silent so the neighbours can sleep.
+        if (com.beeboentertainment.movie.campsite.quiet.QuietGate.isQuietNow()) return
         val line = text.filter { !it.isISOControl() }.trim().take(600)
         if (line.isEmpty()) return
         val e = engine ?: return

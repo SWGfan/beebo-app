@@ -13,6 +13,8 @@ function compile(method, pattern, opts) {
     if (m) { names.push(m[1].toLowerCase()); return '([^/]+)' }
     const dot = /^(.*)\{(\w+)\}$/.exec(seg)
     if (dot) { names.push(dot[2].toLowerCase()); return dot[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^/]+)' }
+    const suffixed = /^\{(\w+)\}(\..+)$/.exec(seg)
+    if (suffixed) { names.push(suffixed[1].toLowerCase()); return '([^/]+?)' + suffixed[2].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
     return seg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   }).join('/') + '/?$', opts && opts.caseSensitive ? '' : 'i')
   return { method, pattern, re, names, ...opts }
@@ -28,7 +30,7 @@ function safeDecode(s) {
   try { return decodeURIComponent(s) } catch { return s }
 }
 
-function createRouter({ services, ids, auth, catalog, mapper, items, playback, sessions, images, host, settingEnabled, log }) {
+function createRouter({ services, ids, auth, catalog, mapper, items, playback, sessions, images, host, settingEnabled, log, segments, trickplay, hub }) {
   const routes = []
   const on = (method, pattern, handler, opts = {}) => routes.push(compile(method, pattern, { handler, ...opts }))
   const anyOf = (methods, pattern, handler, opts) => { for (const m of methods) on(m, pattern, handler, opts) }
@@ -46,7 +48,7 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
     OperatingSystem: '',
     Id: auth.serverId(),
     StartupWizardCompleted: true,
-    BeeboCompat: { api: 'Jellyfin-compatible API, 10.9-style subset', product: PRODUCT_NAME, notJellyfin: true }
+    BeeboCompat: { api: 'Jellyfin-compatible API, 12.1-level subset', product: PRODUCT_NAME, notJellyfin: true }
   })
 
   // ---- public ----
@@ -65,6 +67,8 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
     const out = await auth.login({ username, password: typeof password === 'string' ? password : '', device: c.device, ip: c.ip })
     if (!out.ok) {
       if (out.locked) return sendJson(c.res, 429, { Message: 'Too many failed attempts. Try again later.' }, { 'Retry-After': String((out.minutesRemaining || 5) * 60) })
+      // Two-factor accounts cannot sign in with a password here; the message tells them the way in.
+      if (out.twoFactor) return sendJson(c.res, 401, { Message: 'This account uses two-factor sign-in, which Jellyfin-compatible apps cannot ask for. Ask the person who runs this Beebo server for an app password (Settings > Jellyfin apps) and use it as the password here.' })
       return sendJson(c.res, 401, { Message: 'Invalid username or password.' })
     }
     sendJson(c.res, 200, out.body)
@@ -91,6 +95,8 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
   anyOf(['GET', 'HEAD'], '/Items/{itemId}/Images/{imageType}', (c) => images.serve(c), publicRoute)
   anyOf(['GET', 'HEAD'], '/Items/{itemId}/Images/{imageType}/{imageIndex}', (c) => images.serve(c), publicRoute)
   on('GET', '/Users/{userId}/Images/{imageType}', (c) => sendEmpty(c.res, 404), publicRoute)
+  // The live-updates socket is a WebSocket upgrade handled by websocket.js; a plain GET is told so.
+  on('GET', '/socket', (c) => sendText(c.res, 426, 'Upgrade Required', 'text/plain; charset=utf-8', { Upgrade: 'websocket' }), publicRoute)
 
   // ---- signed in: identity ----
   on('POST', '/QuickConnect/Authorize', (c) => {
@@ -142,6 +148,47 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
   on('GET', '/Items/Filters', async (c) => sendJson(c.res, 200, await items.filtersLegacy(c.user, c.q, c.req)))
   on('GET', '/Items/Filters2', async (c) => sendJson(c.res, 200, await items.filters2(c.user, c.q, c.req)))
 
+  // Registered before /Items/{itemId} so that "Suggestions" is never mistaken for an item id.
+  const suggestionsHandler = async (c) => {
+    if (c.params.userid && !c.ownUser()) return sendEmpty(c.res, 403)
+    sendJson(c.res, 200, await items.suggestions(c.user, c.q, c.req))
+  }
+  on('GET', '/Items/Suggestions', suggestionsHandler)
+  on('GET', '/Suggestions', suggestionsHandler)
+  on('GET', '/Users/{userId}/Suggestions', suggestionsHandler)
+  on('GET', '/Items/Root', async (c) => sendJson(c.res, 200, await items.detail(c.user, ids.encode('view', 0), c.req) || { Name: 'Media Folders', Id: items.rootJid, Type: 'AggregateFolder', IsFolder: true, ServerId: auth.serverId() }))
+  on('GET', '/Items/Counts', async (c) => {
+    const snap = await catalog.getSnapshot(c.user, c.req)
+    const eps = await catalog.getAllEpisodes(c.user, c.req)
+    const music = await catalog.getMusic(c.user, c.req)
+    sendJson(c.res, 200, { MovieCount: snap.movies.length, SeriesCount: snap.shows.length, EpisodeCount: eps.episodes.length, ArtistCount: music.artists.length, ProgramCount: 0, TrailerCount: 0, SongCount: music.tracks.length, AlbumCount: music.albums.length, MusicVideoCount: 0, BoxSetCount: snap.boxsets.length, BookCount: 0, ItemCount: snap.movies.length + snap.shows.length + eps.episodes.length + music.tracks.length })
+  })
+  on('GET', '/MusicGenres', async (c) => sendJson(c.res, 200, await items.musicGenres(c.user, c.q, c.req)))
+  on('GET', '/Playback/BitrateTest', (c) => {
+    // A few bytes of noise so an app can time the connection; capped, and only for signed-in people.
+    const size = Math.min(Math.max(c.q.int('size', 102400), 1), 10 * 1024 * 1024)
+    const buf = require('crypto').randomBytes(size)
+    c.res.writeHead(200, { ...CORS, 'Content-Type': 'application/octet-stream', 'Content-Length': buf.length, 'Cache-Control': 'no-store' })
+    c.res.end(buf)
+  })
+  anyOf(['DELETE'], '/Videos/ActiveEncodings', (c) => sendEmpty(c.res, 204))
+  anyOf(['POST'], '/Users/Configuration', (c) => sendEmpty(c.res, 204))
+  anyOf(['POST'], '/Users/{userId}/Configuration', (c) => sendEmpty(c.res, 204))
+  // Answers an app's item page may ask for and that Beebo has nothing for (empty, so the page still draws).
+  on('GET', '/Videos/{itemId}/AdditionalParts', async (c) => { if (await requireEntry(c)) sendJson(c.res, 200, items.page([], 0)) })
+  on('GET', '/Items/{itemId}/Collections', async (c) => { if (await requireEntry(c)) sendJson(c.res, 200, items.page([], 0)) })
+  on('GET', '/Audio/{itemId}/Lyrics', (c) => sendJson(c.res, 404, { Message: 'No lyrics.' }))
+  anyOf(['GET'], '/FallbackFont/Fonts', (c) => sendJson(c.res, 200, []))
+  // Findroid renames its own device this way; the name is only kept in the app.
+  anyOf(['POST'], '/Devices/Options', (c) => sendEmpty(c.res, 204))
+  // Sign-out by key: an app may only end its own sign-in (making or listing keys is an administrator's job in Jellyfin, and is not offered).
+  on('GET', '/Auth/Keys', (c) => sendJson(c.res, 403, { Message: 'Not available.' }))
+  on('DELETE', '/Auth/Keys/{key}', (c) => {
+    if (c.params.key !== c.token) return sendJson(c.res, 403, { Message: 'An app can only sign itself out.' })
+    auth.revoke(c.token, c.user)
+    sendEmpty(c.res, 204)
+  })
+
   const detailHandler = async (c) => {
     if (c.params.userid && !c.ownUser()) return sendEmpty(c.res, 403)
     const dto = await items.detail(c.user, c.params.itemid, c.req)
@@ -159,10 +206,35 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
   const emptyItems = (c) => sendJson(c.res, 200, items.page([], 0))
   const emptyArray = (c) => sendJson(c.res, 200, [])
   on('GET', '/Items/{itemId}/Ancestors', async (c) => { if (await requireEntry(c)) sendJson(c.res, 200, []) })
-  for (const tail of ['Similar', 'Intros']) {
+  for (const tail of ['Intros']) {
     on('GET', '/Items/{itemId}/' + tail, async (c) => { if (await requireEntry(c)) emptyItems(c) })
     on('GET', '/Users/{userId}/Items/{itemId}/' + tail, async (c) => { if (await requireEntry(c)) emptyItems(c) })
   }
+  const similarHandler = async (c) => {
+    const entry = await requireEntry(c)
+    if (entry) sendJson(c.res, 200, await items.similar(c.user, entry, c.q, c.req))
+  }
+  for (const base of ['/Items/{itemId}', '/Users/{userId}/Items/{itemId}', '/Movies/{itemId}', '/Shows/{itemId}', '/Albums/{itemId}', '/Artists/{itemId}']) on('GET', base + '/Similar', similarHandler)
+  for (const tail of ['ThemeSongs', 'ThemeVideos']) {
+    on('GET', '/Items/{itemId}/' + tail, async (c) => { if (await requireEntry(c)) sendJson(c.res, 200, { Items: [], TotalRecordCount: 0, StartIndex: 0 }) })
+  }
+  // Instant mix: a run of tracks from an album, artist, song, playlist or music genre.
+  const mixHandler = async (c) => {
+    const entry = await requireEntry(c)
+    if (entry) sendJson(c.res, 200, await items.instantMix(c.user, entry, c.q, c.req))
+  }
+  for (const base of ['/Items/{itemId}', '/Songs/{itemId}', '/Albums/{itemId}', '/Artists/{itemId}']) on('GET', base + '/InstantMix', mixHandler)
+  on('GET', '/Playlists/{itemId}/InstantMix', mixHandler, { caseSensitive: true })
+  const genreMix = async (c) => {
+    const d = idsLib.decodeNumeric(c.q('id') || '')
+    const music = await catalog.getMusic(c.user, c.req)
+    const name = c.params.name
+    const g = d && d.kind === 'genre' ? music.genres.find((x) => x.number === d.number) : music.genres.find((x) => x.name.toLowerCase() === String(name || '').toLowerCase())
+    if (!g) return sendJson(c.res, 404, { Message: 'Genre not found.' })
+    sendJson(c.res, 200, await items.instantMix(c.user, { type: 'Genre', jid: g.jid, number: g.number }, c.q, c.req))
+  }
+  on('GET', '/MusicGenres/InstantMix', genreMix)
+  on('GET', '/MusicGenres/{name}/InstantMix', genreMix)
   for (const tail of ['LocalTrailers', 'SpecialFeatures']) {
     on('GET', '/Items/{itemId}/' + tail, async (c) => { if (await requireEntry(c)) emptyArray(c) })
     on('GET', '/Users/{userId}/Items/{itemId}/' + tail, async (c) => { if (await requireEntry(c)) emptyArray(c) })
@@ -172,7 +244,27 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
     const empty = { Items: [], TotalRecordCount: 0, OwnerId: c.params.itemid }
     sendJson(c.res, 200, { ThemeVideosResult: empty, ThemeSongsResult: empty, SoundtrackSongsResult: empty })
   })
-  on('GET', '/MediaSegments/{itemId}', async (c) => { if (await requireEntry(c)) emptyItems(c) })
+  on('GET', '/MediaSegments/{itemId}', async (c) => {
+    const entry = await requireEntry(c)
+    if (!entry) return
+    const list = segments ? await segments.forEntry(c.user, entry, c.q, c.req) : []
+    sendJson(c.res, 200, items.page(list, 0))
+  })
+  // Seek-bar preview tiles built from Beebo's own preview frames (trickplay.js).
+  on('GET', '/Videos/{itemId}/Trickplay/{width}/tiles.m3u8', async (c) => {
+    const entry = await catalog.resolve(c.user, c.params.itemid, c.req)
+    if (!entry || (entry.type !== 'Movie' && entry.type !== 'Episode') || !trickplay) return sendEmpty(c.res, 404)
+    return trickplay.playlist(c.user, entry, c.params.width, c)
+  })
+  anyOf(['GET', 'HEAD'], '/Videos/{itemId}/Trickplay/{width}/{index}.jpg', async (c) => {
+    const entry = await catalog.resolve(c.user, c.params.itemid, c.req)
+    if (!entry || (entry.type !== 'Movie' && entry.type !== 'Episode') || !trickplay) return sendEmpty(c.res, 404)
+    return trickplay.serveSheet(c.user, entry, c.params.width, c.params.index, c)
+  })
+  anyOf(['GET'], '/Items/{itemId}/Images', async (c) => {
+    const entry = await requireEntry(c)
+    if (entry) sendJson(c.res, 200, images.list(entry.jid))
+  })
   anyOf(['GET'], '/Items/{itemId}/Download', (c) => sendJson(c.res, 403, { Message: 'Downloads are not available.' }))
 
   on('GET', '/Shows/NextUp', async (c) => sendJson(c.res, 200, await items.nextUp(c.user, c.q, c.req)))
@@ -192,14 +284,35 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
   on('GET', '/Search/Hints', async (c) => sendJson(c.res, 200, await items.searchHints(c.user, c.q, c.req)))
   anyOf(['GET'], '/Artists', async (c) => sendJson(c.res, 200, await items.artists(c.user, c.q, c.req)))
   anyOf(['GET'], '/Artists/AlbumArtists', async (c) => sendJson(c.res, 200, await items.artists(c.user, c.q, c.req)))
-  for (const p of ['/Persons', '/Studios', '/MusicGenres', '/Years', '/Trailers', '/Channels', '/LiveTv/Channels', '/LiveTv/Programs', '/LiveTv/Programs/Recommended', '/LiveTv/Recordings', '/Devices', '/Library/MediaFolders']) {
+  for (const p of ['/Persons', '/Studios', '/Years', '/Trailers', '/Channels', '/LiveTv/Channels', '/LiveTv/Programs', '/LiveTv/Programs/Recommended', '/LiveTv/Recordings', '/Devices', '/Library/MediaFolders']) {
     on('GET', p, emptyItems)
   }
   for (const p of ['/Playlists', '/Collections']) on('GET', p, emptyItems, { caseSensitive: true })
-  on('GET', '/Playlists/{itemId}/Items', emptyItems)
+  // Beebo's playlists as Jellyfin playlists (read only here; making and editing them is done in Beebo).
+  const playlistOf = async (c) => {
+    const entry = await catalog.resolve(c.user, c.params.playlistid || c.params.itemid, c.req)
+    if (!entry || entry.type !== 'Playlist') { sendJson(c.res, 404, { Message: 'Playlist not found.' }); return null }
+    return entry
+  }
+  on('GET', '/Playlists/{playlistId}', async (c) => {
+    const entry = await playlistOf(c)
+    if (!entry) return
+    const list = await catalog.getPlaylistItems(c.user, entry, c.req)
+    sendJson(c.res, 200, { OpenAccess: false, Shares: [], ItemIds: list.map((e) => e.jid) })
+  }, { caseSensitive: true })
+  on('GET', '/Playlists/{playlistId}/Items', async (c) => {
+    const entry = await playlistOf(c)
+    if (!entry) return
+    const list = await catalog.getPlaylistItems(c.user, entry, c.req)
+    const start = Math.max(0, c.q.int('startIndex', 0))
+    const limit = c.q.int('limit', 0)
+    const dtos = await items.toDtos(c.user, list.slice(start, limit > 0 ? start + limit : undefined), c.req)
+    for (const d of dtos) d.PlaylistItemId = d.Id
+    sendJson(c.res, 200, items.page(dtos, start, list.length))
+  }, { caseSensitive: true })
+  anyOf(['POST', 'DELETE'], '/Playlists', (c) => sendJson(c.res, 403, { Message: 'Make and change playlists in Beebo.' }), { caseSensitive: true })
+  anyOf(['POST', 'DELETE'], '/Playlists/{playlistId}/Items', (c) => sendJson(c.res, 403, { Message: 'Make and change playlists in Beebo.' }), { caseSensitive: true })
   on('GET', '/Movies/Recommendations', emptyArray)
-  on('GET', '/Suggestions', emptyItems)
-  on('GET', '/Users/{userId}/Suggestions', emptyItems)
   for (const p of ['/Plugins', '/Packages', '/ScheduledTasks', '/Library/VirtualFolders', '/Localization/Cultures', '/Localization/Countries', '/Localization/ParentalRatings', '/Notifications/Services', '/Repositories']) {
     on('GET', p, emptyArray)
   }
@@ -234,6 +347,14 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
   anyOf(['GET'], '/Videos/{itemId}/{mediaSourceId}/Subtitles/{index}/Stream.{format}', subtitles)
   anyOf(['GET'], '/Videos/{itemId}/{mediaSourceId}/Subtitles/{index}/{startPositionTicks}/Stream.{format}', subtitles)
 
+  // The file itself, as music apps (Finamp) ask for it: the same gated route as Static=true / Audio universal.
+  anyOf(['GET', 'HEAD'], '/Items/{itemId}/File', async (c) => {
+    const entry = await catalog.resolve(c.user, c.params.itemid, c.req)
+    if (!entry) return sendEmpty(c.res, 404)
+    if (entry.type === 'Audio') return playback.audioStream(c.user, entry, c, false)
+    if (entry.type === 'Movie' || entry.type === 'Episode') return playback.directStream(c.user, entry, c)
+    return sendEmpty(c.res, 404)
+  })
   const audio = (universal) => async (c) => {
     const entry = await catalog.resolve(c.user, c.params.itemid, c.req)
     if (!entry || entry.type !== 'Audio') return sendEmpty(c.res, 404)
@@ -245,25 +366,48 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
 
   // ---- progress and marks ----
   const sessionResult = (c, out) => (out.status === 204 ? sendEmpty(c.res, 204) : sendJson(c.res, out.status, { Message: out.status === 404 ? 'Item not found.' : out.status === 403 ? 'Playback is not allowed right now.' : 'Bad request.' }))
-  on('POST', '/Sessions/Playing', async (c) => sessionResult(c, await sessions.start(c.user, await readBody(c.req), c.req)))
-  on('POST', '/Sessions/Playing/Progress', async (c) => sessionResult(c, await sessions.progress(c.user, await readBody(c.req), c.req)))
-  on('POST', '/Sessions/Playing/Stopped', async (c) => sessionResult(c, await sessions.stopped(c.user, await readBody(c.req), c.req)))
+  // What the session list (and Home Assistant style dashboards) show as "now playing", and a UserDataChanged push to the person's other apps.
+  const reportFlow = (kind) => async (c) => {
+    const body = await readBody(c.req)
+    const out = await sessions[kind](c.user, body, c.req)
+    if (out.status === 204 && out.entry) {
+      try {
+        const stopped = kind === 'stopped'
+        let item
+        if (kind === 'start') item = (await items.toDtos(c.user, [out.entry], c.req))[0]
+        auth.notePlayback(c.user, c.device, c.ip, { item, stopped, positionTicks: pick(body, 'PositionTicks'), isPaused: pick(body, 'IsPaused') === true, canSeek: pick(body, 'CanSeek'), playMethod: pick(body, 'PlayMethod'), mediaSourceId: pick(body, 'MediaSourceId') })
+        if (stopped && hub) {
+          const data = await sessions.userDataFor(c.user, out.entry)
+          hub.userDataChanged(c.user, [data])
+        }
+      } catch {}
+    }
+    sessionResult(c, out)
+  }
+  on('POST', '/Sessions/Playing', reportFlow('start'))
+  on('POST', '/Sessions/Playing/Progress', reportFlow('progress'))
+  on('POST', '/Sessions/Playing/Stopped', reportFlow('stopped'))
   on('POST', '/Sessions/Playing/Ping', (c) => sendEmpty(c.res, 204))
-  anyOf(['POST'], '/Sessions/Capabilities', (c) => sendEmpty(c.res, 204))
-  anyOf(['POST'], '/Sessions/Capabilities/Full', (c) => sendEmpty(c.res, 204))
-  on('GET', '/Sessions', (c) => sendJson(c.res, 200, [auth.sessionDto(c.user, c.device, c.ip)]))
-  on('POST', '/Sessions/Logout', (c) => { auth.revoke(c.token); sendEmpty(c.res, 204) })
+  anyOf(['POST'], '/Sessions/Capabilities', (c) => { auth.setCapabilities(c.user, c.device, { PlayableMediaTypes: c.q.list('playableMediaTypes') }); sendEmpty(c.res, 204) })
+  anyOf(['POST'], '/Sessions/Capabilities/Full', async (c) => { auth.setCapabilities(c.user, c.device, await readBody(c.req)); sendEmpty(c.res, 204) })
+  on('GET', '/Sessions', (c) => {
+    auth.touchSession(c.user, c.device, c.ip)
+    sendJson(c.res, 200, auth.sessionsFor(c.user))
+  })
+  on('POST', '/Sessions/Logout', (c) => { auth.revoke(c.token, c.user); sendEmpty(c.res, 204) })
 
   const played = (value) => async (c) => {
     if (c.params.userid && !c.ownUser()) return sendEmpty(c.res, 403)
     const out = await sessions.setPlayed(c.user, c.params.itemid, value, c.req)
     if (!out) return sendJson(c.res, 404, { Message: 'Item not found.' })
+    if (hub) hub.userDataChanged(c.user, [out.userData])
     sendJson(c.res, 200, out.userData)
   }
   const favorite = (value) => async (c) => {
     if (c.params.userid && !c.ownUser()) return sendEmpty(c.res, 403)
     const out = await sessions.setFavorite(c.user, c.params.itemid, value, c.req)
     if (!out) return sendJson(c.res, 404, { Message: 'Item not found.' })
+    if (hub) hub.userDataChanged(c.user, [out.userData])
     sendJson(c.res, 200, out.userData)
   }
   on('POST', '/UserPlayedItems/{itemId}', played(true))
@@ -279,6 +423,22 @@ function createRouter({ services, ids, auth, catalog, mapper, items, playback, s
     if (entry) sendJson(c.res, 200, await sessions.userDataFor(c.user, entry))
   }
   on('GET', '/UserItems/{itemId}/UserData', userData)
+  // Updating an item's data: only the two marks Beebo keeps (watched, favourite) are honoured; resume points come from playback reports.
+  on('POST', '/UserItems/{itemId}/UserData', async (c) => {
+    const body = await readBody(c.req)
+    let out = null
+    const played = pick(body, 'Played')
+    const fav = pick(body, 'IsFavorite')
+    if (typeof played === 'boolean') out = await sessions.setPlayed(c.user, c.params.itemid, played, c.req)
+    if (typeof fav === 'boolean') out = await sessions.setFavorite(c.user, c.params.itemid, fav, c.req) || out
+    if (!out) {
+      const entry = await requireEntry(c)
+      if (!entry) return undefined
+      return sendJson(c.res, 200, await sessions.userDataFor(c.user, entry))
+    }
+    if (hub) hub.userDataChanged(c.user, [out.userData])
+    return sendJson(c.res, 200, out.userData)
+  })
   on('GET', '/Users/{userId}/Items/{itemId}/UserData', userData)
 
   const displayPrefs = new Map()

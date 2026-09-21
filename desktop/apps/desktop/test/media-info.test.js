@@ -66,7 +66,8 @@ test('describeProbe: the video line reads "1080p (HEVC Main 10)"', () => {
 
 test('describeProbe: HDR is named, and a missing size still gives the codec', () => {
   const hdr = mediaInfo.describeProbe(probeJson([video({ width: 3840, height: 2160, color_transfer: 'smpte2084' })]))
-  assert.equal(hdr.video.label, '4K (HEVC Main 10, HDR)')
+  assert.equal(hdr.video.label, '4K (HEVC Main 10, HDR10)')
+  assert.equal(hdr.video.hdrType, 'HDR10'); assert.deepEqual(hdr.badges, ['4K', 'HDR10'])
   const noSize = mediaInfo.describeProbe(probeJson([video({ width: undefined, height: undefined })]))
   assert.equal(noSize.video.label, 'HEVC Main 10')
   assert.equal(mediaInfo.describeProbe(probeJson([audio(0, 'aac', 2, 'eng')])).video, null)

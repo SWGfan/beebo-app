@@ -156,6 +156,13 @@ class ConnectionDiagnosisTest {
     }
 
     @Test
+    fun `a beebo tv name that cannot be found tells someone at home to use the numbers, which work with no internet`() {
+        val f = ConnectionDoctor.diagnose(facts(target = PairLink("thesmiths.beebo.tv", null, ServerTrust.BEEBO_TV), nameFound = false, ping = PingOutcome.Failed(FailureClass.DNS)))
+        val dns = f.first { it.id == "dns" }
+        assertTrue(dns.steps.any { it.contains("no internet") && it.contains("192.168") })
+    }
+
+    @Test
     fun `timeout and refused on the home network mean different things`() {
         val refused = ConnectionDoctor.diagnose(facts(ping = PingOutcome.Failed(FailureClass.REFUSED))).first { it.level == Level.PROBLEM }
         assertTrue(refused.title.contains("not answering"))

@@ -54,6 +54,7 @@ import com.beeboentertainment.movie.core.PairLinks
 import com.beeboentertainment.movie.core.PairMessages
 import com.beeboentertainment.movie.core.PairParse
 import com.beeboentertainment.movie.core.PairRequests
+import com.beeboentertainment.movie.core.SecondStep
 import com.beeboentertainment.movie.core.UrlUtils
 import com.beeboentertainment.movie.scan.QrScanResult
 import com.beeboentertainment.movie.scan.rememberQrScanner
@@ -106,6 +107,18 @@ fun SetupScreen(
     TypedSignIn(onServerAccepted, onExploreWithoutServer, onUsePhone = if (isTv) ({ typed = false }) else null)
 }
 
+/**
+ * A password that was right for an account with two-factor on, waiting for its code. Only the
+ * short-lived challenge is kept (never a session); [directBaseUrl] is null for the away-from-home
+ * path, which finishes over the tunnel it already opened.
+ */
+private data class PendingSecondStep(
+    val challenge: String,
+    val directBaseUrl: String?,
+    val entry: HomeEntry,
+    val signIn: RemoteSignIn,
+)
+
 @Composable
 private fun TypedSignIn(
     onServerAccepted: () -> Unit,
@@ -138,6 +151,8 @@ private fun TypedSignIn(
     var pendingConfirm by remember { mutableStateOf<PairLink?>(null) }
     var showHelp by remember { mutableStateOf(false) }
     var lastLoginHttp by remember { mutableStateOf<Int?>(null) }
+    // Set when the password was right and this account has two-factor on: the code prompt shows instead.
+    var secondStep by remember { mutableStateOf<PendingSecondStep?>(null) }
     val clipboard = LocalClipboardManager.current
 
     fun applyPair(link: PairLink) {
@@ -214,6 +229,11 @@ private fun TypedSignIn(
                         is SignInPlan.Step.Direct -> {
                             val result = runCatching { app.api.login(username.trim(), password, step.baseUrl) }
                             val r = result.getOrNull()
+                            if (r != null && r.needsSecondStep) {
+                                // Right password, two-factor on: ask for the code before anything is saved.
+                                secondStep = PendingSecondStep(r.challenge.orEmpty(), step.baseUrl, entry, signIn)
+                                return@launch
+                            }
                             if (r != null && r.ok && !r.token.isNullOrBlank()) {
                                 if (entry is HomeEntry.Address) {
                                     RemoteAccess.onBaseUrlChanged(step.baseUrl)
@@ -234,7 +254,12 @@ private fun TypedSignIn(
                         is SignInPlan.Step.Remote -> {
                             when (val r = RemoteAccess.signIn(signIn)) {
                                 is RemoteAccess.SignInResult.SignedIn -> { onServerAccepted(); return@launch }
-                                is RemoteAccess.SignInResult.Refused -> { error = r.message; return@launch }
+                                is RemoteAccess.SignInResult.Refused -> {
+                                    val challenge = r.secondStepChallenge
+                                    if (challenge != null) secondStep = PendingSecondStep(challenge, null, entry, signIn)
+                                    else error = r.message
+                                    return@launch
+                                }
                                 is RemoteAccess.SignInResult.NotConnected -> {
                                     error = r.message
                                     showConnectionTest = r.showConnectionTest
@@ -250,6 +275,59 @@ private fun TypedSignIn(
                 busy = false
             }
         }
+    }
+
+    /** The code box's answer: finish exactly the way the password step would have. */
+    fun submitCode(pending: PendingSecondStep, entry: SecondStep.Entry) {
+        val code = SecondStep.codeToSend(entry) ?: return
+        error = null
+        busy = true
+        scope.launch {
+            try {
+                val direct = pending.directBaseUrl
+                if (direct != null) {
+                    when (val o = SecondStep.outcome(app.api.loginSecondStep(pending.challenge, code, direct))) {
+                        is SecondStep.Outcome.SignedIn -> {
+                            if (pending.entry is HomeEntry.Address) {
+                                RemoteAccess.onBaseUrlChanged(direct)
+                                app.session.baseUrl = direct
+                            } else {
+                                RemoteAccess.rememberForLater(pending.signIn, direct)
+                            }
+                            finishDirect(direct, o.token, o.user)
+                        }
+                        is SecondStep.Outcome.TryAgain -> error = o.message
+                        is SecondStep.Outcome.StartOver -> { secondStep = null; password = ""; error = o.message }
+                        is SecondStep.Outcome.Locked -> error = o.message
+                        is SecondStep.Outcome.Failed -> error = o.message
+                    }
+                } else {
+                    when (val r = RemoteAccess.completeSecondStep(pending.challenge, code)) {
+                        is RemoteAccess.SignInResult.SignedIn -> onServerAccepted()
+                        is RemoteAccess.SignInResult.Refused -> {
+                            if (r.secondStepChallenge != null) error = r.message
+                            else { secondStep = null; password = ""; error = r.message }
+                        }
+                        is RemoteAccess.SignInResult.NotConnected -> error = r.message
+                    }
+                }
+            } catch (e: Exception) {
+                error = e.message ?: "Couldn't sign in."
+            } finally {
+                busy = false
+            }
+        }
+    }
+
+    val pendingSecond = secondStep
+    if (pendingSecond != null) {
+        TwoFactorPrompt(
+            busy = busy,
+            error = error,
+            onSubmit = { entry -> submitCode(pendingSecond, entry) },
+            onCancel = { secondStep = null; password = ""; error = null },
+        )
+        return
     }
 
     pendingConfirm?.let { link ->

@@ -283,6 +283,10 @@ function createUser(store, name, email) {
 function revokeUser(store, userId) {
   const users = getUsers(store).map((u) => (u.id === userId ? { ...u, status: 'revoked' } : u))
   setUsers(store, users)
+  // Status alone stops a token while the account is revoked, but every check re-reads it: approving the
+  // person again (reactivateUser) would bring every cookie and token they (or a thief) still hold back to
+  // life. End them now so a reactivated account starts with a clean slate.
+  try { authSessions.revokeAll(store, userId) } catch {}
 }
 
 function deleteUser(store, userId) {
@@ -497,11 +501,22 @@ function applyNewPassword(store, userId, newPassword, { reason = 'changed', keep
 // has one (self-service signups, or anyone an admin has manually reset),
 // otherwise falls back to the legacy access code so existing accounts keep
 // working until they're migrated.
+// A right username costs one scrypt check and a wrong one used to cost nothing, so the time a login
+// took told a stranger which names exist. An unknown (or unusable) account now pays for one check
+// against a throwaway hash, the way resetCodes.js already does.
+let dummyPasswordHash = null
+function burnPasswordCheck(secret) {
+  try {
+    if (!dummyPasswordHash) dummyPasswordHash = hashPassword(crypto.randomBytes(16).toString('hex'))
+    verifyPassword(secret, dummyPasswordHash)
+  } catch {}
+}
+
 function findUserByUsernameAndSecret(store, username, secret) {
   const uname = normalizeUsername(username)
   if (!uname) return null
   const user = getUsers(store).find((u) => u.username === uname && u.status === 'approved')
-  if (!user) return null
+  if (!user || !(user.passwordHash || user.codeHash)) { burnPasswordCheck(secret); return null }
   let signedIn = null
   if (user.passwordHash) {
     if (verifyPassword(secret, user.passwordHash)) signedIn = user

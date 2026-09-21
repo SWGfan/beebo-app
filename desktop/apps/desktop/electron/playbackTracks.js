@@ -19,11 +19,14 @@ const crypto = require('crypto')
 const { execFile, spawn } = require('child_process')
 const ffmpegArgs = require('./ffmpegArgs') // file: prefix + -protocol_whitelist for every library input
 const chapterModel = require('./chapterModel')
+const classify = require('./mediaClassify') // HDR type, Dolby Vision profile, Atmos / DTS:X, badges
 
 const PROBE_ARGS = [
   '-v', 'error',
   '-show_entries',
-  'stream=index,codec_type,codec_name,profile,level,pix_fmt,bits_per_raw_sample,field_order,channels,channel_layout,width,height,bit_rate,r_frame_rate,avg_frame_rate,color_transfer,start_time' +
+  'stream=index,codec_type,codec_name,codec_tag_string,profile,level,pix_fmt,bits_per_raw_sample,field_order,channels,channel_layout,sample_rate,width,height,bit_rate,r_frame_rate,avg_frame_rate,color_range,color_space,color_transfer,color_primaries,start_time' +
+    // Dolby Vision's configuration record (dv_profile, compatibility id, layers) and static HDR metadata.
+    ':stream_side_data' +
     ':stream_tags=language,title' +
     ':stream_disposition=default,forced,hearing_impaired,attached_pic,comment,visual_impaired',
   '-show_entries', 'format=format_name,duration,bit_rate,start_time',
@@ -125,7 +128,8 @@ function subtitleKind(codec) {
 }
 
 // Raw ffprobe JSON -> the compact description the picker and the transcoder read.
-function parseTracks(parsed) {
+// `opts.frameSideData`: side data types seen on the first frames (the extra call for HDR10+, see createTrackProber).
+function parseTracks(parsed, opts = {}) {
   if (!parsed || typeof parsed !== 'object') return null
   const streams = Array.isArray(parsed.streams) ? parsed.streams : []
   const format = parsed.format || {}
@@ -135,16 +139,31 @@ function parseTracks(parsed) {
   const videoStream = streams.find((s) => s && s.codec_type === 'video' && !disp(s).attached_pic)
   let video = null
   if (videoStream) {
-    const transfer = String(videoStream.color_transfer || '')
+    const c = classify.classifyVideoStream(videoStream, { frameSideData: opts.frameSideData })
     video = {
       streamIndex: num(videoStream.index),
       codec: videoStream.codec_name || null,
       profile: videoStream.profile || null,
+      level: num(videoStream.level),
       width: num(videoStream.width),
       height: num(videoStream.height),
       fps: fps(videoStream.avg_frame_rate) || fps(videoStream.r_frame_rate),
       pixFmt: videoStream.pix_fmt || null,
-      hdr: transfer === 'smpte2084' || transfer === 'arib-std-b67',
+      // Any HDR at all (HDR10, HDR10+, HLG, Dolby Vision - including a profile 5 file whose container says nothing).
+      hdr: c.hdr,
+      hdrType: c.hdrType,
+      hdrFormats: c.hdrFormats,
+      hdrBase: c.hdrBase,
+      fallbackHdrType: c.fallbackHdrType,
+      hdr10Plus: c.hdr10Plus,
+      dolbyVision: c.dolbyVision,
+      bitDepth: c.bitDepth,
+      resolutionClass: c.resolutionClass,
+      colorPrimaries: c.colorPrimaries,
+      colorTransfer: c.colorTransfer,
+      colorSpace: c.colorSpace,
+      interlaced: c.interlaced,
+      badges: c.badges,
       bitrateKbps: num(videoStream.bit_rate) ? Math.round(num(videoStream.bit_rate) / 1000) : null
     }
   }
@@ -160,6 +179,7 @@ function parseTracks(parsed) {
     if (disp(s).comment) parts.push('Commentary')
     let label = parts.filter(Boolean).join(' · ')
     if (title && !label.toLowerCase().includes(title.toLowerCase())) label += ` (${title})`
+    const ac = classify.classifyAudioStream(s)
     return {
       ordinal: audioOrdinal++,
       streamIndex: num(s.index),
@@ -167,6 +187,15 @@ function parseTracks(parsed) {
       channels: num(s.channels),
       channelLayout: s.channel_layout ? String(s.channel_layout) : null,
       profile: s.profile ? String(s.profile) : null,
+      // What the track is: family (dd / ddp / truehd / dts / dtshd ...), Atmos / DTS:X, lossless, "7.1".
+      family: ac.family,
+      formatName: ac.name,
+      objectAudio: ac.objectAudio,
+      spatialFormat: ac.spatialFormat,
+      lossless: ac.lossless,
+      layout: ac.layout,
+      sampleRate: ac.sampleRate,
+      audioBitrateKbps: ac.bitrateKbps,
       channelsLabel: channelWords(s.channels),
       language,
       languageName: languageName(language),
@@ -213,6 +242,8 @@ function parseTracks(parsed) {
     audio,
     subtitles,
     chapters: chapterModel.fromProbe(parsed.chapters, durationSec),
+    // Per-frame HDR metadata seen by the extra probe (HDR10+): kept so the classification can be redone from `raw`.
+    frameSideData: Array.isArray(opts.frameSideData) ? opts.frameSideData : [],
     // The same raw JSON also feeds playbackRules.normalizeProbe (direct play / cast verdicts).
     raw: parsed
   }
@@ -239,7 +270,23 @@ function createTrackProber({ ffprobePath, execFileFn = execFile, maxEntries = 20
     const p = new Promise((resolve) => {
       execFileFn(exe, [...PROBE_ARGS, ...ffmpegArgs.inputArgs(filePath)], { timeout: 30000, maxBuffer: 8 * 1024 * 1024, windowsHide: true }, (err, stdout) => {
         if (err) return resolve(null)
-        try { resolve(parseTracks(JSON.parse(String(stdout)))) } catch { resolve(null) }
+        let json
+        try { json = JSON.parse(String(stdout)) } catch { return resolve(null) }
+        let tracks
+        try { tracks = parseTracks(json) } catch { return resolve(null) }
+        // HDR10+ is per-frame metadata: a PQ HEVC/AV1/VP9 picture gets one more, tiny ffprobe call over its first
+        // frames (ordinary SDR files never do). A failure only means "no HDR10+ badge".
+        const vs = tracks && tracks.video ? (json.streams || []).find((x) => x && x.index === tracks.video.streamIndex) : null
+        if (!vs || !classify.wantsFrameProbe(vs)) return resolve(tracks)
+        try {
+          execFileFn(exe, [...classify.FRAME_PROBE_ARGS, ...ffmpegArgs.inputArgs(filePath)], { timeout: 20000, maxBuffer: 4 * 1024 * 1024, windowsHide: true }, (err2, out2) => {
+            if (err2) return resolve(tracks)
+            try {
+              const seen = classify.parseFrameSideData(JSON.parse(String(out2)))
+              resolve(seen.length ? parseTracks(json, { frameSideData: seen }) : tracks)
+            } catch { resolve(tracks) }
+          })
+        } catch { resolve(tracks) }
       })
     }).then((result) => {
       inFlight.delete(key)

@@ -8,6 +8,9 @@ package com.beeboentertainment.movie.trip
 internal interface TripMomentSink {
     fun story(story: StoryResult)
 
+    /** A finished plate or sign hunt. Default does nothing so older sinks and tests are unaffected. */
+    fun tally(tally: TallyResult) {}
+
     object None : TripMomentSink {
         override fun story(story: StoryResult) {}
     }
@@ -18,6 +21,10 @@ internal class TripStoreSink(private val store: TripStore) : TripMomentSink {
     override fun story(story: StoryResult) {
         // A finished story must never fail the round that produced it.
         runCatching { store.recordStory(story) }
+    }
+
+    override fun tally(tally: TallyResult) {
+        runCatching { store.recordTally(tally) }
     }
 }
 

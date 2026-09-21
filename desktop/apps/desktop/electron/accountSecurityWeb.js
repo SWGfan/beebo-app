@@ -95,7 +95,8 @@ function fmtWhen(ms) {
 
 // The signed-in person's page. `info` is accountSecurityApi.overview(); apiBase is where its JSON lives.
 function securityBody({ info, apiBase, required, weakFlag } = {}) {
-  const boot = JSON.stringify({ apiBase, info }).replace(/</g, '\\u003c')
+  // info carries sign-in device labels and browser names (attacker-influenced): jsonForScript escapes < > & and U+2028/9.
+  const boot = require('./httpSecurity').jsonForScript({ apiBase, info })
   return `<main style="max-width:780px;margin:24px auto;padding:0 16px 48px" id="acct-sec">
   <p class="muted">YOUR ACCOUNT</p>
   <h1 style="margin-top:0">Account security</h1>

@@ -27,8 +27,10 @@ const os = require('os')
 const path = require('path')
 const { execFile } = require('child_process')
 const tracks = require('./playbackTracks')
+const classify = require('./mediaClassify')
 
-const CACHE_VERSION = 1
+// 2: HDR type is now precise (HDR10+, Dolby Vision profile), audio carries Atmos / DTS:X, and every record has badges.
+const CACHE_VERSION = 2
 const MAX_ENTRIES = 60000
 const MAX_PATHS_PER_REQUEST = 6000
 const STAT_CONCURRENCY = 16
@@ -36,9 +38,9 @@ const STAT_CONCURRENCY = 16
 const PROBE_ARGS = [
   '-v', 'error',
   '-show_entries',
-  'stream=index,codec_type,codec_name,codec_tag_string,profile,pix_fmt,channels,channel_layout,width,height,bit_rate,r_frame_rate,avg_frame_rate,color_transfer' +
-    ':stream_side_data=side_data_type' +
-    ':stream_tags=language' +
+  'stream=index,codec_type,codec_name,codec_tag_string,profile,level,pix_fmt,bits_per_raw_sample,channels,channel_layout,sample_rate,width,height,bit_rate,r_frame_rate,avg_frame_rate,color_range,color_space,color_transfer,color_primaries' +
+    ':stream_side_data' + // Dolby Vision configuration record, mastering display, HDR10+
+    ':stream_tags=language,title' +
     ':stream_disposition=default,attached_pic',
   '-show_entries', 'format=format_name,duration,bit_rate',
   '-of', 'json'
@@ -61,14 +63,10 @@ function frameRate(s) {
   return null
 }
 
-function hdrOf(v) {
-  const sides = (Array.isArray(v.side_data_list) ? v.side_data_list : []).map((d) => String((d && d.side_data_type) || ''))
-  const tag = String(v.codec_tag_string || '').toLowerCase()
-  if (sides.some((t) => /dovi|dolby vision/i.test(t)) || /^(dvh1|dvhe|dav1)$/.test(tag) || /dolby vision/i.test(String(v.profile || ''))) return 'Dolby Vision'
-  const transfer = String(v.color_transfer || '')
-  if (transfer === 'smpte2084') return 'HDR10'
-  if (transfer === 'arib-std-b67') return 'HLG'
-  return 'SDR'
+// 'Dolby Vision' | 'HDR10+' | 'HDR10' | 'HLG' | 'SDR' (the one label the table column and the badges show).
+function hdrOf(v, frameSideData) {
+  const c = classify.classifyVideoStream(v, { frameSideData })
+  return c ? c.hdrType : 'SDR'
 }
 
 function languagesOf(list) {
@@ -82,7 +80,7 @@ function languagesOf(list) {
 
 // Raw ffprobe JSON -> the compact record the table reads (and the cache stores). null when
 // ffprobe found nothing that looks like media.
-function parseProbe(parsed, sizeBytes) {
+function parseProbe(parsed, sizeBytes, opts = {}) {
   if (!parsed || typeof parsed !== 'object') return null
   const streams = (Array.isArray(parsed.streams) ? parsed.streams : []).filter(Boolean)
   const format = parsed.format || {}
@@ -96,23 +94,40 @@ function parseProbe(parsed, sizeBytes) {
   let totalKbps = num(format.bit_rate) ? Math.round(num(format.bit_rate) / 1000) : null
   if (!totalKbps && durationSec > 0 && sizeBytes > 0) totalKbps = Math.round((sizeBytes * 8) / durationSec / 1000)
 
+  const cv = video ? classify.classifyVideoStream(video, { frameSideData: opts.frameSideData }) : null
+  const ca = audio.map((s) => classify.classifyAudioStream(s))
+  const whole = classify.classifyProbe(parsed, { frameSideData: opts.frameSideData })
   return {
     width: video ? num(video.width) : null,
     height: video ? num(video.height) : null,
     videoCodec: video ? video.codec_name || null : null,
     videoProfile: video ? video.profile || null : null,
     fps: video ? frameRate(video) : null,
-    hdr: video ? hdrOf(video) : null,
+    hdr: cv ? cv.hdrType : null,
+    // Precise picture facts (mediaClassify.js): every HDR format present, the Dolby Vision profile ("8.1"), bit depth.
+    hdrFormats: cv ? cv.hdrFormats : [],
+    dvProfile: cv && cv.dolbyVision ? cv.dolbyVision.label : '',
+    hdr10Plus: cv ? cv.hdr10Plus : false,
+    bitDepth: cv ? cv.bitDepth : null,
+    resolutionClass: cv ? cv.resolutionClass : null,
+    // "4K", "Dolby Vision", "HDR10", "Atmos", "7.1": the short labels for the table, badges and details.
+    badges: whole ? whole.badges : [],
+    objectAudio: whole ? whole.objectAudio : [],
     videoKbps: video && num(video.bit_rate) ? Math.round(num(video.bit_rate) / 1000) : null,
     totalKbps,
     durationSec,
     formatName: format.format_name || null,
-    audio: audio.map((s) => ({
+    audio: audio.map((s, i) => ({
       codec: s.codec_name || null,
       profile: s.profile || null,
       channels: num(s.channels),
       layout: s.channel_layout || null,
-      isDefault: !!disp(s).default
+      isDefault: !!disp(s).default,
+      family: ca[i].family,
+      formatName: ca[i].name,
+      objectAudio: ca[i].objectAudio,
+      spatialFormat: ca[i].spatialFormat,
+      lossless: ca[i].lossless
     })),
     audioLangs: languagesOf(audio),
     subLangs: languagesOf(subs),
@@ -245,14 +260,30 @@ function createLibraryInfo({
     return new Promise((resolve) => {
       const bin = exe()
       if (!bin) return resolve(null)
+      const inputArgs = require('./ffmpegArgs').inputArgs(filePath) // file: prefix + protocol whitelist (review F9)
       const child = execFileFn(
         bin,
-        [...PROBE_ARGS, ...require('./ffmpegArgs').inputArgs(filePath)], // file: prefix + protocol whitelist (review F9)
+        [...PROBE_ARGS, ...inputArgs],
         // windowsHide: no console window flashing up for every file read.
         { timeout: 30000, maxBuffer: 8 * 1024 * 1024, windowsHide: true },
         (err, stdout) => {
           if (err) return resolve(null)
-          try { resolve(parseProbe(JSON.parse(String(stdout)), sizeBytes)) } catch { resolve(null) }
+          let json
+          let record
+          try { json = JSON.parse(String(stdout)); record = parseProbe(json, sizeBytes) } catch { return resolve(null) }
+          // HDR10+ lives in per-frame metadata: only a PQ HEVC / AV1 / VP9 picture is worth a second, tiny read.
+          const vs = record && json && (json.streams || []).find((x) => x && x.codec_type === 'video' && !(x.disposition && x.disposition.attached_pic))
+          if (!vs || !classify.wantsFrameProbe(vs)) return resolve(record)
+          try {
+            const c2 = execFileFn(bin, [...classify.FRAME_PROBE_ARGS, ...inputArgs], { timeout: 20000, maxBuffer: 4 * 1024 * 1024, windowsHide: true }, (err2, out2) => {
+              if (err2) return resolve(record)
+              try {
+                const seen = classify.parseFrameSideData(JSON.parse(String(out2)))
+                resolve(seen.length ? parseProbe(json, sizeBytes, { frameSideData: seen }) : record)
+              } catch { resolve(record) }
+            })
+            try { if (c2 && c2.pid) setPriority(c2.pid) } catch { /* optional */ }
+          } catch { resolve(record) }
         }
       )
       try { if (child && child.pid) setPriority(child.pid) } catch { /* not every platform lets us */ }
@@ -390,4 +421,4 @@ function createLibraryInfo({
   }
 }
 
-module.exports = { createLibraryInfo, parseProbe, hdrOf, PROBE_ARGS, keyFor, pathOfKey }
+module.exports = { createLibraryInfo, parseProbe, hdrOf, PROBE_ARGS, CACHE_VERSION, keyFor, pathOfKey }

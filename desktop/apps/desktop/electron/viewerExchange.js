@@ -26,6 +26,7 @@
 const crypto = require('crypto')
 const auth = require('./auth')
 const viewingPrivacy = require('./viewingPrivacy')
+const twoFactor = require('./twoFactor')
 const licenseToken = require('./licenseToken')
 const { _v6Prefix64 } = require('./viewerIdentity')
 
@@ -316,8 +317,24 @@ function createViewerExchange(deps) {
       return { status: 403, body: { ok: false, error: 'private_profile_sign_in', message: 'Use your own Beebo username and password to open this private profile.' } }
     }
 
+    // Two-factor: the Worker's viewer token proves the person passed the Worker's sign-in, not this
+    // server's second step. /api/remote-session (same idea: a Worker-vouched away sign-in) sends a
+    // person with two-factor on to the code step; a TV has no way to ask for one, so it is refused
+    // and the person signs in with username, password and code (security review 2026-09-21, L-2).
+    if (twoFactor.isEnabled(user)) {
+      note(`[viewer-exchange] refused: two_factor (${ctx.path})`)
+      return { status: 403, body: { ok: false, error: 'two_factor_sign_in', message: 'This account uses two-factor. Sign in with your own username, password and code.' } }
+    }
+    if (twoFactor.setupRequired(store, user)) {
+      note(`[viewer-exchange] refused: two_factor_setup_required (${ctx.path})`)
+      return { status: 403, body: { ok: false, error: 'two_factor_setup_required', message: 'The owner of this server requires two-factor for admins. Turn it on under Account security on the website first.' } }
+    }
+
     spent.add(token, claims.exp)
-    const apiToken = makeApiToken(store, user.id, SESSION_DAYS)
+    // A tracked session (listed under Account security, ended by "sign out" / "sign out everywhere").
+    // An untracked 30-day token would also read as issued ~335 days ago and be refused after any
+    // sign-out-everywhere in that span (security review 2026-09-21, L-3).
+    const apiToken = makeApiToken(store, user.id, SESSION_DAYS, { track: true, ip, userAgent: 'Beebo TV: ' + device, method: 'viewer' })
     if (!apiToken) return { status: 500, body: { ok: false, error: 'server_error' } }
     auth.touchLastSeen(store, user.id, ip)
     audit(user, claims.via, device, t.path)

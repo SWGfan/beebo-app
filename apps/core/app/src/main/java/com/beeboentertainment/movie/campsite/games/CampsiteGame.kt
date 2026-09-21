@@ -65,6 +65,13 @@ internal interface CampsiteGame {
      */
     val needsGuests: Boolean get() = false
 
+    /**
+     * True for a game that one person can play with nobody else and no computer player, such as a
+     * checklist. The host's Games list then says "Play on this phone" and does not seat a bot.
+     * Never changes the rules.
+     */
+    val playsSolo: Boolean get() = false
+
     /** Which section of the host's Games list this sits in. Every game should set it. */
     val category: GameCategory get() = GameCategory.PARTY
 

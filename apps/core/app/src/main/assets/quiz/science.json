@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "science",
+ "title": "Simple Science",
+ "questions": [
+  {
+   "id": "science-46-01",
+   "band": "4-6",
+   "q": "What do we call frozen water?",
+   "o": [
+    "Ice",
+    "Smoke",
+    "Steam",
+    "Mud"
+   ],
+   "a": 0,
+   "fact": "Ice is water that got so cold it turned solid.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-02",
+   "band": "4-6",
+   "q": "What do magnets stick to?",
+   "o": [
+    "Plastic",
+    "Paper",
+    "Wood",
+    "Iron or steel"
+   ],
+   "a": 3,
+   "fact": "Every magnet has two ends, called poles.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-03",
+   "band": "4-6",
+   "q": "What do we hear with?",
+   "o": [
+    "Our toes",
+    "Our nose",
+    "Our eyes",
+    "Our ears"
+   ],
+   "a": 3,
+   "fact": "Sound travels in waves that your ears catch.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-04",
+   "band": "4-6",
+   "q": "What color do you get when you mix blue and yellow paint?",
+   "o": [
+    "Orange",
+    "Green",
+    "Brown",
+    "Purple"
+   ],
+   "a": 1,
+   "fact": "Mixing colors makes new colors.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-05",
+   "band": "4-6",
+   "q": "What pulls things down to the ground?",
+   "o": [
+    "Magic",
+    "Gravity",
+    "Wind",
+    "Rain"
+   ],
+   "a": 1,
+   "fact": "Gravity is why a ball comes back down when you throw it up.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-06",
+   "band": "4-6",
+   "q": "What do your lungs help you do?",
+   "o": [
+    "Jump",
+    "See",
+    "Breathe",
+    "Hear"
+   ],
+   "a": 2,
+   "fact": "You breathe in and out about 20,000 times each day.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-07",
+   "band": "4-6",
+   "q": "Which of these is a solid?",
+   "o": [
+    "Steam",
+    "A rock",
+    "Water",
+    "Air"
+   ],
+   "a": 1,
+   "fact": "Solids keep their own shape.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-08",
+   "band": "4-6",
+   "q": "What turns an ice cube back into water?",
+   "o": [
+    "Cold",
+    "Shade",
+    "Heat",
+    "Snow"
+   ],
+   "a": 2,
+   "fact": "When ice gets warm enough, it melts into water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-09",
+   "band": "4-6",
+   "q": "What do plants drink?",
+   "o": [
+    "Milk",
+    "Soda",
+    "Water",
+    "Juice"
+   ],
+   "a": 2,
+   "fact": "Plants take in water through their roots.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-10",
+   "band": "4-6",
+   "q": "Which of these can you see through?",
+   "o": [
+    "A brick",
+    "Clear glass",
+    "A wooden door",
+    "A rock"
+   ],
+   "a": 1,
+   "fact": "Light passes right through clear glass.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-11",
+   "band": "4-6",
+   "q": "What is a big spark of electricity in a storm cloud called?",
+   "o": [
+    "Lightning",
+    "A rainbow",
+    "A star",
+    "A kite"
+   ],
+   "a": 0,
+   "fact": "Lightning is much hotter than the surface of the Sun.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-12",
+   "band": "4-6",
+   "q": "What is the loud rumble that comes after lightning called?",
+   "o": [
+    "Thunder",
+    "A giggle",
+    "A whisper",
+    "A chirp"
+   ],
+   "a": 0,
+   "fact": "Thunder is the sound lightning makes as it heats the air.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-13",
+   "band": "4-6",
+   "q": "Which of these floats on water?",
+   "o": [
+    "A rubber duck",
+    "A key",
+    "A coin",
+    "A rock"
+   ],
+   "a": 0,
+   "fact": "Things float if they are light for their size.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-46-14",
+   "band": "4-6",
+   "q": "Which body part do you use to smell?",
+   "o": [
+    "Your elbow",
+    "Your knee",
+    "Your ear",
+    "Your nose"
+   ],
+   "a": 3,
+   "fact": "Your nose can tell thousands of different smells apart.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-01",
+   "band": "7-10",
+   "q": "What are the three main states of matter?",
+   "o": [
+    "Hot, warm and cold",
+    "Big, medium and small",
+    "Solid, liquid and gas",
+    "Red, blue and green"
+   ],
+   "a": 2,
+   "fact": "Water can be all three: ice, liquid water and steam.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-02",
+   "band": "7-10",
+   "q": "What force slows down things that slide or rub together?",
+   "o": [
+    "Light",
+    "Friction",
+    "Gravity",
+    "Magnetism"
+   ],
+   "a": 1,
+   "fact": "Rubbing your hands together makes them warm because of friction.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-03",
+   "band": "7-10",
+   "q": "What is the hardest natural material?",
+   "o": [
+    "Iron",
+    "Gold",
+    "Quartz",
+    "Diamond"
+   ],
+   "a": 3,
+   "fact": "Diamonds are made of carbon squeezed by heat and pressure deep in Earth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-04",
+   "band": "7-10",
+   "q": "What is the most common gas in the air we breathe?",
+   "o": [
+    "Nitrogen",
+    "Oxygen",
+    "Helium",
+    "Carbon dioxide"
+   ],
+   "a": 0,
+   "fact": "About one fifth of the air is oxygen.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-05",
+   "band": "7-10",
+   "q": "What kind of material lets electricity flow through easily?",
+   "o": [
+    "A cushion",
+    "A sponge",
+    "A conductor",
+    "An insulator"
+   ],
+   "a": 2,
+   "fact": "Metals like copper are good conductors of electricity.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-06",
+   "band": "7-10",
+   "q": "Which of your senses do the tiny hairs deep in your ears help?",
+   "o": [
+    "Taste",
+    "Hearing",
+    "Smell",
+    "Sight"
+   ],
+   "a": 1,
+   "fact": "Tiny hair cells turn sound into signals for your brain.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-07",
+   "band": "7-10",
+   "q": "About how many bones does a grown-up have?",
+   "o": [
+    "206",
+    "56",
+    "106",
+    "306"
+   ],
+   "a": 0,
+   "fact": "Babies are born with about 300, and some join together as they grow.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-08",
+   "band": "7-10",
+   "q": "At what temperature does water boil at sea level, in Celsius?",
+   "o": [
+    "212 degrees",
+    "100 degrees",
+    "50 degrees",
+    "0 degrees"
+   ],
+   "a": 1,
+   "fact": "Water boils at a lower temperature high up on a mountain.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-09",
+   "band": "7-10",
+   "q": "What makes a sound?",
+   "o": [
+    "Magnets",
+    "Colors",
+    "Vibrations",
+    "Shadows"
+   ],
+   "a": 2,
+   "fact": "When a guitar string vibrates, it makes the air wiggle, too.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-10",
+   "band": "7-10",
+   "q": "What happens when you push two north poles of magnets together?",
+   "o": [
+    "They glow",
+    "They stick",
+    "They melt",
+    "They push apart"
+   ],
+   "a": 3,
+   "fact": "Opposite poles attract, and the same poles push apart.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-11",
+   "band": "7-10",
+   "q": "What is it called when a liquid turns into a solid?",
+   "o": [
+    "Melting",
+    "Boiling",
+    "Evaporating",
+    "Freezing"
+   ],
+   "a": 3,
+   "fact": "Water freezes at 0 degrees Celsius, which is 32 degrees Fahrenheit.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-12",
+   "band": "7-10",
+   "q": "What kind of energy do solar panels use?",
+   "o": [
+    "Sound",
+    "Wind",
+    "Magnetism",
+    "Sunlight"
+   ],
+   "a": 3,
+   "fact": "Solar panels turn sunlight into electricity.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-13",
+   "band": "7-10",
+   "q": "Why do drops appear on the outside of a cold glass on a warm day?",
+   "o": [
+    "The cup melts",
+    "The glass makes water",
+    "Water from the air condenses on it",
+    "The glass leaks"
+   ],
+   "a": 2,
+   "fact": "This is called condensation.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-710-14",
+   "band": "7-10",
+   "q": "What is it called when light bends as it passes through water or glass?",
+   "o": [
+    "Evaporation",
+    "Rotation",
+    "Reflection",
+    "Refraction"
+   ],
+   "a": 3,
+   "fact": "Refraction makes a straw look bent in a glass of water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-01",
+   "band": "11+",
+   "q": "What is the center of an atom called?",
+   "o": [
+    "An electron",
+    "The nucleus",
+    "A cortex",
+    "A membrane"
+   ],
+   "a": 1,
+   "fact": "The nucleus holds tiny particles called protons and neutrons.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-02",
+   "band": "11+",
+   "q": "What is the chemical formula for water?",
+   "o": [
+    "H2O",
+    "CO2",
+    "NaCl",
+    "O2"
+   ],
+   "a": 0,
+   "fact": "Each water molecule has two hydrogen atoms and one oxygen atom.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-03",
+   "band": "11+",
+   "q": "About how fast does light travel?",
+   "o": [
+    "1,000 miles per hour",
+    "186,000 miles per second",
+    "60 miles per hour",
+    "1 million miles per hour"
+   ],
+   "a": 1,
+   "fact": "Nothing we know of travels faster than light.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-04",
+   "band": "11+",
+   "q": "What do plant cells have that animal cells do not?",
+   "o": [
+    "DNA",
+    "A nucleus",
+    "Mitochondria",
+    "A cell wall"
+   ],
+   "a": 3,
+   "fact": "The cell wall helps a plant stand up straight.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-05",
+   "band": "11+",
+   "q": "What do we call a substance made of only one kind of atom?",
+   "o": [
+    "An element",
+    "A mixture",
+    "A compound",
+    "A solution"
+   ],
+   "a": 0,
+   "fact": "Gold, oxygen and iron are all elements.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-06",
+   "band": "11+",
+   "q": "What kind of energy does a moving object have?",
+   "o": [
+    "Thermal energy",
+    "Chemical energy",
+    "Kinetic energy",
+    "Potential energy"
+   ],
+   "a": 2,
+   "fact": "A rolling ball has kinetic energy, and a ball held up high has potential energy.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-07",
+   "band": "11+",
+   "q": "Why does the sky look blue in the daytime?",
+   "o": [
+    "Air scatters blue light the most",
+    "The ocean reflects up",
+    "Clouds are blue",
+    "Space is blue"
+   ],
+   "a": 0,
+   "fact": "At sunset, light goes through more air, so the sky looks red and orange.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-08",
+   "band": "11+",
+   "q": "Which of these is a unit for measuring electric current?",
+   "o": [
+    "Kelvin",
+    "Newton",
+    "Ampere",
+    "Joule"
+   ],
+   "a": 2,
+   "fact": "Volts tell how hard electricity pushes, and amps tell how much flows.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-09",
+   "band": "11+",
+   "q": "On the pH scale, what is the pH of pure water?",
+   "o": [
+    "1",
+    "0",
+    "14",
+    "7"
+   ],
+   "a": 3,
+   "fact": "Lemon juice has a pH below 7, and baking soda mixed with water is above 7.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-10",
+   "band": "11+",
+   "q": "What is the hardest part of your body?",
+   "o": [
+    "Bone",
+    "Tooth enamel",
+    "Hair",
+    "Fingernails"
+   ],
+   "a": 1,
+   "fact": "Enamel is the shiny outer layer of your teeth.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-11",
+   "band": "11+",
+   "q": "Why can sound not travel through outer space?",
+   "o": [
+    "Sound is too slow",
+    "Space is too cold",
+    "Space is almost a vacuum",
+    "Space is too big"
+   ],
+   "a": 2,
+   "fact": "Sound needs air or something else to travel through.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-12",
+   "band": "11+",
+   "q": "What is the unit for measuring force?",
+   "o": [
+    "The hertz",
+    "The newton",
+    "The watt",
+    "The gram"
+   ],
+   "a": 1,
+   "fact": "One newton is about the weight of a small apple.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-13",
+   "band": "11+",
+   "q": "What does a hertz measure?",
+   "o": [
+    "How heavy something is",
+    "How bright a light is",
+    "How many cycles happen each second",
+    "How loud a sound is"
+   ],
+   "a": 2,
+   "fact": "One hertz is one cycle per second.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "science-11-14",
+   "band": "11+",
+   "q": "Which scientist is famous for the theory of gravity and a legend about an apple?",
+   "o": [
+    "Isaac Newton",
+    "Marie Curie",
+    "Albert Einstein",
+    "Charles Darwin"
+   ],
+   "a": 0,
+   "fact": "Isaac Newton wrote about gravity in the 1600s.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

@@ -166,6 +166,19 @@
                 android:contentDescription="Watch together"
                 android:text="👥 Watch together" />
 
+            <!-- Watch together with people on this Beebo (the computer's own rooms, invite link or code).
+                 Hidden unless the computer supports it. -->
+            <Button
+                android:id="@+id/wtButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:contentDescription="Watch together with a room on this Beebo"
+                android:text="🍿 Room" />
+
             <HorizontalScrollView android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:fillViewport="false" android:scrollbars="horizontal">
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -517,6 +530,21 @@
     <!-- Watch-party control sheet (roster, host/join, audio-delay, video window). -->
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/partyOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Watch together room: a small strip over the picture (who is holding things up, reactions)... -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/wtBanner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="72dp" />
+
+    <!-- ...and its panel (people, speed, reactions, chat, invite). -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/wtOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />

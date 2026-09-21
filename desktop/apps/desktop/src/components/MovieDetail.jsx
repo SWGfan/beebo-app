@@ -3,6 +3,7 @@ import AddToPlaylist, { encodeId } from './AddToPlaylist.jsx'
 import { PeopleRow } from './CastRow.jsx'
 import PersonView from './PersonView.jsx'
 import WatchTogetherButton from './WatchTogetherButton.jsx'
+import MovieNightButton from './MovieNightButton.jsx'
 import MetadataEditor from './MetadataEditor.jsx'
 import { useBackKeys } from './useBackKeys.js'
 import { TMDB_ATTRIBUTION, formatClock, formatRating, starSlots, tmdbImageUrl } from '../lib/movieFormat.js'
@@ -12,6 +13,7 @@ import { pickVersion, versionRowText } from '../lib/movieVersionsView.js'
 import './movieDetail.css'
 
 
+const cinemaApi = () => (typeof window !== 'undefined' && window.beeboentertainment && window.beeboentertainment.cinema) || null
 const detailsApi = () => (typeof window !== 'undefined' && window.beeboentertainment && window.beeboentertainment.details) || null
 
 function Star({ kind }) {
@@ -76,6 +78,8 @@ export default function MovieDetail({
   const [menuOpen, setMenuOpen] = useState(false)
   const [person, setPerson] = useState(null)
   const [note, setNote] = useState('')
+  // Cinema Mode (Settings > Playback > Cinema): "Play with pre-show" starts on when the owner has turned Cinema Mode on; one film at a time can differ.
+  const [preshow, setPreshow] = useState({ shown: false, on: false })
   const playRef = useRef(null)
   const title = (details.data && details.data.title) || meta?.title || movie.name
   const posterSrc = meta?.localPosterPath || tmdbImageUrl(details.data?.posterPath || meta?.poster_path, 'w500')
@@ -90,6 +94,17 @@ export default function MovieDetail({
 
   useEffect(() => {
     playRef.current && playRef.current.focus()
+  }, [])
+
+  useEffect(() => {
+    const c = cinemaApi()
+    if (!c) return undefined
+    let cancelled = false
+    c.getState().then((s) => {
+      if (cancelled || !s || !s.ok) return
+      setPreshow({ shown: !!(s.config && s.config.available) && !(s.prefs && s.prefs.neverShow), on: !!(s.prefs && s.prefs.enabled) })
+    }).catch(() => {})
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
@@ -148,6 +163,7 @@ export default function MovieDetail({
     const api = detailsApi()
     if (!api) { window.beeboentertainment.playMovie(file.path); return }
     const args = { path: file.path, kind: 'movie', fileName: file.fileName, title }
+    if (!system && preshow.shown && preshow.on) args.preshow = true
     if (!system) {
       if (audioSel !== null) args.audioStreamIndex = audioSel
       args.subtitleKey = subSel
@@ -266,6 +282,7 @@ export default function MovieDetail({
                   </button>
                   <button type="button" className="md-btn" onClick={() => trailer(trailerFor)}>{t('detail.watchTrailerLong')}</button>
                   <WatchTogetherButton kind="movie" fileName={movie.fileName} title={title} />
+                  <MovieNightButton fileName={movie.fileName} title={title} />
                   <button type="button" className="md-btn" onClick={onFixMatch} title={t('detail.fixMatchHint')}>{t('detail.fixMatch')}</button>
                   {window.beeboentertainment?.metadata ? (
                     <button type="button" className="md-btn" onClick={() => setEditing(true)} title={t('detail.editInfoHint')}>{t('detail.editInfo')}</button>
@@ -282,6 +299,11 @@ export default function MovieDetail({
                     ) : null}
                   </span>
                 </div>
+                {preshow.shown ? (
+                  <label className="md-preshow" title={t('detail.playWithPreshowHint')}>
+                    <input type="checkbox" checked={preshow.on} onChange={(e) => setPreshow((p) => ({ ...p, on: e.target.checked }))} /> {t('detail.playWithPreshow')}
+                  </label>
+                ) : null}
                 {note ? <p className="md-note" role="status">{note}</p> : null}
                 {resume && resume.duration ? <p className="md-resume-note">{t('detail.watchedPercent', { percent: Math.round((resume.currentTime / resume.duration) * 100) })}</p> : null}
 
@@ -294,6 +316,14 @@ export default function MovieDetail({
               <dl className="md-tech">
                 <dt>{t('detail.video')}</dt>
                 <dd>{videoText}</dd>
+                {info && Array.isArray(info.badges) && info.badges.length > 0 ? (
+                  <>
+                    <dt>{t('detail.formats')}</dt>
+                    <dd className="md-badges" aria-label={info.badges.join(', ')}>
+                      {info.badges.map((b) => <span key={b} className="md-badge">{b}</span>)}
+                    </dd>
+                  </>
+                ) : null}
                 <dt><label htmlFor="md-audio">{t('detail.audio')}</label></dt>
                 <dd>
                   {media.status === 'loading' ? t('detail.readingFile')

@@ -5,6 +5,7 @@ import { posterTile, topbar, railState, stateBox } from '../ui.js'
 import { loadNear, unload, nearLoader } from '../images.js'
 import { railSlice } from '../util/pagination.js'
 import { formatClock } from '../util/escape.js'
+import { movieNightTile } from './movienight.js'
 
 var RAIL_ITEMS = 20
 
@@ -120,9 +121,12 @@ export function home(ctx) {
   function build() {
     makeRail('continue', 'Continue Watching')
     makeRail('recent', 'Recently Added')
+    makeRail('party', 'Movie Night')
     makeRail('movies', 'Movies')
     makeRail('tv', 'TV Shows')
     ;['continue', 'recent', 'movies', 'tv'].forEach(loading)
+    // Party games for the living room: a single tile that opens the Movie Night screen (screens/movienight.js).
+    fillRail('party', [1], function () { return movieNightTile(function () { ctx.router.push('movienight') }) })
     loadContinue()
     loadRecent()
     loadLibrary('movie', 'movies')

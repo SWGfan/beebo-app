@@ -23,8 +23,8 @@ android {
         applicationId = "com.beeboentertainment.movie"
         minSdk = 24
         targetSdk = 36
-        versionCode = 39
-        versionName = "1.38"
+        versionCode = 40
+        versionName = "1.39"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // 64-bit and 32-bit ARM. Many Android TV boxes (Chromecast with Google TV included)
         // run a 32-bit userland, so arm64 alone hid the app from them. x86 is left out to

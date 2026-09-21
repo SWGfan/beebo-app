@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "packId": "beebo-demo",
+ "title": "Beebo demo chants (placeholders)",
+ "demo": true,
+ "legalCheck": {
+  "by": "Beebo",
+  "date": "2026-09-21",
+  "note": "Two short chants invented for Beebo so the songbook can be shown. Not traditional songs. Real public-domain song packs must be added only after a legal check."
+ },
+ "songs": [
+  {
+   "id": "demo-ember-round",
+   "title": "Demo Chant: Ember Round",
+   "origin": "Original to Beebo, 2026 (a placeholder chant, not a traditional song)",
+   "pdBasis": "Original text written for Beebo as a demonstration. It is not a traditional song and is not taken from any other work.",
+   "sourceUrl": "",
+   "kind": "round",
+   "lineSeconds": 3.0,
+   "round": { "groups": 3, "repeats": 3 },
+   "lines": [
+    "Sparks climb up to meet the stars,",
+    { "text": "Stars lean down to say hello,", "entry": true },
+    "Sing it soft and sing it slow,",
+    "Warm hands, warm hearts, glow, glow, glow."
+   ]
+  },
+  {
+   "id": "demo-night-sounds",
+   "title": "Demo Chant: Night Sounds",
+   "origin": "Original to Beebo, 2026 (a placeholder chant, not a traditional song)",
+   "pdBasis": "Original text written for Beebo as a demonstration. It is not a traditional song and is not taken from any other work.",
+   "sourceUrl": "",
+   "kind": "singalong",
+   "lineSeconds": 3.5,
+   "lines": [
+    "Crickets tune their tiny strings,",
+    "Owls call out the news it brings,",
+    { "text": "Everybody, hum along,", "refrain": true },
+    { "text": "That is how we end our song.", "refrain": true }
+   ]
+  }
+ ]
+}

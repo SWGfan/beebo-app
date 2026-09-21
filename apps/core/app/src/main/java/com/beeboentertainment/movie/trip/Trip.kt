@@ -22,6 +22,17 @@ object MomentKind {
     const val HOME = "home"
     const val STORY = "story"
     const val HUNT = "hunt"
+
+    // Family pack B (Campfire Songbook): one entry per singing session, titles only.
+    const val SONG = "song"
+    /** A finished Plate & Sign Hunt round: "Spotted 34 of 64". Counts only, never a location. */
+    const val TALLY = "tally"
+
+    /** The Trip Clock reached its destination. Does not end the trip: the family is now at camp. */
+    const val ARRIVED = "arrived"
+
+    /** A stop the parent added on the Trip Clock ("Snack stop"). Coordinates only if the trip opted in. */
+    const val STOP = "stop"
 }
 
 /**
@@ -102,6 +113,25 @@ data class StoryResult(
     val mood: String,
     val tellers: List<String>,
     val text: String,
+)
+
+/** A finished plate or sign hunt, as handed to the trip. Counts and nicknames only: no location. */
+data class TallyResult(
+    val id: String,
+    val title: String,
+    val text: String,
+    val found: Int,
+    val total: Int,
+    val names: List<String> = emptyList(),
+)
+
+/** A stop added on the Trip Clock. [lat] and [lng] are dropped unless the trip has saveLocation on. */
+data class StopResult(
+    val id: String,
+    val title: String,
+    val at: Long,
+    val lat: Double? = null,
+    val lng: Double? = null,
 )
 
 /** One scavenger-hunt find, as handed to the trip. Coordinates are dropped unless the trip opted in. */

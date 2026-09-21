@@ -44,6 +44,17 @@ class AmbiencePlayer(private val context: Context) {
     private var player: MediaPlayer? = null
     private var synth: SynthStream? = null
     private var loadedId: String? = null
+    private var volume = 1f
+
+    /**
+     * Master level, 0 to 1, for the current and any later sound. Bedtime Wind-Down fades the ambience
+     * out with it. Remembered across [apply] calls, so a fade is not undone by re-selecting the sound.
+     */
+    fun setVolume(level: Float) {
+        volume = level.coerceIn(0f, 1f)
+        runCatching { player?.setVolume(volume, volume) }
+        synth?.setVolume(volume)
+    }
 
     /**
      * Bring the player in line with the desired [ambienceId] (null = no track) and [playing]
@@ -63,9 +74,9 @@ class AmbiencePlayer(private val context: Context) {
             // Resolve the raw resource by NAME so a missing file is a 0 id, not a build error.
             val resId = context.resources.getIdentifier(amb.rawResName, "raw", context.packageName)
             player = if (resId == 0) null else runCatching {
-                MediaPlayer.create(context, resId)?.apply { isLooping = true }
+                MediaPlayer.create(context, resId)?.apply { isLooping = true; setVolume(volume, volume) }
             }.getOrNull()
-            if (player == null) synth = SynthStream(AmbienceSynth(amb.id))
+            if (player == null) synth = SynthStream(AmbienceSynth(amb.id)).also { it.setVolume(volume) }
         }
         player?.let { p ->
             runCatching {
@@ -103,6 +114,12 @@ private class SynthStream(private val synth: AmbienceSynth) {
     @Volatile private var closed = false
     private var thread: Thread? = null
     private var track: android.media.AudioTrack? = null
+    @Volatile private var level = 1f
+
+    fun setVolume(v: Float) {
+        level = v
+        runCatching { track?.setVolume(v) }
+    }
 
     /** False when the device couldn't open an audio output. */
     fun setPlaying(on: Boolean): Boolean {
@@ -111,6 +128,7 @@ private class SynthStream(private val synth: AmbienceSynth) {
         if (on && thread == null) {
             val t = runCatching { openTrack() }.getOrNull() ?: return false
             track = t
+            runCatching { t.setVolume(level) }
             thread = Thread({ run(t) }, "campfire-ambience").apply { isDaemon = true; start() }
         }
         return true

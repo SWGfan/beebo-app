@@ -259,6 +259,9 @@ function early({ app, dialog, clipboard, shell }) {
       return { ok: !r }
     })
 
+    // "Offline status" chip (connectivityIpc.js): whether the internet is up, and that home viewing never needs it.
+    const connectivity = require('./connectivityIpc').register({ ipcMain, license, getNetworkAddresses: s.getNetworkAddresses, getServerPort: s.getServerPort })
+
     // "Can't connect? Fix it for me" (connectionDoctorIpc.js): the checks, the one-click fixes and the report.
     require('./connectionDoctorIpc').register({
       ipcMain, clipboard: electron.clipboard,
@@ -268,7 +271,9 @@ function early({ app, dialog, clipboard, shell }) {
       getPortMapStatus: s.getPortMapStatus, getRtcPortMapStatus: s.getRtcPortMapStatus, getHomeAddressStatus: s.getHomeAddressStatus,
       getPortMapper: s.getPortMapper, getRtcPortMapper: s.getRtcPortMapper, getHomeAddress: s.getHomeAddress,
       openExternal: (u) => electron.shell.openExternal(u),
-      relaunch: () => { electron.app.relaunch(); electron.app.exit(0) }
+      relaunch: () => { electron.app.relaunch(); electron.app.exit(0) },
+      // The doctor asks whether the internet is up at all, so "no internet, but home viewing works" is said truthfully.
+      probeInternet: async () => ({ online: (await connectivity.check()).state !== 'offline' })
     })
 
     state.ready = true

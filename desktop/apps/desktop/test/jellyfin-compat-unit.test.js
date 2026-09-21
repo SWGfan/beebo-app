@@ -375,3 +375,37 @@ test('settings: jellyfinCompat is a whitelisted boolean the desktop can write, a
   assert.throws(() => policy.writeSettings(store, { jellyfinCompat: 'yes' }), /dedicated/)
   assert.equal(store.data.apiTokenSecret, undefined)
 })
+
+test('MediaStreams carry VideoRangeType, Dolby Vision details, bit depth and AudioSpatialFormat (Atmos / DTS:X)', async () => {
+  const info = {
+    ...VIDEO_INFO,
+    video: { codec: 'hevc', width: 3840, height: 2160, fps: 23.976, hdr: true, profile: 'Main 10', level: 153, hdrType: 'Dolby Vision', hdrFormats: ['Dolby Vision', 'HDR10'], hdr10Plus: false,
+      dolbyVision: { profile: 8, label: '8.1', level: 6, compatId: 1, baseLooksLike: 'HDR10', elPresent: false }, bitDepth: 10, resolutionClass: '4K', colorPrimaries: 'bt2020', colorTransfer: 'smpte2084', colorSpace: 'bt2020nc', hdrBase: 'PQ' },
+    audio: [
+      { ordinal: 0, streamIndex: 1, label: 'English', language: 'en', codec: 'truehd', channels: 8, layout: '7.1', profile: 'Dolby TrueHD + Dolby Atmos', spatialFormat: 'DolbyAtmos', isDefault: true },
+      { ordinal: 1, streamIndex: 2, label: 'English DTS:X', language: 'en', codec: 'dts', channels: 8, layout: '7.1', profile: 'DTS-HD MA + DTS:X', spatialFormat: 'DTSX' },
+      { ordinal: 2, streamIndex: 3, label: 'French', language: 'fr', codec: 'aac', channels: 2, channelLayout: 'stereo' }
+    ]
+  }
+  const h = playbackHarness({ info })
+  const entry = { type: 'Movie', jid: h.ids.encode('movie', 'M1'), beeboId: 'abc', title: 'Film' }
+  const out = await h.playback.mediaSourcesFor({ id: 'u1' }, entry, {})
+  const streams = out.sources[0].MediaStreams
+  const v = streams.find((s) => s.Type === 'Video')
+  assert.equal(v.VideoRange, 'HDR'); assert.equal(v.VideoRangeType, 'DOVIWithHDR10')
+  assert.equal(v.DvProfile, 8); assert.equal(v.DvBlSignalCompatibilityId, 1); assert.equal(v.DvLevel, 6); assert.equal(v.ElPresentFlag, 0); assert.equal(v.RpuPresentFlag, 1); assert.equal(v.BlPresentFlag, 1)
+  assert.equal(v.VideoDoViTitle, 'Dolby Vision Profile 8.1'); assert.equal(v.BitDepth, 10); assert.equal(v.ColorTransfer, 'smpte2084'); assert.equal(v.Profile, 'Main 10'); assert.equal(v.Level, 153)
+  assert.equal(v.DisplayTitle, '4K HEVC Dolby Vision 8.1 / HDR10')
+  const a = streams.filter((s) => s.Type === 'Audio')
+  assert.deepEqual(a.map((s) => s.AudioSpatialFormat), ['DolbyAtmos', 'DTSX', 'None'])
+  assert.equal(a[0].ChannelLayout, '7.1'); assert.equal(a[0].Profile, 'Dolby TrueHD + Dolby Atmos'); assert.equal(a[2].ChannelLayout, 'stereo')
+  // an SDR file stays SDR with no Dolby Vision fields
+  const sdr = await playbackHarness({ info: VIDEO_INFO }).playback.mediaSourcesFor({ id: 'u1' }, entry, {})
+  const sv = sdr.sources[0].MediaStreams.find((s) => s.Type === 'Video')
+  assert.equal(sv.VideoRangeType, 'SDR'); assert.equal(sv.DvProfile, undefined); assert.equal(sdr.sources[0].MediaStreams.find((s) => s.Type === 'Audio').AudioSpatialFormat, 'None')
+  // HDR10+ and HLG
+  const plus = await playbackHarness({ info: { ...VIDEO_INFO, video: { codec: 'hevc', width: 3840, height: 2160, hdr: true, hdrType: 'HDR10+', hdrFormats: ['HDR10+', 'HDR10'], hdr10Plus: true, dolbyVision: null, hdrBase: 'PQ' } } }).playback.mediaSourcesFor({ id: 'u1' }, entry, {})
+  assert.equal(plus.sources[0].MediaStreams[0].VideoRangeType, 'HDR10Plus')
+  const hlg = await playbackHarness({ info: { ...VIDEO_INFO, video: { codec: 'hevc', width: 3840, height: 2160, hdr: true, hdrType: 'HLG', hdrFormats: ['HLG'], dolbyVision: null, hdrBase: 'HLG' } } }).playback.mediaSourcesFor({ id: 'u1' }, entry, {})
+  assert.equal(hlg.sources[0].MediaStreams[0].VideoRangeType, 'HLG')
+})

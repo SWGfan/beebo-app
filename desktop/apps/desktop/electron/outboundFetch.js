@@ -278,11 +278,21 @@ function createFetcher(cfg = {}) {
       if (Number.isFinite(declared) && declared > maxBytes) { r.close(); throw new FetchError('too_large') }
       await fsp.mkdir(path.dirname(file), { recursive: true })
       let size = 0
+      // A server that sends a byte a minute would otherwise keep the (single) download slot for the whole 30
+      // minutes, so nothing else could download behind it: no data for idleTimeoutMs ends the download.
+      const idleMs = o.idleTimeoutMs || 60000
+      let idleTimer = null
+      const arm = () => {
+        clearTimeout(idleTimer)
+        idleTimer = setTimeout(() => { timedOut = true; r.close() }, idleMs)
+        if (idleTimer.unref) idleTimer.unref()
+      }
+      arm()
       const limiter = new Transform({
         transform(chunk, _e, cb) {
           size += chunk.length
           if (size > maxBytes) cb(new FetchError('too_large'))
-          else cb(null, chunk)
+          else { arm(); cb(null, chunk) }
         }
       })
       try {
@@ -290,6 +300,8 @@ function createFetcher(cfg = {}) {
       } catch (err) {
         r.close()
         throw timedOut ? new FetchError('timeout') : mapNetworkError(err)
+      } finally {
+        clearTimeout(idleTimer)
       }
       if (size === 0) throw new FetchError('empty')
       await fsp.rename(part, file)

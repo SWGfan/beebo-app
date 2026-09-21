@@ -1,0 +1,637 @@
+{
+ "schema": 1,
+ "pack": "geography",
+ "title": "Geography",
+ "questions": [
+  {
+   "id": "geography-46-01",
+   "band": "4-6",
+   "q": "Which is the biggest ocean?",
+   "o": [
+    "The Arctic",
+    "The Pacific",
+    "The Indian",
+    "The Atlantic"
+   ],
+   "a": 1,
+   "fact": "The Pacific Ocean covers about a third of our planet.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-02",
+   "band": "4-6",
+   "q": "What do we call land with water all around it?",
+   "o": [
+    "A desert",
+    "An island",
+    "A mountain",
+    "A valley"
+   ],
+   "a": 1,
+   "fact": "Hawaii is made up of islands.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-03",
+   "band": "4-6",
+   "q": "Where is it snowy and freezing all year long?",
+   "o": [
+    "A sunny beach",
+    "The North Pole",
+    "A jungle",
+    "A farm"
+   ],
+   "a": 1,
+   "fact": "Polar bears live in the icy Arctic near the North Pole.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-04",
+   "band": "4-6",
+   "q": "What do we call a very tall piece of land?",
+   "o": [
+    "A mountain",
+    "A beach",
+    "A lake",
+    "A river"
+   ],
+   "a": 0,
+   "fact": "Some mountains are so tall their tops are covered in snow all year.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-05",
+   "band": "4-6",
+   "q": "What is water flowing across land to the sea called?",
+   "o": [
+    "A river",
+    "A hill",
+    "A road",
+    "A cave"
+   ],
+   "a": 0,
+   "fact": "Many rivers start high up in the mountains.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-06",
+   "band": "4-6",
+   "q": "What is a hot, sandy place with very little rain?",
+   "o": [
+    "A forest",
+    "A lake",
+    "A desert",
+    "A farm"
+   ],
+   "a": 2,
+   "fact": "Camels can go for days without a drink in the desert.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-07",
+   "band": "4-6",
+   "q": "On most maps, what color shows water?",
+   "o": [
+    "Yellow",
+    "Red",
+    "Pink",
+    "Blue"
+   ],
+   "a": 3,
+   "fact": "Maps use colors to show what is land and what is water.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-08",
+   "band": "4-6",
+   "q": "How many continents are there?",
+   "o": [
+    "Five",
+    "Seven",
+    "Ten",
+    "Three"
+   ],
+   "a": 1,
+   "fact": "Antarctica is the coldest continent.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-09",
+   "band": "4-6",
+   "q": "Which country is just north of the United States?",
+   "o": [
+    "Spain",
+    "Mexico",
+    "Canada",
+    "Brazil"
+   ],
+   "a": 2,
+   "fact": "Canada is the second biggest country in the world.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-10",
+   "band": "4-6",
+   "q": "Which flag has red and white stripes and 50 stars?",
+   "o": [
+    "Mexico",
+    "Canada",
+    "The United States",
+    "Japan"
+   ],
+   "a": 2,
+   "fact": "The stars on the U.S. flag stand for the 50 states.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-11",
+   "band": "4-6",
+   "q": "Which country's flag has a red maple leaf?",
+   "o": [
+    "Japan",
+    "Italy",
+    "Canada",
+    "The United States"
+   ],
+   "a": 2,
+   "fact": "Canada's maple leaf flag was first raised in 1965.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-12",
+   "band": "4-6",
+   "q": "What do we call a huge body of salty water?",
+   "o": [
+    "A pond",
+    "A pool",
+    "An ocean",
+    "A puddle"
+   ],
+   "a": 2,
+   "fact": "The ocean covers most of our planet.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-13",
+   "band": "4-6",
+   "q": "Which of these is a big city in the United States?",
+   "o": [
+    "Paris",
+    "Sydney",
+    "New York City",
+    "Tokyo"
+   ],
+   "a": 2,
+   "fact": "New York City has more than eight million people.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-46-14",
+   "band": "4-6",
+   "q": "Where would you find the Statue of Liberty?",
+   "o": [
+    "New York",
+    "Florida",
+    "Texas",
+    "Alaska"
+   ],
+   "a": 0,
+   "fact": "The Statue of Liberty was a gift from France.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-01",
+   "band": "7-10",
+   "q": "What is the capital of the United States?",
+   "o": [
+    "New York City",
+    "Chicago",
+    "Los Angeles",
+    "Washington, D.C."
+   ],
+   "a": 3,
+   "fact": "Washington, D.C. is not inside any state.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-02",
+   "band": "7-10",
+   "q": "What is the capital of Canada?",
+   "o": [
+    "Ottawa",
+    "Montreal",
+    "Toronto",
+    "Vancouver"
+   ],
+   "a": 0,
+   "fact": "Ottawa sits right on the border between Ontario and Quebec.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-03",
+   "band": "7-10",
+   "q": "Which is the largest continent?",
+   "o": [
+    "Africa",
+    "North America",
+    "Asia",
+    "Europe"
+   ],
+   "a": 2,
+   "fact": "More than half of all the people in the world live in Asia.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-04",
+   "band": "7-10",
+   "q": "What is the tallest mountain above sea level on Earth?",
+   "o": [
+    "Denali",
+    "K2",
+    "Mount Everest",
+    "Kilimanjaro"
+   ],
+   "a": 2,
+   "fact": "Mount Everest is on the border of Nepal and China.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-05",
+   "band": "7-10",
+   "q": "Which U.S. state is the biggest by area?",
+   "o": [
+    "California",
+    "Montana",
+    "Texas",
+    "Alaska"
+   ],
+   "a": 3,
+   "fact": "Alaska is more than twice as big as Texas.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-06",
+   "band": "7-10",
+   "q": "Which U.S. state is made up of islands?",
+   "o": [
+    "Florida",
+    "Alaska",
+    "Hawaii",
+    "Maine"
+   ],
+   "a": 2,
+   "fact": "Hawaii has eight main islands.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-07",
+   "band": "7-10",
+   "q": "Which Great Lake is completely inside the United States?",
+   "o": [
+    "Lake Huron",
+    "Lake Michigan",
+    "Lake Superior",
+    "Lake Erie"
+   ],
+   "a": 1,
+   "fact": "The other four Great Lakes touch both Canada and the United States.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-08",
+   "band": "7-10",
+   "q": "What is the world's largest hot desert?",
+   "o": [
+    "The Kalahari",
+    "The Mojave",
+    "The Gobi",
+    "The Sahara"
+   ],
+   "a": 3,
+   "fact": "The Sahara is almost as big as the whole United States.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-09",
+   "band": "7-10",
+   "q": "Which river carved out the Grand Canyon?",
+   "o": [
+    "The Colorado River",
+    "The Mississippi River",
+    "The Hudson River",
+    "The Ohio River"
+   ],
+   "a": 0,
+   "fact": "The river cut down through the rock over millions of years.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-10",
+   "band": "7-10",
+   "q": "Which ocean lies between North America and Europe?",
+   "o": [
+    "The Indian",
+    "The Arctic",
+    "The Pacific",
+    "The Atlantic"
+   ],
+   "a": 3,
+   "fact": "The Atlantic is the second biggest ocean.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-11",
+   "band": "7-10",
+   "q": "Which huge waterfall sits on the border of Canada and the United States?",
+   "o": [
+    "Victoria Falls",
+    "Niagara Falls",
+    "Yosemite Falls",
+    "Angel Falls"
+   ],
+   "a": 1,
+   "fact": "Niagara Falls is really three waterfalls side by side.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-12",
+   "band": "7-10",
+   "q": "Which country is shaped like a boot?",
+   "o": [
+    "Greece",
+    "France",
+    "Spain",
+    "Italy"
+   ],
+   "a": 3,
+   "fact": "Italy's boot looks like it is kicking the island of Sicily.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-13",
+   "band": "7-10",
+   "q": "In which country are the pyramids of Giza?",
+   "o": [
+    "Peru",
+    "Greece",
+    "Egypt",
+    "Mexico"
+   ],
+   "a": 2,
+   "fact": "The Great Pyramid was built more than 4,500 years ago.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-710-14",
+   "band": "7-10",
+   "q": "Which two countries share the world's longest border?",
+   "o": [
+    "Chile and Argentina",
+    "Canada and the United States",
+    "India and Pakistan",
+    "Russia and China"
+   ],
+   "a": 1,
+   "fact": "That border is almost nine thousand kilometers long.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-01",
+   "band": "11+",
+   "q": "What is the capital of Australia?",
+   "o": [
+    "Perth",
+    "Melbourne",
+    "Sydney",
+    "Canberra"
+   ],
+   "a": 3,
+   "fact": "Canberra was built as a brand-new capital so Sydney and Melbourne would not have to compete.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-02",
+   "band": "11+",
+   "q": "Which is the longest mountain range on land?",
+   "o": [
+    "The Himalayas",
+    "The Rockies",
+    "The Alps",
+    "The Andes"
+   ],
+   "a": 3,
+   "fact": "The Andes stretch along the whole west side of South America.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-03",
+   "band": "11+",
+   "q": "Which country is the biggest in the world by area?",
+   "o": [
+    "Russia",
+    "The United States",
+    "China",
+    "Canada"
+   ],
+   "a": 0,
+   "fact": "Russia stretches across eleven time zones.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-04",
+   "band": "11+",
+   "q": "Which African river flows through Egypt?",
+   "o": [
+    "The Zambezi",
+    "The Nile",
+    "The Niger",
+    "The Congo"
+   ],
+   "a": 1,
+   "fact": "Most people in Egypt live close to the Nile.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-05",
+   "band": "11+",
+   "q": "What is the smallest country in the world?",
+   "o": [
+    "Vatican City",
+    "Monaco",
+    "Liechtenstein",
+    "Malta"
+   ],
+   "a": 0,
+   "fact": "Vatican City is less than half a square kilometer in size.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-06",
+   "band": "11+",
+   "q": "Which Canadian province is the biggest in area?",
+   "o": [
+    "Quebec",
+    "Alberta",
+    "British Columbia",
+    "Ontario"
+   ],
+   "a": 0,
+   "fact": "Quebec is more than twice as big as France.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-07",
+   "band": "11+",
+   "q": "Which U.S. state has the most people?",
+   "o": [
+    "Texas",
+    "New York",
+    "Florida",
+    "California"
+   ],
+   "a": 3,
+   "fact": "More than one in every ten Americans lives in California.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-08",
+   "band": "11+",
+   "q": "Which mountains mark part of the border between Europe and Asia?",
+   "o": [
+    "The Andes",
+    "The Ural Mountains",
+    "The Rockies",
+    "The Alps"
+   ],
+   "a": 1,
+   "fact": "The Ural Mountains run north to south through Russia.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-09",
+   "band": "11+",
+   "q": "Which continent is almost completely covered in ice?",
+   "o": [
+    "Africa",
+    "Australia",
+    "Asia",
+    "Antarctica"
+   ],
+   "a": 3,
+   "fact": "About 98 percent of Antarctica is covered in ice.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-10",
+   "band": "11+",
+   "q": "Which ocean holds the Mariana Trench, the deepest known place on Earth?",
+   "o": [
+    "The Pacific",
+    "The Arctic",
+    "The Indian",
+    "The Atlantic"
+   ],
+   "a": 0,
+   "fact": "The Mariana Trench is deeper than Mount Everest is tall.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-11",
+   "band": "11+",
+   "q": "In which country is the city of Rio de Janeiro?",
+   "o": [
+    "Spain",
+    "Brazil",
+    "Argentina",
+    "Portugal"
+   ],
+   "a": 1,
+   "fact": "Rio hosted the Summer Olympic Games in 2016.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-12",
+   "band": "11+",
+   "q": "Which imaginary line divides Earth into the Northern and Southern Hemispheres?",
+   "o": [
+    "The Tropic of Cancer",
+    "The International Date Line",
+    "The Equator",
+    "The Prime Meridian"
+   ],
+   "a": 2,
+   "fact": "The Equator is about 25,000 miles around.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-13",
+   "band": "11+",
+   "q": "Which Canadian city is home to the CN Tower?",
+   "o": [
+    "Toronto",
+    "Calgary",
+    "Halifax",
+    "Ottawa"
+   ],
+   "a": 0,
+   "fact": "The CN Tower was the tallest free-standing structure in the world for more than thirty years.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  },
+  {
+   "id": "geography-11-14",
+   "band": "11+",
+   "q": "What is the biggest island in the world that is not a continent?",
+   "o": [
+    "Borneo",
+    "Madagascar",
+    "Iceland",
+    "Greenland"
+   ],
+   "a": 3,
+   "fact": "Most of Greenland is covered by a thick sheet of ice.",
+   "src": "beebo-original",
+   "lic": "beebo-original"
+  }
+ ]
+}

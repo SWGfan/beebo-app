@@ -77,6 +77,9 @@ const SECURITY_HEADERS = {
   'Cross-Origin-Resource-Policy': 'same-origin'
 }
 
+const MAX_CLEANING = 6 // photos being cleaned / sent from memory at once
+let cleaningNow = 0
+
 const ROUTE = /^\/trip\/([A-Za-z0-9_-]{43})(?:\/m\/(\d{1,4}))?\/?$/
 
 const claimsPublic = (pathname) => pathname === '/trip' || pathname.startsWith('/trip/') || pathname === '/robots.txt'
@@ -170,7 +173,18 @@ async function handlePublic(ctx, req, res, url) {
   const cache = { 'Cache-Control': 'private, max-age=300' }
   if (file.kind === 'photo' && !share.options.includeLocation) {
     // A link made without location serves every photo with its metadata removed, whatever was stored.
-    const clean = cleanPhoto(await fs.promises.readFile(file.full), file.mime)
+    // The whole photo is held in memory while it is cleaned and sent, so only a few at a time: anyone holding a link
+    // could otherwise open hundreds of slow connections and use up this PC's memory.
+    if (cleaningNow >= MAX_CLEANING) {
+      sendText(res, 503, 'Busy. Please try again in a moment.', 'text/plain; charset=utf-8', { 'Retry-After': '2', 'Cache-Control': 'no-store' })
+      return
+    }
+    cleaningNow++
+    let released = false
+    const release = () => { if (!released) { released = true; cleaningNow-- } }
+    res.on('close', release)
+    let clean
+    try { clean = cleanPhoto(await fs.promises.readFile(file.full), file.mime) } catch (e) { release(); throw e }
     if (!clean) { unavailable(); return }
     res.writeHead(200, { 'Content-Type': file.mime, 'Content-Length': clean.length, 'Content-Disposition': 'inline', 'Content-Security-Policy': "default-src 'none'; sandbox", ...SECURITY_HEADERS, ...cache })
     res.end(method === 'HEAD' ? undefined : clean)

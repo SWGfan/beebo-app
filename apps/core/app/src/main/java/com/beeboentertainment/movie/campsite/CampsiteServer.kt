@@ -61,7 +61,18 @@ class CampsiteServer(
     /** Synced group music: a queued track's file on this phone (null until it is downloaded), and the guest-side script. */
     musicTrackFile: (String) -> File? = { null },
     musicScript: () -> String = { "" },
+    /** Family pack B: Campfire Songbook and Roadside Quiz (campsite/songbook, campsite/quiz). Built lazily. */
+    private val familyB: com.beeboentertainment.movie.campsite.family.FamilyPackBServices =
+        com.beeboentertainment.movie.campsite.family.FamilyPackBServices.shared(),
 ) {
+
+    /**
+     * Family Pack A: the quiet-hours banner and the trip clock the guest pages read from /api/family.
+     * A property and not a constructor parameter because the type is internal to the module and this
+     * class is public; a test may replace it.
+     */
+    internal var family: com.beeboentertainment.movie.campsite.family.FamilyPackA =
+        com.beeboentertainment.movie.campsite.family.FamilyPackA.forSession(session)
 
     /** One shareable title, as the host screen and the guest browser see it. */
     data class Item(
@@ -77,6 +88,8 @@ class CampsiteServer(
         triviaQuestions,
         history = history,
         trip = session?.let { TripStoreSink(TripStore.forApp(it.plain)) } ?: TripMomentSink.None,
+        plates = session?.let { com.beeboentertainment.movie.campsite.platehunt.PlatePrefsBadgeSink(it.plain) }
+            ?: com.beeboentertainment.movie.campsite.platehunt.PlateBadgeSink.None,
     )
     // Watch-together is its own service. It shares the guest's identity cookie and
     // nothing else with the games: no room, no roster, no state in common.
@@ -197,6 +210,12 @@ class CampsiteServer(
             )
             return
         }
+        if (path == "/api/family") {
+            // Family Pack A status: a banner every page shows and the read-only trip clock. GET only, no body.
+            if (method != "GET") { writeSimple(out, 405, "Method Not Allowed", "Use GET"); return }
+            writeJson(out, 200, family.statusJson(joined = games.name(playToken) != null))
+            return
+        }
         if (path == "/api/music/ws") {
             serveMusicSocket(method, headers, socket, input, out, playToken, guest)
             return
@@ -238,6 +257,24 @@ class CampsiteServer(
                 headers["content-type"].orEmpty().substringBefore(';').trim(), length, input)
             writeJson(out, reply.status, reply.body.toString()); return
         }
+        // ---- Family pack B: the two JSON doors. Same guards as every other guest API (custom header,
+        // same-origin, 16 KB cap, join cookie); the services own their own rate limits and rules.
+        if (path == "/api/songbook" || path == "/api/quiz") {
+            val guestName = games.name(playToken)
+            if (playToken == null || guestName == null) {
+                writeJson(out, 403, "{\"ok\":false,\"error\":\"Join the campsite first.\"}"); return
+            }
+            if (path == "/api/songbook") {
+                serveApi(method, headers, input, out, "x-beebo-songbook", "Open the songbook from your host's guest page.",
+                    onGet = { familyB.songbook.get(playToken, guestName, query["have"]?.toIntOrNull() ?: -1, query["cat"] == "1").let { it.status to it.body.toString() } },
+                    onPost = { body -> familyB.songbook.post(playToken, guestName, body).let { it.status to it.body.toString() } })
+            } else {
+                serveApi(method, headers, input, out, "x-beebo-quiz", "Open the quiz from your host's guest page.",
+                    onGet = { familyB.quiz.get(playToken, guestName).let { it.status to it.body.toString() } },
+                    onPost = { body -> familyB.quiz.post(playToken, guestName, body).let { it.status to it.body.toString() } })
+            }
+            return
+        }
         if (method != "GET" && method != "HEAD") { writeSimple(out, 405, "Method Not Allowed", "Only GET"); return }
 
         when {
@@ -264,6 +301,9 @@ class CampsiteServer(
                     query["next"] == "slides" -> "/slides"
                     query["next"] == "games" -> "/games"
                     query["next"] == "music" -> "/music"
+                    query["next"] == "songbook" -> "/songbook"
+                    query["next"] == "quiz" -> "/quiz"
+                    query["next"] == "clock" -> "/clock"
                     query["next"] == "watch" && query["id"].orEmpty().isNotBlank() ->
                         "/watch?id=" + encode(decode(query["id"].orEmpty()))
                     else -> "/library"
@@ -291,6 +331,18 @@ class CampsiteServer(
             path == "/music" -> {
                 if (games.name(playToken) == null) writeRedirect(out, "/join?next=music")
                 else writeHtml(out, 200, CampsiteMusicPage.music(guest ?: "guest", music.scriptText()))
+            }
+            path == "/songbook" -> {
+                if (games.name(playToken) == null) writeRedirect(out, "/join?next=songbook")
+                else writeFamilyHtml(out, familyB.songbookPage())
+            }
+            path == "/quiz" -> {
+                if (games.name(playToken) == null) writeRedirect(out, "/join?next=quiz")
+                else writeFamilyHtml(out, familyB.quizPage())
+            }
+            path == "/clock" -> {
+                if (games.name(playToken) == null) writeRedirect(out, "/join?next=clock")
+                else writeHtml(out, 200, com.beeboentertainment.movie.campsite.tripclock.TripClockGuestPage.html())
             }
             path == "/music/track" -> {
                 val id = decode(query["id"].orEmpty())
@@ -547,9 +599,27 @@ class CampsiteServer(
     }
 
     private fun writeHtml(out: OutputStream, status: Int, html: String) {
-        val bytes = html.toByteArray()
+        // Every page carries the quiet-hours banner (Family Pack A), so no page needs an edit to get it.
+        val bytes = com.beeboentertainment.movie.campsite.family.FamilyBanner.inject(html).toByteArray()
         val h = "HTTP/1.1 $status OK\r\nContent-Type: text/html; charset=utf-8\r\n" +
             "Cache-Control: no-store\r\nContent-Length: ${bytes.size}\r\nConnection: close\r\n\r\n"
+        out.write(h.toByteArray()); out.write(bytes)
+    }
+
+    /**
+     * Family pack pages: the same as [writeHtml] plus a policy that lets the page talk only to this
+     * host, load nothing from anywhere else (no fonts, images, scripts or frames) and use no
+     * microphone, camera or location. The page is one self-contained file, so this costs it nothing.
+     */
+    private fun writeFamilyHtml(out: OutputStream, html: String) {
+        // Same quiet-hours banner every other guest page carries (Family Pack A). It only reads /api/family.
+        val bytes = com.beeboentertainment.movie.campsite.family.FamilyBanner.inject(html).toByteArray(Charsets.UTF_8)
+        val h = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n" +
+            "Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\n" +
+            "Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
+            "connect-src 'self'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'\r\n" +
+            "Permissions-Policy: microphone=(), camera=(), geolocation=()\r\n" +
+            "Content-Length: ${bytes.size}\r\nConnection: close\r\n\r\n"
         out.write(h.toByteArray()); out.write(bytes)
     }
 

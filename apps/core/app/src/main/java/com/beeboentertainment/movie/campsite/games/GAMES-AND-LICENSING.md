@@ -125,3 +125,15 @@ The cheapest good additions, in order:
 4. **Rummy** — traditional, and the card plumbing is done.
 
 Adding one is a single new file plus a single line in `CampsiteGameCatalog.ALL`.
+
+---
+
+## Added 21 September 2026 (Family Pack A)
+
+- **Plate & Sign Hunt** (`plates`): the traditional spot-the-plates and alphabet car games. Rules are
+  not copyrightable, and the name is descriptive. Its lists are facts (state, province and territory
+  names with their postal abbreviations, the letters A to Z). It contains **no plate images, no state
+  seals, no slogans and no brand names**; a unit test holds every string it shows against a deny list of
+  plate slogans, seals and brands. "Jurisdictions" is used because the District of Columbia is not a
+  state. It is a passengers-only game and says so ("never the driver"). Details:
+  `docs/CAMPSITE-FAMILY-PACK-A.md`.

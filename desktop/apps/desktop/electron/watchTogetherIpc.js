@@ -37,7 +37,7 @@ function register(deps) {
       const win = new BrowserWindow({
         width: 1280, height: 780, backgroundColor: '#000000', autoHideMenuBar: true,
         title: String(a.title || 'Beebo Entertainment').slice(0, 120),
-        webPreferences: { contextIsolation: true, nodeIntegration: false }
+        webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } // explicit, like the other windows onto the local server
       })
       await win.webContents.session.cookies.set({
         url: `http://127.0.0.1:${port}`, name: 'beebo_session', value: auth.signSession(store, me.id),

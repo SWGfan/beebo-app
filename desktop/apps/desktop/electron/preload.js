@@ -44,6 +44,11 @@ contextBridge.exposeInMainWorld('beeboentertainment', {
     copyReport: (checksText) => ipcRenderer.invoke('doctor:copyReport', checksText),
     onOpen: (cb) => { const h = () => cb(); ipcRenderer.on('doctor:open', h); return () => ipcRenderer.removeListener('doctor:open', h) }
   },
+  // Offline status chip (electron/connectivityIpc.js): what Beebo has seen of the internet; check() sends one connect.
+  connectivity: {
+    status: () => ipcRenderer.invoke('connectivity:status'),
+    check: () => ipcRenderer.invoke('connectivity:check')
+  },
   updateInstall: (mode) => ipcRenderer.invoke('updates:install', mode),
   updateAfterRelaunch: () => ipcRenderer.invoke('updates:afterUpdate'),
   updateAckAfterRelaunch: () => ipcRenderer.invoke('updates:ackAfterUpdate'),
@@ -125,8 +130,22 @@ contextBridge.exposeInMainWorld('beeboentertainment', {
     testOpenSubtitles: () => ipcRenderer.invoke('playback:testOpenSubtitles'),
     encoderStatus: (again) => ipcRenderer.invoke('playback:encoderStatus', !!again),
     transcodeLoad: () => ipcRenderer.invoke('playback:transcodeLoad'),
+    // Settings > Playback > Home theater (electron/homeTheaterSettings.js)
+    homeTheaterGet: () => ipcRenderer.invoke('homeTheater:get'),
+    homeTheaterSave: (patch) => ipcRenderer.invoke('homeTheater:save', patch),
+    homeTheaterSaveUser: (userId, patch) => ipcRenderer.invoke('homeTheater:saveUser', userId, patch),
     sweepNow: (opts) => ipcRenderer.invoke('subtitles:sweepNow', opts),
     sweepStatus: () => ipcRenderer.invoke('subtitles:sweepStatus')
+  },
+  // Settings > Playback > Cinema: the pre-show before films (electron/cinemaIpc.js). The owner's console only.
+  cinema: {
+    getState: () => ipcRenderer.invoke('cinema:getState'),
+    saveConfig: (partial) => ipcRenderer.invoke('cinema:saveConfig', partial || {}),
+    saveMyPrefs: (patch) => ipcRenderer.invoke('cinema:saveMyPrefs', patch || {}),
+    pickFolder: () => ipcRenderer.invoke('cinema:pickFolder'),
+    openFolder: () => ipcRenderer.invoke('cinema:openFolder'),
+    clearHistory: () => ipcRenderer.invoke('cinema:clearHistory'),
+    comingSoon: () => ipcRenderer.invoke('cinema:comingSoon')
   },
   // Settings > Add-ons: optional downloadable components + the Speech Pack subtitle queue (electron/addonsIpc.js).
   addons: {
@@ -238,6 +257,13 @@ contextBridge.exposeInMainWorld('beeboentertainment', {
 
   // Watch together (electron/watchTogetherIpc.js): { kind, fileName, relPath?, title } -> { ok, inviteUrl, code }
   watchTogetherStart: (opts) => ipcRenderer.invoke('watchTogether:start', opts || {}),
+
+  // Movie Night (electron/movieNightIpc.js): the details page's button and Settings > Movie Night.
+  movieNight: {
+    start: (opts) => ipcRenderer.invoke('movieNight:start', opts || {}), // { fileName?, title?, mode: 'window' | 'tv' } -> { ok, code, tvAddress }
+    getSettings: () => ipcRenderer.invoke('movieNight:getSettings'),
+    saveSettings: (partial) => ipcRenderer.invoke('movieNight:saveSettings', partial || {})
+  },
 
   // Edit info, the artwork picker and the metadata language (electron/metadataIpc.js). Desktop-only:
   // nothing in the web pages, phone apps or public API can reach these.
@@ -424,6 +450,18 @@ contextBridge.exposeInMainWorld('beeboentertainment', {
   setUserEmail: (userId, email) => ipcRenderer.invoke('auth:setUserEmail', { userId, email }),
   setUserCode: (userId, code) => ipcRenderer.invoke('auth:setUserCode', { userId, code }),
   setUserPassword: (userId, password) => ipcRenderer.invoke('auth:setUserPassword', { userId, password }),
+
+  // Settings > Jellyfin apps (electron/jellyfinIpc.js): owner-only.
+  jellyfinStatus: () => ipcRenderer.invoke('jellyfin:status'),
+  jellyfinUsers: () => ipcRenderer.invoke('jellyfin:users'),
+  jellyfinSessions: () => ipcRenderer.invoke('jellyfin:sessions'),
+  jellyfinRevokeSession: (userId, id) => ipcRenderer.invoke('jellyfin:revokeSession', { userId, id }),
+  jellyfinQuickConnectPending: () => ipcRenderer.invoke('jellyfin:quickConnectPending'),
+  jellyfinQuickConnectApprove: (code, userId) => ipcRenderer.invoke('jellyfin:quickConnectApprove', { code, userId }),
+  jellyfinAppPasswords: () => ipcRenderer.invoke('jellyfin:appPasswords'),
+  jellyfinCreateAppPassword: (userId, label) => ipcRenderer.invoke('jellyfin:createAppPassword', { userId, label }),
+  jellyfinRemoveAppPassword: (id) => ipcRenderer.invoke('jellyfin:removeAppPassword', { id }),
+  jellyfinSelfTest: (userId) => ipcRenderer.invoke('jellyfin:selfTest', { userId }),
 
   // Account security (electron/accountSecurityIpc.js): owner-only.
   securityOverview: () => ipcRenderer.invoke('security:overview'),

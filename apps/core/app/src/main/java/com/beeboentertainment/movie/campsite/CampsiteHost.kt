@@ -98,7 +98,7 @@ object CampsiteHost {
             port = CampsiteServer.DEFAULT_PORT,
             listItems = { sharedItems() },
             fileForId = { id -> repo.get(id)?.let { repo.fileFor(it) } },
-            gamesPage = { BeeboApp.instance.assets.open("campsite-games.html").bufferedReader().use { it.readText() } },
+            gamesPage = { CampsitePagePacks.gamesPage(BeeboApp.instance.assets) },
             triviaQuestions = { triviaQuestions() },
             // Match history and the leaderboard live in the app's existing plain
             // SharedPreferences, so they survive the app closing and the phone restarting.
@@ -128,6 +128,8 @@ object CampsiteHost {
             noIpFound = ip == null,
         )
         CampsiteInvite.onServerRunning()
+        // Family Pack A: the 15-minute quiet-hours heads-up and the count of nights kept.
+        com.beeboentertainment.movie.campsite.quiet.QuietMonitor.start()
         // An invite nobody took up ends by itself, so a forgotten Campsite is not an evening
         // of foreground service and hotspot. Its own light loop: the poll below sleeps while
         // no screen is watching, which is exactly when this one matters.
@@ -180,6 +182,7 @@ object CampsiteHost {
         refreshJob?.cancel(); refreshJob = null
         idleJob?.cancel(); idleJob = null
         runCatching { CampsiteMusicHost.detach() }
+        runCatching { com.beeboentertainment.movie.campsite.quiet.QuietMonitor.stop() }
         runCatching { server?.stop() }
         server = null
         _state.value = State(running = false)

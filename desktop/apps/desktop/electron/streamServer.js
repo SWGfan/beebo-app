@@ -88,9 +88,15 @@ const aiSubtitles = require('./aiSubtitles') // "Name.en.ai.srt" naming + the "(
 // Away-from-home plan -> max quality mapping (pure; see the file for the fail-closed rule).
 const awayQualityPolicy = require('./awayQualityPolicy')
 const playbackWebUi = require('./playbackWebUi')
+const cinemaMode = require('./cinemaMode') // Cinema Mode: pre-show trailers before a film (docs/CINEMA-MODE.md)
+const cinemaModeWeb = require('./cinemaModeWeb')
 const watchTogetherRooms = require('./watchTogether') // Watch together: rooms of people watching one title in step
 const watchTogetherHttp = require('./watchTogetherHttp')
 const watchTogetherWeb = require('./watchTogetherWeb')
+const movieNightRooms = require('./movieNight') // Movie Night: the TV hub, guests on phones, games made from the cached library
+const movieNightHttp = require('./movieNightHttp')
+const movieNightWeb = require('./movieNightWeb')
+const movieNightLibrary = require('./movieNightLibrary')
 const playabilityScan = require('./playabilityScan')
 const backup = require('./backup') // admin Backup tab: download / restore
 const schoolReport = require('./schoolReport') // BeeboSchool printable report page renderer
@@ -621,6 +627,18 @@ function verifyGuest(store, code, token) {
   const expect = crypto.createHmac('sha256', mediaTokenSecret(store)).update(`${code}|${memberId}|${exp}`).digest('base64url')
   const a = Buffer.from(sig), b = Buffer.from(expect)
   return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+// One Range header for a small file: { start, end } inside the file, or null when it can't be served (the caller answers 416).
+// "bytes=-N" is the last N bytes. (The old inline parsers gave a negative Content-Length for "bytes=99999-" and the FIRST
+// bytes for "bytes=-5"; security review 2026-09-21, P-12.)
+function parseSingleRange(header, total) {
+  const m = /^bytes=(\d{0,15})-(\d{0,15})$/.exec(String(header || '').trim())
+  if (!m || (m[1] === '' && m[2] === '') || !(total > 0)) return null
+  let start, end
+  if (m[1] === '') { const n = parseInt(m[2], 10); if (!(n > 0)) return null; start = Math.max(0, total - n); end = total - 1 }
+  else { start = parseInt(m[1], 10); end = m[2] !== '' ? Math.min(parseInt(m[2], 10), total - 1) : total - 1 }
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= total) return null
+  return { start, end }
 }
 async function serveVideoFileThrottled(req, res, filePath, bytesPerSec) {
   let stat
@@ -1319,7 +1337,7 @@ ${pwa.playerHead()}
       : ''
   }
 </div>
-<video id="v" src="${src}" controls autoplay playsinline x-webkit-airplay="allow"${poster ? ` poster="${poster}"` : ''}></video>
+<video id="v" src="${src}" controls autoplay playsinline x-webkit-airplay="allow"${poster ? ` poster="${poster}"` : ''}></video>${!surf && mediaId ? cinemaModeWeb.cinemaHtml({ kind, mediaId }) : ''}
 <div id="err">
   <h2>This video's format can't play on this device</h2>
   <p>The file itself is fine — this phone/browser just doesn't understand its format.
@@ -1619,6 +1637,7 @@ ${surfJs}
 ${seekToJs}${resumeJs}${transportJs}${markersJs}${upNextJs}</script>
 ${!surf && mediaId ? playbackWebUi.playbackPanelHtml({ kind, mediaId }) : ''}
 ${!surf && mediaId ? watchTogetherWeb.watchTogetherHtml({ kind, mediaId, title, nextHref }) : ''}
+${!surf && mediaId ? movieNightWeb.reactionOverlayHtml() : ''}
 ${surf ? '' : playlistWeb.PLAYER_QUEUE_SCRIPT}
 ${pwa.playerScript()}
 </body></html>`
@@ -3549,9 +3568,40 @@ function page(body, { narrow } = {}) {
   </body></html>`
 }
 
+// Bodies are read into memory, so every reader has a hard cap. Without one, a single unauthenticated
+// POST of a few gigabytes to /login or /api/login could exhaust the server's memory (security review
+// 2026-09-21, L-1). Past the cap the request is cut off (the socket is closed) and the caller sees an
+// error it already handles (an empty body).
+const SMALL_BODY_LIMIT = 1024 * 1024
+const API_BODY_LIMIT = 8 * 1024 * 1024
+async function* cappedBody(req, limit = SMALL_BODY_LIMIT) {
+  const declared = Number(req && req.headers && req.headers['content-length'])
+  if (Number.isFinite(declared) && declared > limit) {
+    try { req.destroy() } catch { /* already gone */ }
+    const err = new Error('request body too large')
+    err.code = 'body_too_large'
+    throw err
+  }
+  let total = 0
+  for await (const chunk of req) {
+    total += chunk.length
+    if (total > limit) {
+      try { req.destroy() } catch { /* already gone */ }
+      const err = new Error('request body too large')
+      err.code = 'body_too_large'
+      throw err
+    }
+    yield chunk
+  }
+}
+
 async function readBody(req) {
   const chunks = []
-  for await (const chunk of req) chunks.push(chunk)
+  try {
+    for await (const chunk of cappedBody(req)) chunks.push(chunk)
+  } catch {
+    return {}
+  }
   const raw = Buffer.concat(chunks).toString('utf8')
   return Object.fromEntries(new URLSearchParams(raw))
 }
@@ -4266,6 +4316,15 @@ function resetPasswordDonePage({ ok, error } = {}) {
 const HEARTBEAT_SCRIPT = `<script>
   function moviheartbeat() { fetch('/heartbeat', { method: 'POST', keepalive: true }).catch(() => {}) }
   setInterval(moviheartbeat, 20000)
+  // With no internet a poster that is not saved on this PC cannot load from TMDB: show a plain film-poster
+  // shape instead of a broken-image icon (electron/cloudFetch.js, docs/OFFLINE-FIRST.md).
+  document.addEventListener('error', function (e) {
+    var t = e.target
+    if (!t || t.tagName !== 'IMG' || t.getAttribute('data-offline-fallback') || !/^https:\\/\\/image\\.tmdb\\.org\\//.test(t.src)) return
+    t.setAttribute('data-offline-fallback', '1')
+    t.removeAttribute('srcset')
+    t.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1c212b"/><rect x="70" y="120" width="60" height="60" rx="8" fill="none" stroke="#4a5363" stroke-width="6"/><path d="M92 138l22 12-22 12z" fill="#4a5363"/></svg>')
+  }, true)
 </script>`
 
 function formatBytes(bytes) {
@@ -4350,11 +4409,11 @@ function recordMissingRequest(store, { kind, title, showName, season, episode, c
   const isTv = kind === 'tv'
   const candidate = {
     kind: isTv ? 'tv' : 'movie',
-    title: String(title || '').trim(),
-    showName: isTv ? String(showName || '').trim() || null : null,
+    title: String(title || '').trim().slice(0, 200),
+    showName: isTv ? String(showName || '').trim().slice(0, 200) || null : null,
     season: isTv ? intOrNull(season) : null,
     episode: isTv ? intOrNull(episode) : null,
-    collectionName: isTv ? null : String(collectionName || '').trim() || null,
+    collectionName: isTv ? null : String(collectionName || '').trim().slice(0, 200) || null,
     tmdbId: intOrNull(tmdbId),
     year: intOrNull(year)
   }
@@ -4382,6 +4441,8 @@ function recordMissingRequest(store, { kind, title, showName, season, episode, c
   const now = Date.now()
   const key = missingRequestKey(candidate)
   const existing = requests.find((r) => r && typeof r === 'object' && missingRequestKey(r) === key)
+  // The list lives in config.json (rewritten in full on every change): past 5000 rows it is a flood, not a wish list.
+  if (!existing && requests.length >= 5000) return { ok: false, error: 'too_many_requests' }
 
   if (existing) {
     const mine = (existing.requestedBy || []).find((u) => u && u.userId === userId)
@@ -4831,6 +4892,8 @@ function startStreamServer({
   // Optional overrides for the Quality & audio picker (playbackApi.js); tests pass a temp dir,
   // a fake OpenSubtitles address, etc. The app leaves it out.
   playback: playbackOverrides,
+  // Optional overrides for Cinema Mode (cinemaMode.js): tests pass a fake TMDB source, clock, etc.
+  cinema: cinemaOverrides,
   // Optional overrides for the automatic intro/credits scanner (introDetectJob.js): tests pass fakes
   // for ffmpeg/time. The app leaves it out.
   autoMarkers: autoMarkerOverrides,
@@ -5418,6 +5481,57 @@ function startStreamServer({
       }
     },
   })
+  // --- Cinema Mode: a pre-show before a film (cinemaMode.js, cinemaModeWeb.js, docs/CINEMA-MODE.md) ---
+  // GET /api/playback/preroll (and /playback-api/...) answers with what to play first; /cinema/media/<id>
+  // serves the local trailer / intro files by signed token. The gate for a restricted profile lives in
+  // cinemaMode.evaluateCandidate (parentalControls.decide, stricter: an unrated trailer is refused).
+  const cinemaProber = require('./playbackTracks').createTrackProber({ ffprobePath: convert.ffprobePath })
+  const cinemaMeta = (m) => {
+    if (!m) return {}
+    ensureCollectionsLoaded(getTmdbCacheDir ? getTmdbCacheDir() : null)
+    const col = m.id != null ? movieCollectionCache.get(String(m.id)) : null
+    const g = m.gate || { certification: m.certification, genre_ids: m.genre_ids }
+    const year = /^\d{4}/.test(String(m.release_date || '')) ? Number(String(m.release_date).slice(0, 4)) : null
+    return { tmdbId: m.id != null ? m.id : null, title: m.title || '', year, genres: g.genre_ids || [], certification: g.certification || null, collectionId: col && col.id != null ? col.id : null }
+  }
+  const cinema = cinemaMode.createCinemaService({
+    store,
+    getMovieDirs: () => allMoviesDirs(),
+    getCacheDir: () => (getTmdbCacheDir ? getTmdbCacheDir() : null),
+    getApi: () => titleMatch.createTmdbApi(store.get('tmdbApiKey') || process.env.TMDB_API_KEY),
+    sign: (id) => makeMediaToken(store, id),
+    check: (id, token) => checkMediaToken(store, id, token).ok,
+    probeDuration: async (file) => { const t = await cinemaProber.probe(file); return t ? t.durationSec : null },
+    resolveFeature: async (kind, id) => {
+      let rel
+      try { rel = decodeId(id) } catch { return null }
+      if (!rel) return null
+      await primeLibrary('movies')
+      const m = await library.findMovie(allMoviesDirs(), rel)
+      if (!m) return null
+      return { fileName: m.fileName, dir: m.dir, meta: cinemaMeta(cachedMovieMetaReader(getTmdbCacheDir ? getTmdbCacheDir() : null)(m.fileName, m.dir)) }
+    },
+    // Every film in the library with this person's watched mark; the cached details are read only for the films
+    // the picker actually considers (getMeta). The parental limits are applied by the picker itself, from the
+    // same policy the content gate uses.
+    listOwned: (userId) => {
+      const cacheDir = getTmdbCacheDir ? getTmdbCacheDir() : null
+      const metaOf = cachedMovieMetaReader(cacheDir)
+      let manifest = {}
+      try { manifest = cacheDir ? tmdbFileCache.getManifest(cacheDir) : {} } catch { manifest = {} }
+      let files = {}
+      try { files = watchedState.userFiles(store, userId) } catch { files = {} }
+      const seen = (fileName) => { const r = files[watchedState.fileKey('movie', fileName)]; return !!(r && r.watched) }
+      return rawScanMoviesMulti(allMoviesDirs()).map((m) => ({
+        id: m.id || encodeId(m.fileName), fileName: m.fileName, dir: m.dir,
+        watched: seen(m.fileName) || movieVersions.siblingsOf(m.fileName).some(seen),
+        tmdbId: (manifest[m.fileName] && manifest[m.fileName].id) || null,
+        getMeta: () => cinemaMeta(metaOf(m.fileName, m.dir))
+      }))
+    },
+    ...(cinemaOverrides || {})
+  })
+
   const shareOwnerLabel = () => {
     try {
       const owner = auth.getUsers(store).find((u) => u && u.isAdmin && u.status === 'approved')
@@ -5463,6 +5577,56 @@ function startStreamServer({
     log: (m) => { if (typeof log === 'function') log(m) }
   })
   watchTogetherRooms.setActive(watchTogether)
+  // --- Movie Night (movieNight*.js): TV hub + up to 12 guests on phones (no account), games built from the cached library ---
+  const movieNightPools = movieNightLibrary.createPoolCache()
+  const movieNight = movieNightHttp.createMovieNightHttp({
+    manager: movieNightRooms.createMovieNight({
+      log: (m) => { if (typeof log === 'function') log(m) },
+      getSettings: () => store.get('movieNight'),
+      // The pool of titles for one room: the host's own parental limits AND the owner's rating cap, cached TMDB data only.
+      getPool: ({ userId, settings }) => movieNightPools.get(`${userId || '-'}|${settings.ratingCap}|${settings.includeUnrated}`, async () => {
+        await primeLibrary('movies')
+        const cacheDir = getTmdbCacheDir ? getTmdbCacheDir() : null
+        const user = userId ? auth.getUsers(store).find((u) => u && u.id === userId && u.status === 'approved') : null
+        const viewer = viewerForUser(user)
+        let credits = {}
+        try { credits = cacheDir ? tmdbFileCache.getCreditsMap(cacheDir) : {} } catch { credits = {} }
+        const images = tmdbFileCache.localImageIndex(cacheDir)
+        const details = movieNightLibrary.readDetails(cacheDir)
+        return movieNightLibrary.buildPool({
+          movies: collapseMovieVersions(rawScanMoviesMulti(allMoviesDirs()), cacheDir),
+          metaOf: cachedMovieMetaReader(cacheDir),
+          creditsOf: (tmdbId) => credits[String(tmdbId)] || [],
+          detailsOf: (tmdbId) => details.get(String(tmdbId)),
+          hasPoster: (tmdbId) => images.hasPoster(tmdbId),
+          hasActorPhoto: (personId) => images.hasActorPhoto(personId),
+          idOf: (m) => m.id || encodeId(m.fileName),
+          allow: (id) => contentGateInstance.allowId(viewer, 'movie', id),
+          cap: settings.ratingCap,
+          includeUnrated: settings.includeUnrated
+        })
+      })
+    }),
+    getSettings: () => movieNightRooms.normalizeSettings(store.get('movieNight')),
+    getUser: (userId) => auth.getUsers(store).find((u) => u && u.id === userId && u.status === 'approved') || null,
+    userFromRequest: (req) => { try { return auth.verifySession(store, auth.parseCookies(req)[SESSION_COOKIE]) || null } catch { return null } },
+    getClientIp: (req) => getClientIp(req),
+    isHomeRequest: (req) => localAccess.isHomeRequest(req),
+    // The address a phone should open: this server's own address on the home network (works with no internet).
+    getJoinBase: (req) => {
+      const host = String((req.headers && req.headers.host) || '')
+      const tls = !!(req.socket && req.socket.encrypted)
+      if (localAccess.isHomeRequest(req)) {
+        if (/^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/.test(host) && !hostPolicy.isLoopback(host) && hostPolicy.isKnown(host)) return (tls ? 'https://' : 'http://') + host
+        const ip = movieNightHttp.lanAddress() || lanIPv4()
+        if (ip) return `http://${ip}:${ACTIVE_PORT}`
+      }
+      return httpSecurity.trustedOrigin(hostPolicy, req, { tlsActive: !!tlsState.active }) || linkOrigin()
+    },
+    getLanBase: () => { const ip = movieNightHttp.lanAddress() || lanIPv4(); return ip ? `http://${ip}:${ACTIVE_PORT}` : '' },
+    log: (m) => { if (typeof log === 'function') log(m) }
+  })
+  movieNightRooms.setActive(movieNight)
   // Ask the host (main.js) to push the share list to beebo.tv, if it gave us a way to.
   const requestShareSync = () => {
     try { if (typeof onSharesChanged === 'function') onSharesChanged() } catch {}
@@ -6135,6 +6299,16 @@ function startStreamServer({
   }
 
   const heldLogAt = new Map() // userId -> when "held at two-factor set-up" was last logged
+  // The forms anyone can post without signing in (ask for access, "forgot my code", "forgot my password") send
+  // mail, rewrite someone's access code or grow config.json. Five an hour per address, and five an hour for one
+  // e-mail address, are plenty for a person and stop a stranger rotating someone's code or filling an inbox.
+  const anonFormLimiter = titleRequests.createRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 })
+  const MAX_PENDING_ACCESS_REQUESTS = 100
+  function anonFormAllowed(ip, kind, email) {
+    if (!anonFormLimiter.hit(`${kind}|ip|${ip || 'unknown'}`).ok) return false
+    const mail = String(email || '').trim().toLowerCase().slice(0, 200)
+    return !mail || anonFormLimiter.hit(`${kind}|mail|${mail}`).ok
+  }
   // 60 strength checks a minute per address.
   const strengthHits = new Map()
   function strengthCheckAllowed(ip) {
@@ -6403,7 +6577,10 @@ function startStreamServer({
     let raw = ''
     try {
       const chunks = []
-      for await (const chunk of req) chunks.push(chunk)
+      // The owner's migration importer takes an uploaded export inside the JSON body (up to 200 MB, refused
+      // on Content-Length before it gets here); everything else is small JSON.
+      const limit = /^\/api\/admin\/migration(\/|\?|$)/.test(String(req.url || '')) ? 200 * 1024 * 1024 : API_BODY_LIMIT
+      for await (const chunk of cappedBody(req, limit)) chunks.push(chunk)
       raw = Buffer.concat(chunks).toString('utf8')
     } catch {
       return {}
@@ -12651,6 +12828,8 @@ function startStreamServer({
     const userId = bearer ? verifyApiToken(store, bearer[1]) : null
     const user = userId ? auth.getUsers(store).find((u) => u && u.id === userId) || null : null
     if (!user) return { ok: false, status: 401, body: { ok: false, error: 'unauthorized' } }
+    // An admin the owner is holding for two-factor set-up may not use the public API either.
+    if (twoFactor.setupRequired(store, user)) return { ok: false, status: 403, body: setupHeldAnswer(user) }
     auth.touchLastSeen(store, user.id, getClientIp(req))
     // The account token has every scope its person may hold: an admin all of them, anyone else library and history.
     return { ok: true, principal: { type: 'account', user, scopes: apiKeys.scopesFor(user), keyName: null } }
@@ -13239,6 +13418,17 @@ function startStreamServer({
         if (await photosApi.handleMedia(photosCtx(req, res), req, res, url, p)) return
       }
 
+      // The owner's "admins must use two-factor" hold also covers the audio libraries below. They are matched
+      // ABOVE the bearer gate (their streams take a media token too), so the hold there never ran for them: an
+      // admin who had not set two-factor up could still change radio / podcast settings with an older token.
+      if (p === '/api/music' || p.startsWith('/api/music/') || p === '/api/audiobooks' || p.startsWith('/api/audiobooks/') ||
+          p === '/api/podcasts' || p.startsWith('/api/podcasts/') || p === '/api/radio' || p.startsWith('/api/radio/')) {
+        const holdBearer = /^Bearer[ \t]+(\S+)[ \t]*$/i.exec(String(req.headers.authorization || ''))
+        const holdId = holdBearer ? verifyApiToken(store, holdBearer[1]) : null
+        const holdUser = holdId ? auth.getUsers(store).find((u) => u.id === holdId) : null
+        if (holdUser && twoFactor.setupRequired(store, holdUser)) { send(403, setupHeldAnswer(holdUser)); return }
+      }
+
       // --- Music (musicApi.js) ---
       // Ahead of the bearer gate below because two of its routes take other credentials: a song's
       // stream also accepts a media token (a browser <audio> or the car's player), and cover art is
@@ -13444,11 +13634,16 @@ function startStreamServer({
       // Quality & audio picker (playbackApi.js).
       if (liveTv.claimsApi(p)) { await liveTv.handleApi(req, res, url, { id: apiUserId, isAdmin: !!apiUser.isAdmin, guest: !!apiUser.guest }); return }
       if (p.startsWith('/api/playback/') || p.startsWith('/api/subtitles/online')) {
+        if (cinema.claims(p.slice(4)) && await cinema.handle(req, res, p.slice(4), url, { userId: apiUserId, send, isGuest: !!apiUser.guest })) return
         if (await playback.handle(req, res, p.slice(4), url, { userId: apiUserId, send })) return
       }
       // Watch together (watchTogetherHttp.js) for the apps; members only, never a shared-library guest.
       if (p.startsWith('/api/watch-together/') && !apiUser.guest) {
         if (await watchTogether.handle(req, res, url, p.slice('/api/watch-together'.length), { userId: apiUserId, send })) return
+      }
+      // Movie Night (movieNightHttp.js) for the TV apps: a signed-in TV starts a room as that person.
+      if (p.startsWith('/api/movie-night/') && !apiUser.guest) {
+        if (await movieNight.handleAuthed(req, res, url, p.slice('/api/movie-night'.length), { userId: apiUserId, send })) return
       }
 
       // The routes below that list or look up library files read the cached walk; make sure it
@@ -13766,12 +13961,9 @@ function startStreamServer({
         const total = st.size
         const range = req.headers['range']
         if (range && /^bytes=/.test(range)) {
-          const m = /^bytes=(\d*)-(\d*)$/.exec(range)
-          let start = m && m[1] ? parseInt(m[1], 10) : 0
-          let end = m && m[2] ? parseInt(m[2], 10) : total - 1
-          if (isNaN(start)) start = 0
-          if (isNaN(end) || end >= total) end = total - 1
-          if (start > end) { start = 0; end = total - 1 }
+          const rg = parseSingleRange(range, total)
+          if (!rg) { res.writeHead(416, { 'Content-Range': `bytes */${total}` }); res.end(); return }
+          const { start, end } = rg
           res.writeHead(206, {
             'Content-Type': 'audio/mpeg',
             'Accept-Ranges': 'bytes',
@@ -13984,15 +14176,20 @@ function startStreamServer({
           }
         } catch {}
         try { fs.mkdirSync(path.dirname(target), { recursive: true }) } catch {}
+        // Keep half a gigabyte free on the drive, and never take more than the size the phone declared (or 64 GB):
+        // a member's backup must not be able to fill the owner's disk (security review 2026-09-21, P-8).
+        try { const sf = fs.statfsSync(path.dirname(target)); if (sf.bavail * sf.bsize < (declaredSize || 0) + 512 * 1024 * 1024) { req.resume(); send(507, { ok: false, error: 'pc_disk_full' }); return } } catch {}
+        const ssLimit = declaredSize > 0 ? Math.min(declaredSize, 64 * 1024 ** 3) : 64 * 1024 ** 3
         const tmp = target + '.uploading'
         let responded = false
         const respond = (status, obj) => { if (!responded) { responded = true; send(status, obj) } }
         try {
-          const bb = Busboy({ headers: req.headers, limits: { files: 1 } })
+          const bb = Busboy({ headers: req.headers, limits: { files: 1, fileSize: ssLimit } })
           let gotFile = false
           bb.on('file', (_n, fileStream) => {
             gotFile = true
             const ws = fs.createWriteStream(tmp)
+            fileStream.on('limit', () => { ws.destroy(); ws.once('close', () => { try { fs.unlinkSync(tmp) } catch {} }); respond(413, { ok: false, error: 'too_large' }) })
             ws.on('error', (e) => { try { fs.unlinkSync(tmp) } catch {} respond(500, { ok: false, error: String(e) }) })
             ws.on('finish', () => {
               try {
@@ -14235,6 +14432,10 @@ function startStreamServer({
         const prompt = String(body.prompt || '').trim().slice(0, 800)
         const title = String(body.title || '').trim().slice(0, 80)
         if (!chars.length || !prompt) { send(400, { ok: false, error: 'need_prompt_and_character' }); return }
+        // One draft at a time, and finished jobs are forgotten after an hour: each job writes a book to disk and
+        // starts a bake process (security review 2026-09-21, P-10).
+        for (const [k, j] of cowriterJobs) if (Date.now() - (j.at || 0) > 3600000) cowriterJobs.delete(k)
+        if ([...cowriterJobs.values()].some((j) => j.status === 'pending') || cowriterJobs.size >= 50) { send(429, { ok: false, error: 'busy' }); return }
         const jobId = require('crypto').randomBytes(8).toString('hex')
         cowriterJobs.set(jobId, { status: 'pending', progress: 'Warming up the story writer…', at: Date.now() })
         // Fire and forget; the app polls status.
@@ -14274,9 +14475,9 @@ function startStreamServer({
       if (p === '/api/school/sessions') {
         if (method !== 'POST') { send(405, { ok: false, error: 'method_not_allowed' }); return }
         const body = await apiReadBody(req)
-        const sessions = Array.isArray(body.sessions) ? body.sessions : []
+        const sessions = (Array.isArray(body.sessions) ? body.sessions : []).slice(0, 200).filter((x) => { try { return JSON.stringify(x).length <= 4096 } catch { return false } })
         const byChild = {}
-        for (const s of sessions) { const id = String((s && s.profileId) || ''); if (!id) continue; (byChild[id] = byChild[id] || []).push(s) }
+        for (const s of sessions) { const id = String((s && s.profileId) || ''); if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) continue; (byChild[id] = byChild[id] || []).push(s) }
         let accepted = 0
         for (const id of Object.keys(byChild)) accepted += schoolAppendSessions(id, byChild[id])
         send(200, { ok: true, accepted }); return
@@ -14291,12 +14492,22 @@ function startStreamServer({
         const body = await apiReadBody(req)
         const pin = String(body.pin || '')
         if (!/^\d{4,8}$/.test(pin)) { send(400, { ok: false, error: 'bad_pin' }); return }
-        if (schoolPinSet() && !schoolPinVerify(String(body.current || ''))) { send(200, { ok: false, error: 'wrong_current' }); return }
+        const pinWho = 'school:' + apiUserId, pinIp = 'school-ip:' + getClientIp(req)
+        if (schoolPinSet()) {
+          if (parentalPinLimiter.locked(pinWho) || parentalPinLimiter.locked(pinIp)) { send(429, { ok: false, error: 'too_many_attempts' }); return }
+          if (!schoolPinVerify(String(body.current || ''))) { parentalPinLimiter.fail(pinWho); parentalPinLimiter.fail(pinIp); send(200, { ok: false, error: 'wrong_current' }); return }
+        }
         schoolPinStore(pin); send(200, { ok: true }); return
       }
       if (p === '/api/school/pin/verify') {
         const body = await apiReadBody(req)
-        send(200, { ok: true, valid: schoolPinVerify(String(body.pin || '')) }); return
+        // Wrong PINs are counted like the report page's (security review 2026-09-21, P-11): a 4-8 digit PIN with no
+        // limit is guessed in minutes by any signed-in person.
+        const pinWho = 'school:' + apiUserId, pinIp = 'school-ip:' + getClientIp(req)
+        if (parentalPinLimiter.locked(pinWho) || parentalPinLimiter.locked(pinIp)) { send(429, { ok: false, error: 'too_many_attempts' }); return }
+        const valid = schoolPinVerify(String(body.pin || ''))
+        if (valid) parentalPinLimiter.clear(pinWho); else { parentalPinLimiter.fail(pinWho); parentalPinLimiter.fail(pinIp) }
+        send(200, { ok: true, valid }); return
       }
 
       // --- BeeboSchool rewards + pet -------------------------------------
@@ -14310,10 +14521,11 @@ function startStreamServer({
         if (method === 'POST') {
           const body = await apiReadBody(req)
           const id = String(body.child || '')
+          if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) { send(400, { ok: false, error: 'bad_child' }); return }
           const prof = schoolReadProfile(id)
-          if (typeof body.addPoints === 'number') prof.points = Math.max(0, (prof.points || 0) + body.addPoints)
-          if (body.pet && typeof body.pet === 'object') prof.pet = body.pet
-          if (Array.isArray(body.unlockedAdd)) for (const u of body.unlockedAdd) if (u && !prof.unlocked.includes(String(u))) prof.unlocked.push(String(u))
+          if (typeof body.addPoints === 'number' && Number.isFinite(body.addPoints)) prof.points = Math.max(0, (prof.points || 0) + Math.max(-1000, Math.min(1000, body.addPoints)))
+          if (body.pet && typeof body.pet === 'object' && JSON.stringify(body.pet).length <= 8192) prof.pet = body.pet
+          if (Array.isArray(body.unlockedAdd)) for (const u of body.unlockedAdd.slice(0, 50)) if (u && prof.unlocked.length < 500 && !prof.unlocked.includes(String(u).slice(0, 64))) prof.unlocked.push(String(u).slice(0, 64))
           schoolWriteProfile(id, prof)
           send(200, { ok: true, profile: prof }); return
         }
@@ -14369,8 +14581,9 @@ function startStreamServer({
         let st; try { st = fs.statSync(fp) } catch { send(404, { ok: false }); return }
         const total = st.size, range = req.headers['range']
         if (range && /^bytes=/.test(range)) {
-          const m = /^bytes=(\d*)-(\d*)$/.exec(range); let s = m && m[1] ? parseInt(m[1], 10) : 0; let e = m && m[2] ? parseInt(m[2], 10) : total - 1
-          if (e >= total) e = total - 1
+          const rg = parseSingleRange(range, total)
+          if (!rg) { res.writeHead(416, { 'Content-Range': `bytes */${total}` }); res.end(); return }
+          const s = rg.start, e = rg.end
           res.writeHead(206, { 'Content-Type': 'audio/mp4', 'Content-Range': `bytes ${s}-${e}/${total}`, 'Accept-Ranges': 'bytes', 'Content-Length': e - s + 1 })
           pipeFileToResponse(res, fp, { start: s, end: e })
         } else {
@@ -14836,11 +15049,14 @@ function startStreamServer({
         const id = body && body.id ? String(body.id) : ''
         const showKey = body && body.showKey ? String(body.showKey) : null
         if (!id && !showKey) { send(400, { ok: false, error: 'bad_item' }); return }
+        // Every stored string is clipped: these rows live in config.json, which is rewritten in full on each change
+        // (security review 2026-09-21, P-4).
+        if (id.length > 1200 || (showKey && showKey.length > 300)) { send(400, { ok: false, error: 'bad_item' }); return }
         const entry = {
           id, kind,
           title: String((body && body.title) || 'Untitled').slice(0, 300),
-          poster: body && body.poster ? String(body.poster) : null,
-          stream: body && body.stream ? String(body.stream) : null,
+          poster: body && body.poster ? String(body.poster).slice(0, 500) : null,
+          stream: body && body.stream ? String(body.stream).slice(0, 2000) : null,
           showKey, at: Date.now(),
         }
         const cur = wlGet().filter((x) => !(x.kind === kind && String(x.id) === id && String(x.showKey || '') === String(showKey || '')))
@@ -14877,7 +15093,7 @@ function startStreamServer({
         const body = await apiReadBody(req)
         const kind = body && body.kind === 'tv' ? 'tv' : 'movie'
         const id = body && body.id ? String(body.id) : ''
-        if (!id) { send(400, { ok: false, error: 'bad_item' }); return }
+        if (!id || id.length > 800) { send(400, { ok: false, error: 'bad_item' }); return }
         const scope = kind === 'movie' ? 'movie' : apiShowMap().has(id) ? 'show' : 'episode'
         const t = watchedTargets(apiUserId, scope, { id, showKey: id }, true)
         if (t.error) { send(t.status, { ok: false, error: t.error }); return }
@@ -14903,12 +15119,17 @@ function startStreamServer({
         const body = await apiReadBody(req)
         const kind = body && body.kind === 'tv' ? 'tv' : 'movie'
         const id = body && body.id ? String(body.id) : ''
-        if (!id) { send(400, { ok: false, error: 'bad_item' }); return }
+        if (!id || id.length > 1200) { send(400, { ok: false, error: 'bad_item' }); return }
         const u = lfUserGet(); const k = lfKey(kind, id)
         const cur = u[k] || {}
         cur.favorite = body.favorite === true
         cur.at = Date.now()
-        if (!cur.watched && !cur.favorite) delete u[k]; else u[k] = cur
+        if (!cur.watched && !cur.favorite) delete u[k]
+        else {
+          // A person's favourites are a list a human keeps; past 5000 it is a way to fill the settings file.
+          if (!u[k] && Object.keys(u).length >= 5000) { send(409, { ok: false, error: 'too_many_favorites' }); return }
+          u[k] = cur
+        }
         lfUserSet(u)
         send(200, { ok: true }); return
       }
@@ -15225,6 +15446,7 @@ function startStreamServer({
   const jellyfinCompat = jellyfinCompatModule.create({
     store, log: (m) => { try { log(m) } catch {} }, dispatch: (rq, rs) => handleRequest(rq, rs), makeApiToken, verifyApiToken, attemptLogin,
     getUser: (id) => auth.getUsers(store).find((u) => u && u.id === id) || null, clientIp: getClientIp,
+    ffmpegPath: (playbackOverrides && playbackOverrides.ffmpegPath) || convert.ffmpegPath, localPort: () => ACTIVE_PORT,
     serverName: () => { try { return (typeof getPublicName === 'function' && getPublicName()) || '' } catch { return '' } }
   })
 
@@ -15325,6 +15547,9 @@ function startStreamServer({
       await tripShareApi.handlePublic(tripShareCtx(req, res), req, res, url)
       return
     }
+    // Movie Night (movieNightHttp.js): the TV screen and the phone page. Guests have no account, so this sits before the sign-in gate;
+    // it answers only on the home network unless the owner says otherwise, and every action needs a room ticket.
+    if (movieNight.claimsPublic(url.pathname) && await movieNight.handlePublic(req, res, url)) return
 
     // --- native phone app JSON API ---
     // Branches off FIRST, before the cookie session gate below, so an /api/*
@@ -15337,6 +15562,7 @@ function startStreamServer({
     if (url.pathname.startsWith('/hls/') || url.pathname === '/subtitles/embedded' || url.pathname === '/trickplay/thumb') {
       if (await playback.handlePublic(req, res, url)) return
     }
+    if (url.pathname.startsWith('/cinema/media/') && cinema.handlePublic(req, res, url)) return // pre-show trailer / intro files, by signed token
 
     // The Prometheus scrape address: the same handler as /api/v1/metrics, under the name scrapers
     // expect. Until the owner turns metrics on it is a plain 404, credential or not.
@@ -15398,14 +15624,24 @@ function startStreamServer({
       const reportSep = pick ? '&' : '?'
       // Set / change / reset the report PIN. The person is the signed-in account owner,
       // so 'reset' clears it without the old PIN (secure recovery, no emailing secrets).
+      // Wrong PINs are counted (per signed-in person and per address) and lock, like the parental PIN:
+      // a 4-8 digit PIN with no limit is guessed in minutes by anyone signed in (security review 2026-09-21, L-4).
+      const schoolPinWait = (who) => parentalPinLimiter.locked('school:' + who) || parentalPinLimiter.locked('school-ip:' + getClientIp(req))
+      const schoolPinFail = (who) => { parentalPinLimiter.fail('school:' + who); parentalPinLimiter.fail('school-ip:' + getClientIp(req)) }
       if (url.pathname === '/school/report/unlock' && req.method === 'POST') {
         const body = await readBody(req)
+        if (schoolPinWait(userId)) { res.writeHead(302, { Location: reportBase + reportSep + 'pin=bad' }); res.end(); return }
         if (schoolPinVerify(String(body.pin || ''))) {
+          parentalPinLimiter.clear('school:' + userId)
           res.writeHead(302, { Location: reportBase, 'Set-Cookie': httpSecurity.buildCookie(req, SCHOOL_REPORT_COOKIE, schoolReportCookie(), { path: '/school/report', maxAge: 1800 }) })
-        } else { res.writeHead(302, { Location: reportBase + reportSep + 'pin=bad' }) }
+        } else { schoolPinFail(userId); res.writeHead(302, { Location: reportBase + reportSep + 'pin=bad' }) }
         res.end(); return
       }
       if (url.pathname === '/school/report/reset-pin' && req.method === 'POST') {
+        // Recovery without the old PIN is for the person who runs this server. Any other signed-in
+        // household member (a child's profile included) could otherwise remove the parents' PIN.
+        const resetBy = auth.getUsers(store).find((u) => u && u.id === userId)
+        if (!resetBy || !resetBy.isAdmin) { res.writeHead(302, { Location: reportBase + reportSep + 'pin=wrongcur' }); res.end(); return }
         try { store.delete('schoolPinHash'); store.delete('schoolPinSalt') } catch (e) {}
         res.writeHead(302, { Location: reportBase + reportSep + 'pin=set' }); res.end(); return
       }
@@ -15413,7 +15649,10 @@ function startStreamServer({
         const body = await readBody(req)
         const next = String(body.next || '').trim()
         if (!/^[0-9]{4,8}$/.test(next)) { res.writeHead(302, { Location: reportBase + reportSep + 'pin=badnew' }); res.end(); return }
-        if (schoolPinSet() && !schoolPinVerify(String(body.current || ''))) { res.writeHead(302, { Location: reportBase + reportSep + 'pin=wrongcur' }); res.end(); return }
+        if (schoolPinSet()) {
+          if (schoolPinWait(userId)) { res.writeHead(302, { Location: reportBase + reportSep + 'pin=wrongcur' }); res.end(); return }
+          if (!schoolPinVerify(String(body.current || ''))) { schoolPinFail(userId); res.writeHead(302, { Location: reportBase + reportSep + 'pin=wrongcur' }); res.end(); return }
+        }
         schoolPinStore(next)
         res.writeHead(302, { Location: reportBase, 'Set-Cookie': httpSecurity.buildCookie(req, SCHOOL_REPORT_COOKIE, schoolReportCookie(), { path: '/school/report', maxAge: 1800 }) })
         res.end(); return
@@ -15424,13 +15663,15 @@ function startStreamServer({
         res.end(schoolPinGatePage({ reportBase: reportBase, bad: url.searchParams.get('pin') === 'bad' }))
         return
       }
-      if (url.pathname === '/school/report/clear') {
+      // A state change is a POST (the report page's "Clear" button is a form): a link on another site could
+      // otherwise send a signed-in owner here and wipe a child's saved sessions (security review 2026-09-21, X-06).
+      if (url.pathname === '/school/report/clear' && req.method === 'POST') {
         try { fs.unlinkSync(schoolSessionsFile(pick)) } catch (e) {}
         res.writeHead(302, { Location: reportBase }); res.end(); return
       }
       if (url.pathname === '/school/report/export') {
         const data = { child: children.find((c) => c.id === pick) || null, sessions: schoolReadSessions(pick) }
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="beeboschool-' + (pick || 'child') + '.json"' })
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="beeboschool-' + (String(pick || 'child').replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 60)) + '.json"' })
         res.end(JSON.stringify(data, null, 2)); return
       }
       const report = pick ? schoolBuildReport(pick) : {}
@@ -15824,9 +16065,12 @@ function startStreamServer({
         res.end(requestAccessPage({ error: 'Please enter your name and email.' }))
         return
       }
-      auth.submitAccessRequest(store, name, email, message)
+      // Over the limit (or the pending list is full) the person still sees "submitted"; nothing is stored or mailed.
+      const requestOk = anonFormAllowed(getClientIp(req), 'request-access', email) &&
+        auth.getRequests(store).filter((r) => !r.status || r.status === 'pending').length < MAX_PENDING_ACCESS_REQUESTS
+      if (requestOk) auth.submitAccessRequest(store, name, email, message)
 
-      const adminEmail = adminNotifyTo(store)
+      const adminEmail = requestOk ? adminNotifyTo(store) : null
       if (adminEmail) {
         mailer
           .sendMail(store, {
@@ -15852,7 +16096,7 @@ function startStreamServer({
 
     if (url.pathname === '/forgot-code' && req.method === 'POST') {
       const { email } = await readBody(req)
-      const user = auth.findApprovedUserByEmail(store, email)
+      const user = anonFormAllowed(getClientIp(req), 'forgot-code', email) ? auth.findApprovedUserByEmail(store, email) : null
       if (user && !viewingPrivacy.isPrivate(store, user.id)) {
         const code = auth.regenerateCode(store, user.id)
         mailer
@@ -15877,7 +16121,7 @@ function startStreamServer({
 
     if (url.pathname === '/forgot-password' && req.method === 'POST') {
       const { email } = await readBody(req)
-      const result = auth.createPasswordResetToken(store, email, { ip: getClientIp(req) })
+      const result = anonFormAllowed(getClientIp(req), 'forgot-password', email) ? auth.createPasswordResetToken(store, email, { ip: getClientIp(req) }) : null
       if (result) {
         const link = `${linkOrigin()}/reset-password?token=${result.token}`
         mailer
@@ -16080,6 +16324,7 @@ function startStreamServer({
     }
     if (userId && url.pathname.startsWith('/playback-api/')) {
       const sendJson = (status, obj) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)) }
+      if (cinema.claims(url.pathname.slice('/playback-api'.length)) && await cinema.handle(req, res, url.pathname.slice('/playback-api'.length), url, { userId, send: sendJson, isGuest: !!(webViewer && webViewer.type === 'guest') })) return
       if (await playback.handle(req, res, url.pathname.slice('/playback-api'.length), url, { userId, send: sendJson })) return
       sendJson(404, { ok: false, error: 'not_found' })
       return
@@ -17145,7 +17390,7 @@ function startStreamServer({
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17210,7 +17455,7 @@ function startStreamServer({
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17247,7 +17492,7 @@ function startStreamServer({
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch { body = {} }
       let id = ''
@@ -17325,7 +17570,7 @@ document.getElementById('go').addEventListener('click',function(){
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17358,7 +17603,7 @@ document.getElementById('go').addEventListener('click',function(){
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17378,7 +17623,7 @@ document.getElementById('go').addEventListener('click',function(){
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17405,7 +17650,7 @@ document.getElementById('go').addEventListener('click',function(){
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17637,7 +17882,7 @@ document.getElementById('go').addEventListener('click',function(){
       let body = {}
       try {
         const chunks = []
-        for await (const chunk of req) chunks.push(chunk)
+        for await (const chunk of cappedBody(req)) chunks.push(chunk)
         body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
       } catch {
         body = {}
@@ -17828,6 +18073,7 @@ document.getElementById('go').addEventListener('click',function(){
     requestHandler(req, res)
   })
   applyTimeouts(httpServer)
+  httpServer.on('upgrade', (req, socket, head) => { if (!jellyfinCompat.handleUpgrade(req, socket, head)) socket.destroy() }) // Jellyfin-style /socket only
   httpServer.on('clientError', (err, socket) => {
     // Default Node behaviour, but explicit so a malformed request line can
     // never surface as an uncaught exception.
@@ -17882,6 +18128,7 @@ document.getElementById('go').addEventListener('click',function(){
 
       const httpsServer = https.createServer(secureOptions, (req, res) => requestHandler(req, res))
       applyTimeouts(httpsServer)
+      httpsServer.on('upgrade', (req, socket, head) => { if (!jellyfinCompat.handleUpgrade(req, socket, head)) socket.destroy() })
       httpsServer.on('clientError', (err, socket) => {
         try {
           if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
@@ -18115,8 +18362,13 @@ document.getElementById('go').addEventListener('click',function(){
     speechPack,
     // Watch together rooms: the desktop app's details page starts one over IPC (watchTogetherIpc.js).
     watchTogether,
+    // Settings > Jellyfin apps (jellyfinIpc.js): Quick Connect approval, app sessions, app passwords, self-check.
+    jellyfin: jellyfinCompat.admin,
+    // Movie Night rooms: the desktop app's "Start Movie Night" button starts one over IPC (movieNightIpc.js).
+    movieNight,
     // Used by the tests; the app itself just exits.
     close: (cb) => {
+      try { jellyfinCompat.close() } catch {}
       try { autoMarkerScanner.stop() } catch {}
       try { speechPack.queue.stop() } catch {}
       try { liveEvents.closeAll() } catch {}
@@ -18141,6 +18393,7 @@ document.getElementById('go').addEventListener('click',function(){
       clearInterval(subtitleSweepDaily)
       try { playback.close() } catch {}
       try { watchTogether.close(); if (watchTogetherRooms.getActive() === watchTogether) watchTogetherRooms.setActive(null) } catch {}
+      try { movieNight.close(); if (movieNightRooms.getActive() === movieNight) movieNightRooms.setActive(null) } catch {}
       try { podcastsSvc.stop() } catch {}
       try { radioSvc.close() } catch {}
       movieVersions.setSiblingResolver(null)
@@ -18152,6 +18405,7 @@ document.getElementById('go').addEventListener('click',function(){
 module.exports = {
   startStreamServer,
   addPreRequestHook,
+  parseSingleRange, // exported for the Range regression test
   // exported for unit tests — how verify/reset email links are addressed
   emailLinkOrigin,
   PORT,

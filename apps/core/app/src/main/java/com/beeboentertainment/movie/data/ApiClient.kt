@@ -213,6 +213,34 @@ class ApiClient(
             }
         }
 
+    /**
+     * Step two for an account with two-factor on: the `challenge` from [login] plus a 6-digit app
+     * code or a recovery code. Like [login], a 401 here is an expected answer (wrong code, dead
+     * challenge, locked), so every JSON body is returned for [com.beeboentertainment.movie.core.SecondStep.outcome]
+     * to read. Neither the code nor the challenge is logged.
+     */
+    suspend fun loginSecondStep(challenge: String, code: String, baseUrlOverride: String? = null): LoginResponse =
+        withContext(Dispatchers.IO) {
+            val target = UrlUtils.endpoint(baseUrlOverride ?: session.baseUrl, "/api/login/2fa")
+                ?: throw ApiException("Enter a server address")
+            val json = JSON.encodeToString(SecondStepRequest.serializer(), SecondStepRequest(challenge, code))
+            val req = Request.Builder().url(target).post(postBody(json)).header("Accept", "application/json").build()
+            val response = try {
+                http.newCall(req).execute()
+            } catch (e: IOException) {
+                throw ApiException(friendlyNetworkError(e), dnsFailure = isUnknownHost(e))
+            }
+            response.use { r ->
+                val body = r.body?.string().orEmpty()
+                try {
+                    JSON.decodeFromString(LoginResponse.serializer(), body)
+                } catch (e: Exception) {
+                    if (r.code == 404) throw ApiException("This Beebo computer needs an update to sign in with a code.", r.code)
+                    throw ApiException("Unexpected response from server (HTTP ${r.code})", r.code)
+                }
+            }
+        }
+
     suspend fun me(): MeResponse = execute(newRequest("/api/me", true).get().build())
 
     /** [actor] is a TMDB person id (not a name) and narrows the list to that person's titles. */
