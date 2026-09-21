@@ -30,6 +30,8 @@ paths = [
 # Matched against the detected secret value itself. Anchored, so a real key that merely
 # CONTAINS a word like "test" is still reported.
 regexes = [
+  # A shell/env-var reference such as 'Authorization: Bearer $BEEBO_KEY' in docs is a placeholder, not a secret.
+  '''\$\{?[A-Z][A-Z0-9_]*\}?''',
   '''(?i)^(your|my)[-_ ]?(api[-_ ]?)?(key|token|secret|password)([-_ ]?here)?$''',
   '''(?i)^(changeme|change-me|placeholder|example|dummy|fake|redacted|replace[-_ ]?me|todo)[\w-]*$''',
   '''^[xX*]{6,}$''',

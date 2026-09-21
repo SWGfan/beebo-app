@@ -44,4 +44,6 @@ jobs:
           echo "${ACTIONLINT_SHA256}  $RUNNER_TEMP/$f" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/$f" -C "$RUNNER_TEMP" actionlint
       - name: actionlint
-        run: '"$RUNNER_TEMP/actionlint" -color'
+        run: >-
+          "$RUNNER_TEMP/actionlint" -color
+          -ignore 'shellcheck reported issue in this script: SC2(034|012|086|129):'
