@@ -38,6 +38,12 @@ jobs:
 
       - run: npm ci --workspaces=false
 
+      # The away-from-home host ships with its own node_modules (werift) inside the app; without this step the package
+      # has the host but not its library ("Cannot find module 'werift'"). Checked again after packaging below.
+      - name: Install the WebRTC host's dependencies
+        working-directory: desktop/apps/desktop/resources/beebo-rtc-host
+        run: npm ci --omit=dev
+
       # Same trusted source and LGPL+libopenh264 flavour as the Windows build
       # (THIRD_PARTY_LICENSES/FFMPEG-SETUP.md).
       # The archive is checked against the checksums.sha256 published in the same release.
@@ -65,9 +71,10 @@ jobs:
       - name: List the packages
         run: ls -la dist/*.AppImage dist/*.deb
 
-      - name: The deb carries ffmpeg and installs
+      - name: The deb carries ffmpeg and the away-from-home host library, and installs
         run: |
           dpkg-deb -c dist/*.deb | grep -E "resources/ffmpeg/(ffmpeg|ffprobe)$"
+          dpkg-deb -c dist/*.deb | grep -E "resources/beebo-rtc-host/node_modules/werift/package.json$"
           sudo apt-get install -y ./dist/*.deb
 
       # Informational: proves the packaged app starts on Linux. It does not fail the build,
