@@ -139,7 +139,7 @@ dependencies {
     implementation("androidx.media3:media3-session:1.11.0")
     implementation("androidx.media3:media3-datasource-okhttp:1.11.0")
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.5.0")
     // The away-from-home sign-in (home, username, password) is kept encrypted so the tunnel can
     // sign in again by itself when its 12-hour viewer token runs out. Same as the phone app.
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
