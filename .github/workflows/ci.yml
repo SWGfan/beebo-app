@@ -91,7 +91,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4 - Gradle cache; only main writes it
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v4.4.4 - Gradle cache; only main writes it
       # No local.properties and no keystore.properties on the runner: the SDK comes from
       # ANDROID_HOME on the ubuntu image, and release signing is only configured when
       # keystore.properties exists (debug unit tests never need it).
@@ -123,7 +123,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4 - Gradle cache; only main writes it
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v4.4.4 - Gradle cache; only main writes it
       # debug.keystore is gitignored; build.gradle.kts falls back to AGP's default debug key.
       - name: Unit tests (debug, all flavors)
         run: bash ../../.github/scripts/android-unit-tests.sh
