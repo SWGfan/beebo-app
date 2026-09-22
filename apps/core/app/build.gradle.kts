@@ -133,10 +133,10 @@ android {
 }
 
 dependencies {
-    val media3 = "1.4.1"
+    val media3 = "1.11.1"
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
@@ -149,7 +149,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    implementation("androidx.navigation:navigation-compose:2.8.2")
+    implementation("androidx.navigation:navigation-compose:2.10.1")
 
     // Space Saver picks folders through the Storage Access Framework, so it never needs a
     // storage permission - but SAF hands back tree URIs, and DocumentFile is what turns
@@ -165,14 +165,14 @@ dependencies {
 
     // QR codes — the host shows a scannable code so a passenger with no app can
     // join the car party straight from their phone browser.
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:core:3.5.4")
 
     implementation("com.google.crypto.tink:tink-android:1.23.0")
 
     // Networking + JSON
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
     // Player
     implementation("androidx.media3:media3-exoplayer:$media3")
@@ -185,7 +185,7 @@ dependencies {
     // and gives us the lock-screen / notification transport controls for free.
     implementation("androidx.media3:media3-session:$media3")
     // ListenableFuture, used by the MediaController connection handshake and MediaSession.Callback.
-    implementation("com.google.guava:guava:33.3.1-android")
+    implementation("com.google.guava:guava:33.7.1-android")
 
     // Trip Journal MP4 export: renders the slideshow to a file on the phone (Transformer), with
     // no upload. Must stay on the same version as the other media3 modules above.
@@ -228,8 +228,8 @@ dependencies {
     "webImplementation"("androidx.camera:camera-view:1.3.4")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }
 
 // ---------------------------------------------------------------------------------------
